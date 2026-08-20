@@ -217,3 +217,15 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 data/indices/
+
+# ── arXiv Agent v3 ────────────────────────────────────────────────────────────
+# Build artifacts: rebuilt from committed, checksummed chunks via `make index`.
+# See docs/DECISIONS.md D-005.
+data/indices/
+.index-verify/
+
+# Graph checkpoints (per-developer thread state)
+.checkpoints/
+
+# Source PDFs are not carried in this repo; chunks_512.json has the text.
+data/*.pdf

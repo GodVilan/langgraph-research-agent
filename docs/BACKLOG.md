@@ -37,3 +37,42 @@ Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./M
 | `classify_section` precision unvalidated | Ordered substring match over the first 600 chars; "in the abstract" inside a methodology chunk classifies as `abstract`. If section filtering ships (MIGRATION_MAP §5.8 option 1), this needs a labelled slice. |
 | Filtered vector search recall ceiling | `VectorStore.search` retrieves 200 candidates then post-filters by `allowed_paper_ids` (AUDIT §4.16). The recall cost of that ceiling on scoped queries has never been measured. |
 | v2.1 has no reproducible baseline | AUDIT §5. v3 does not start from a measured number; Phase 4 establishes the first one. |
+
+## Found during Phase 1
+
+| Item | Why deferred | Revisit at |
+|---|---|---|
+| Follow-up query rewriting / coreference resolution | `retrieve` embeds the current question verbatim, so a follow-up like "What is its rank hyperparameter?" is retrieved without the antecedent resolved and returns nothing useful. Observed live on a three-turn thread. Fixing it means a rewrite step that reads `messages` — a new LLM call per turn, and a change to what gets retrieved, which would move the Phase 4 baseline. | Phase 6, as a measured variant. The graph answers "the context does not contain this" rather than fabricating, so the failure is safe, just unhelpful. |
+| Real rate card for `gemini-3.5-flash-lite` | The pinned 2.5 model was retired mid-phase (DECISIONS D-012). Placeholder rates are marked `verified=False` and warn on use. | Before any cost figure is published |
+| Run-to-run variance under fixed sampling | `gemini-3.5-flash-lite` ignores `temperature`, so v2.1's greedy-decoding determinism no longer holds. Eval needs repeated runs or a variance estimate rather than a single pass. | Phase 4 |
+| Per-thread / per-day cost accumulator | D-013 made the budget strictly per-request. Phase 5's daily cost ceiling needs a separate accumulator. | Phase 5 |
+| No score threshold on dense retrieval | An out-of-corpus query ("quantum chromodynamics lattice gauge theory") still returns 5 confident-looking hits at cosine ~0.86, because `IndexFlatIP` always returns *something*. Adding a floor changes retrieval behaviour and would move the baseline. | Phase 4 measures it via the unanswerable subset first |
+
+## Carried into Phase 4 planning (logged Phase 1 review)
+
+| Item | Why it matters | Act at |
+|---|---|---|
+| **v2.1 baseline must use `gemini-3.5-flash-lite`** | Q2's rationale was holding the generator constant so the delta is attributable to orchestration. The forced 2.5→3.5 switch (D-012) preserves that **only if the v2.1 re-run uses 3.5 too**. Written down now so the constraint does not quietly lapse. | Phase 4 spec |
+| **`dense_only` comparison arm** | v3 calls BM25 automatically when dense under-delivers; v2.1 called it only when the model chose to. That is a policy difference (D-015), so the fallback's contribution should be isolated from the orchestration delta rather than bundled with it. | Phase 4 |
+| **Corpus diversity is a construction constraint** | 150 cs.LG papers all published 2026-05-28 is one day of one category. Multi-hop questions needing genuinely distinct papers may be hard to build, and the 15 unanswerable items need topics far enough outside that slice to be unambiguous. Discovering this halfway through QA generation would waste the effort. | Before QA generation |
+| **Unanswerable subset must target the no-score-floor failure** | An out-of-corpus query returns 5 hits at cosine ~0.86 because `IndexFlatIP` always returns something. The unanswerable items should be designed to surface exactly this, not merely to be absent from the corpus. | Phase 4 |
+| **Reset `max_notional_cost_usd` from measured data** | $0.05 was chosen against placeholder rates that understated cost ~3.6x. It is a round number calibrated on wrong inputs, not a derived one. | Phase 4 |
+| **Variance estimate, not a single pass** | Determinism is unrecoverable (D-014): 5 runs of one prompt gave 5 distinct outputs at every setting. Every eval metric needs repeats or a stated variance. | Phase 4 |
+
+## Found during Phase 2
+
+| Item | Why deferred | Revisit at |
+|---|---|---|
+| Model-based injection classifier | Pattern matching leaves 8 documented gaps (paraphrase, encoded payloads, non-English, hypothetical framing). A classifier would cover them, at the cost of an LLM call per retrieved chunk — 5 extra calls per retrieval pass, against a budget where the whole query currently costs 3. | Phase 3, once Langfuse can measure what the calls buy |
+| Multilingual injection rules | The rules are English-only; a French override passes cleanly. Either multilingual patterns or the classifier above. | With the classifier |
+| ~~False-positive rate on the real corpus~~ | **Done in Phase 2** — pulled forward on review. `make screen-corpus`; results and retune in [`SCREEN.md`](./SCREEN.md). It found 175 chunks (3.24%) would have been quarantined, all legitimate; now 0.00%. | — |
+| Recall cost of quarantine | A BLOCK hit drops a whole chunk. Whether that measurably hurts answer quality is unknown. | Phase 4 |
+| Repeated live-probe runs | `make injection-live` is n=1 per case against a non-deterministic model. A rate needs repeats. | Phase 4's variance work |
+| Separate `warn` from `block` in the guardrail metric | 60 corpus chunks (1.11%) produce a WARN, almost all false positives on papers that quote prompts. A single guardrail-trigger counter would look alarming for no reason. | Phase 3, when the Prometheus counter is defined |
+| Recall check on the surviving WARNs | WARNs do not withhold anything today, but under `strict` they quarantine. If the corpus is ever extended with untrusted content, those 60 chunks become 60 quarantines. | Whenever corpus trust tier changes |
+
+## Carried into Phase 4 (added at Phase 2 review)
+
+| Item | Why it matters | Act at |
+|---|---|---|
+| **Measure variance of the metric, not the string** | D-014 established 5/5 distinct *outputs*, but five different strings can grade identically under a rubric judge. The variance that matters is of the score. Design the estimate as N repeats of the same item scored by the judge, reporting the standard deviation of the metric. | Phase 4 |

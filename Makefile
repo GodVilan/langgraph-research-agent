@@ -1,0 +1,66 @@
+PY := .venv/bin/python
+PIP := .venv/bin/pip
+
+.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus check clean
+
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+install:  ## Create the venv and install the project with dev extras
+	python3 -m venv .venv 2>/dev/null || true
+	$(PIP) install -q -e ".[dev]"
+
+lint:  ## ruff check + format check
+	$(PY) -m ruff check src tests scripts
+	$(PY) -m ruff format --check src tests scripts
+
+fmt:  ## ruff format
+	$(PY) -m ruff format src tests scripts
+	$(PY) -m ruff check --fix src tests scripts
+
+type:  ## mypy strict
+	$(PY) -m mypy src
+
+test:  ## full test suite
+	$(PY) -m pytest -q
+
+test-fast:  ## skip tests that load the embedding model or hit the network
+	$(PY) -m pytest -q -m "not slow and not network"
+
+check: lint type test-fast  ## what CI runs on every push
+
+graph:  ## regenerate docs/img/graph.mmd from the compiled topology
+	$(PY) -m src.cli graph
+
+index:  ## build the FAISS index from the committed chunks
+	$(PY) scripts/build_index.py --print-hashes
+
+index-verify:  ## rebuild on CPU into a temp dir and compare rankings with the current index
+	@rm -rf .index-verify && mkdir -p .index-verify
+	$(PY) scripts/build_index.py --device cpu --out .index-verify --force
+	$(PY) scripts/compare_index.py data/indices/BGE_cs512.faiss .index-verify/BGE_cs512.faiss
+
+compare-index:  ## compare two FAISS indexes: INDEX_A=... INDEX_B=...
+	$(PY) scripts/compare_index.py $(INDEX_A) $(INDEX_B)
+
+verify-corpus:  ## check data/ against CORPUS.sha256
+	$(PY) -m src.cli verify-corpus
+
+corpus-info:  ## print reproducible corpus statistics
+	$(PY) -m src.cli corpus-info
+
+readme-stats:  ## regenerate the README statistics block from the repo
+	$(PY) scripts/readme_stats.py
+
+injection-report:  ## detection and false-positive rates for the injection guardrail
+	$(PY) scripts/injection_report.py
+
+injection-live:  ## drive undetected injections through the live graph (needs GOOGLE_API_KEY)
+	$(PY) scripts/injection_live_probe.py
+
+screen-corpus:  ## run the injection detector over all committed chunks (no API calls)
+	$(PY) scripts/screen_corpus.py
+
+clean:
+	rm -rf .pytest_cache .mypy_cache .ruff_cache .index-verify
+	find . -name __pycache__ -type d -prune -exec rm -rf {} +
