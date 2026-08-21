@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus check clean
+.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -60,6 +60,22 @@ injection-live:  ## drive undetected injections through the live graph (needs GO
 
 screen-corpus:  ## run the injection detector over all committed chunks (no API calls)
 	$(PY) scripts/screen_corpus.py
+
+langfuse-up:  ## start the self-hosted Langfuse stack
+	docker compose -f infra/docker-compose.langfuse.yml up -d
+	@echo "Langfuse starting at http://localhost:3000 (first boot takes a minute)"
+
+langfuse-down:  ## stop Langfuse, keeping its data
+	docker compose -f infra/docker-compose.langfuse.yml down
+
+langfuse-reset:  ## stop Langfuse and discard all trace data
+	docker compose -f infra/docker-compose.langfuse.yml down -v
+
+budget:  ## regenerate the spend table in docs/BUDGET.md from Langfuse traces
+	$(PY) scripts/budget_from_traces.py
+
+metrics:  ## print the current Prometheus exposition
+	$(PY) -m src.cli metrics
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .index-verify

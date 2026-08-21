@@ -68,7 +68,7 @@ Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./M
 | ~~False-positive rate on the real corpus~~ | **Done in Phase 2** — pulled forward on review. `make screen-corpus`; results and retune in [`SCREEN.md`](./SCREEN.md). It found 175 chunks (3.24%) would have been quarantined, all legitimate; now 0.00%. | — |
 | Recall cost of quarantine | A BLOCK hit drops a whole chunk. Whether that measurably hurts answer quality is unknown. | Phase 4 |
 | Repeated live-probe runs | `make injection-live` is n=1 per case against a non-deterministic model. A rate needs repeats. | Phase 4's variance work |
-| Separate `warn` from `block` in the guardrail metric | 60 corpus chunks (1.11%) produce a WARN, almost all false positives on papers that quote prompts. A single guardrail-trigger counter would look alarming for no reason. | Phase 3, when the Prometheus counter is defined |
+| ~~Separate `warn` from `block` in the guardrail metric~~ | **Done (Phase 3)** — `arxiv_agent_guardrail_triggers_total` carries a `severity` label. | — |
 | Recall check on the surviving WARNs | WARNs do not withhold anything today, but under `strict` they quarantine. If the corpus is ever extended with untrusted content, those 60 chunks become 60 quarantines. | Whenever corpus trust tier changes |
 
 ## Carried into Phase 4 (added at Phase 2 review)
@@ -76,3 +76,12 @@ Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./M
 | Item | Why it matters | Act at |
 |---|---|---|
 | **Measure variance of the metric, not the string** | D-014 established 5/5 distinct *outputs*, but five different strings can grade identically under a rubric judge. The variance that matters is of the score. Design the estimate as N repeats of the same item scored by the judge, reporting the standard deviation of the metric. | Phase 4 |
+
+## Found during Phase 3
+
+| Item | Why deferred | Revisit at |
+|---|---|---|
+| Trace sampling | Every run is traced. Free at this volume; a deployed instance with real traffic needs a policy and does not have one. | Phase 5, once there is traffic to sample |
+| Prometheus + Grafana in `infra/` | Metrics are exposed; nothing scrapes them. Adding a stack now would be a dashboard nobody watches, on top of six Langfuse containers. | Phase 5, alongside the deployed service |
+| First-class per-node cost attribution | Cost is attributed per model call by the handler and rolled up in trace metadata, not as a per-node cost field. | If Phase 4 needs per-node cost to explain a regression |
+| Reconcile Langfuse's cost estimate with ours | Langfuse reports $0.02776 for the same traces our instrumentation prices at $0.01248 notional (D-020). Neither is wrong; the gap is unexplained and worth understanding before either is published as *the* cost. | Phase 4, when cost per query becomes a reported metric |

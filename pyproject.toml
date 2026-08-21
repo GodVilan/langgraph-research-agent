@@ -8,9 +8,19 @@ license = { file = "LICENSE" }
 dependencies = [
     # ── Graph orchestration ────────────────────────────────────────────────
     "langgraph>=1.0",
+    # AsyncSqliteSaver, not SqliteSaver: every node is a coroutine and the sync saver
+    # raises NotImplementedError on the async checkpoint API (DECISIONS D-009).
     "langgraph-checkpoint-sqlite>=3.0",
+    "aiosqlite>=0.20",
     "langchain-core>=1.0",
+    # `init_chat_model` lives in `langchain`, not `langchain-core`.
+    "langchain>=1.0",
     "langchain-google-genai>=4.0",
+    # ── Observability ──────────────────────────────────────────────────────
+    "langfuse>=3.0",
+    "opentelemetry-sdk>=1.30",
+    "opentelemetry-exporter-otlp-proto-http>=1.30",
+    "prometheus-client>=0.21",
     # ── Retrieval (ported from v2.1 — do not change without re-baselining) ──
     "faiss-cpu>=1.7.4",
     "torch>=2.2.0",

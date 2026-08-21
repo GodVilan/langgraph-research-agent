@@ -24,6 +24,7 @@ import time
 from pathlib import Path
 
 from src.config import INDEX_NAME, RetrievalSettings, Settings, get_settings
+from src.observability.tracing import span
 from src.retrieval.arxiv_client import fetch_paper_chunks, search_arxiv
 from src.retrieval.bm25 import BM25Retriever
 from src.retrieval.chunker import Chunk, load_chunks
@@ -107,23 +108,28 @@ class RetrievalService:
         # single query and the "fallback" would not be a fallback at all.
         enough = min(top_k, self.cfg.sparse_fallback_threshold)
 
-        dense_hits = await asyncio.to_thread(
-            self.router.search, query, top_k, None, allowed_paper_ids
-        )
+        with span("retrieval.dense", **{"retrieval.top_k": top_k}) as sp:
+            dense_hits = await asyncio.to_thread(
+                self.router.search, query, top_k, None, allowed_paper_ids
+            )
+            sp.set_attribute("retrieval.n_hits", len(dense_hits))
         hits: list[tuple[Chunk, float, str]] = [(c, s, "dense") for c, s in dense_hits]
 
         used_sparse = False
         if len(hits) < enough:
             used_sparse = True
-            sparse_hits = await asyncio.to_thread(
-                self.bm25.retrieve, query, top_k, allowed_paper_ids
-            )
+            with span("retrieval.sparse", **{"retrieval.top_k": top_k}) as sp:
+                sparse_hits = await asyncio.to_thread(
+                    self.bm25.retrieve, query, top_k, allowed_paper_ids
+                )
+                sp.set_attribute("retrieval.n_hits", len(sparse_hits))
             hits.extend((c, s, "sparse") for c, s in sparse_hits)
 
         used_arxiv = False
         if use_arxiv and len({c.chunk_id for c, _, _ in hits}) < enough:
             used_arxiv = True
-            hits.extend(await self._fetch_and_index(query, top_k, allowed_paper_ids))
+            with span("retrieval.arxiv_fetch"):
+                hits.extend(await self._fetch_and_index(query, top_k, allowed_paper_ids))
 
         if section_filter and self.cfg.enable_section_filter:
             hits = [h for h in hits if h[0].section_type == section_filter]

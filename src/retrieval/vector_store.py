@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from src.config import EMBEDDING_DIM
+from src.observability.tracing import span
 from src.retrieval.chunker import Chunk
 
 if TYPE_CHECKING:
@@ -69,7 +70,15 @@ class VectorStore:
             self._index.ntotal,
             FILTERED_CANDIDATE_POOL if allowed_paper_ids is not None else top_k,
         )
-        scores, indices = self._index.search(query_vec, search_k)
+        with span(
+            "faiss.search",
+            **{
+                "faiss.ntotal": self._index.ntotal,
+                "faiss.search_k": search_k,
+                "faiss.filtered": allowed_paper_ids is not None,
+            },
+        ):
+            scores, indices = self._index.search(query_vec, search_k)
 
         results: list[tuple[Chunk, float]] = []
         for idx, score in zip(indices[0], scores[0], strict=True):

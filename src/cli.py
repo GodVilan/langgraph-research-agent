@@ -179,6 +179,50 @@ def corpus_info() -> None:
         typer.echo(f"  {name:<14} {count:>6}  ({count / len(chunks):.1%})")
 
 
+@app.command()
+def metrics() -> None:
+    """Print the current Prometheus exposition.
+
+    Phase 5 serves this from `GET /metrics`; this command exists so the metric definitions
+    can be inspected and tested without a running service.
+    """
+    from src.observability.metrics import exposition
+
+    payload, _ = exposition()
+    typer.echo(payload.decode("utf-8"))
+
+
+@app.command("trace-check")
+def trace_check() -> None:
+    """Report whether observability is configured, without making a model call."""
+    from src.observability.config import get_observability_settings
+    from src.observability.langfuse import get_client
+
+    obs = get_observability_settings()
+    typer.echo(f"langfuse host        : {obs.langfuse_host}")
+    typer.echo(f"langfuse environment : {obs.langfuse_environment}")
+    typer.echo(f"keys configured      : {obs.langfuse_enabled}")
+
+    if not obs.langfuse_enabled:
+        typer.secho(
+            "\nLangfuse is disabled. Tracing is a no-op; the agent runs normally.\n"
+            "  make langfuse-up   then set LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY",
+            fg=typer.colors.YELLOW,
+        )
+        raise typer.Exit(0)
+
+    client = get_client()
+    if client is None:
+        typer.secho("Keys are set but the client would not start.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    try:
+        reachable = bool(client.auth_check())
+    except Exception as exc:  # a reachability failure is the answer, not a crash
+        typer.secho(f"\nNot reachable: {exc}", fg=typer.colors.RED)
+        raise typer.Exit(1) from exc
+    typer.secho(f"\nreachable            : {reachable}", fg=typer.colors.GREEN)
+
+
 def main() -> None:
     sys.exit(app())
 

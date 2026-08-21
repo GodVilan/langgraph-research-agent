@@ -14,6 +14,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from src.config import BGE_QUERY_PREFIX, EMBEDDING_MODEL, get_settings, resolve_device
+from src.observability.tracing import span
 
 if TYPE_CHECKING:
     import numpy as np
@@ -57,13 +58,21 @@ class EmbeddingModel:
     ) -> np.ndarray:
         import numpy as np
 
-        embeddings = self._model.encode(
-            texts,
-            batch_size=self.batch_size,
-            show_progress_bar=show_progress,
-            convert_to_numpy=True,
-            normalize_embeddings=normalise,
-        ).astype(np.float32)
+        with span(
+            "embedding.encode",
+            **{
+                "embedding.model": self.model_name,
+                "embedding.device": self.device,
+                "embedding.n_texts": len(texts),
+            },
+        ):
+            embeddings = self._model.encode(
+                texts,
+                batch_size=self.batch_size,
+                show_progress_bar=show_progress,
+                convert_to_numpy=True,
+                normalize_embeddings=normalise,
+            ).astype(np.float32)
 
         if normalise:
             norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
@@ -75,10 +84,14 @@ class EmbeddingModel:
         """Encode a query with the BGE retrieval instruction prefix. FROZEN."""
         import numpy as np
 
-        vec = self._model.encode(
-            [BGE_QUERY_PREFIX + query],
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-        ).astype(np.float32)
+        with span(
+            "embedding.encode_query",
+            **{"embedding.model": self.model_name, "embedding.device": self.device},
+        ):
+            vec = self._model.encode(
+                [BGE_QUERY_PREFIX + query],
+                convert_to_numpy=True,
+                normalize_embeddings=True,
+            ).astype(np.float32)
         norms = np.linalg.norm(vec, axis=1, keepdims=True)
         return vec / np.maximum(norms, 1e-10)

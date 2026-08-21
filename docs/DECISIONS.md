@@ -570,3 +570,30 @@ otherwise splits it into fragments too short to reconstruct.
 **Cost:** an attack that letter-spaces a phrase the keyword list does not cover passes. The
 keyword list is a smaller surface than the rule set, and that is the trade for not
 quarantining maths.
+
+---
+
+## D-020 — Never fold a provider's cost estimate into our own billed figure
+
+**Decided:** `make budget` aggregates *only* traces carrying our own `usage` metadata. A
+trace without it is counted as unattributed and excluded from the cost columns, never
+back-filled from Langfuse's `total_cost`.
+
+**Why:** the first run of the generated spend table reported **`$0.01528` billed on a free
+tier**, with billed *above* notional — which is impossible, since notional prices the same
+tokens at strictly higher paid rates. The cause was a fallback that used Langfuse's
+`total_cost` when our metadata was absent. That figure is Langfuse's own estimate at its own
+rate card, and folding it into a column labelled "billed" turned two different measurements
+into one wrong number.
+
+Corrected, the same 70 traces report `$0.00000` billed and `$0.01248` notional, with 13
+traces declared unattributable because they predate the Phase 3 instrumentation.
+
+**The dashboard still shows Langfuse's `$0.02776`, and that is fine.** It answers a different
+question — what a generic rate card says these tokens are worth — and both figures appear in
+`docs/OBSERVABILITY.md` with the difference explained. What is not allowed is one number that
+silently means either.
+
+**Cost:** the spend table under-reports whenever instrumentation is missing. That is the
+right direction to be wrong in, and the unattributed count makes the gap visible rather than
+absorbing it into a plausible-looking total.

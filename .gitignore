@@ -229,3 +229,6 @@ data/indices/
 
 # Source PDFs are not carried in this repo; chunks_512.json has the text.
 data/*.pdf
+
+# CLAUDE.md
+CLAUDE.md
