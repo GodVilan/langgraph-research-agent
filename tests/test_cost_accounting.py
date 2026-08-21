@@ -8,6 +8,7 @@ column summed only the 6 real runs that had been priced. See DECISIONS D-021.
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -21,7 +22,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from langchain_core.messages import AIMessage
 
 from scripts.budget_from_traces import check_blended_rate, summarise
-from scripts.reconcile_cost import classify, find_duplicate_roots, notional_for
+from scripts.reconcile_cost import (
+    FIXTURE,
+    classify,
+    find_duplicate_roots,
+    load_fixture,
+    notional_for,
+)
 from src.agent.llm import usage_from_message
 from src.config import PRICING, Settings
 
@@ -216,3 +223,95 @@ class TestReconciliation:
         )
 
         assert pairs == []
+
+
+class TestD021IsReproducibleFromCommittedEvidence:
+    """The 214-trace window that D-021 was derived from, frozen and asserted.
+
+    `make langfuse-reset` cleared the live store to give Phase 4 a clean window. Without
+    this fixture that would have left a documented finding whose evidence no longer exists —
+    exactly what AUDIT §5 catalogues in v2.1, whose README reported `MRR@5 = 0.990` from a
+    dataset deleted in the same commit. A finding that cannot be re-derived is an assertion,
+    not a result.
+    """
+
+    @pytest.fixture
+    def traces(self) -> list[Any]:
+        return load_fixture(FIXTURE)
+
+    def test_the_fixture_is_committed_and_verifies_its_checksum(self, traces: list[Any]) -> None:
+        assert FIXTURE.exists(), f"{FIXTURE} is the evidence for D-021 and must be committed"
+        assert len(traces) == 214
+
+    def test_a_tampered_fixture_is_refused(self, tmp_path: Path) -> None:
+        """An edited fixture is not evidence, so it must fail loudly rather than reconcile."""
+        fixture = json.loads(FIXTURE.read_text())
+        fixture["traces"][0]["total_cost"] = 99.0
+        tampered = tmp_path / "tampered.json"
+        tampered.write_text(json.dumps(fixture))
+
+        with pytest.raises(SystemExit, match="checksum"):
+            load_fixture(tampered)
+
+    def test_the_three_populations_are_as_documented(self, traces: list[Any]) -> None:
+        groups = classify(traces, RATES)
+
+        assert len(groups["priced"]) == 6
+        assert len(groups["unpriced"]) == 187
+        assert len(groups["no_usage"]) == 21
+
+    def test_three_derivations_agree_exactly(self, traces: list[Any]) -> None:
+        """The proof that the notional calculator was never the problem."""
+        priced = classify(traces, RATES)["priced"]
+
+        stored = sum(r["stored_notional"] for r in priced)
+        recomputed = sum(r["recomputed_notional"] for r in priced)
+        langfuse = sum(r["langfuse_cost"] for r in priced)
+
+        assert stored == pytest.approx(0.01248, abs=5e-6)
+        assert recomputed == pytest.approx(stored, abs=1e-9)
+        assert langfuse == pytest.approx(stored, abs=5e-6)
+
+    def test_the_blend_on_the_priced_population_is_possible(self, traces: list[Any]) -> None:
+        priced = classify(traces, RATES)["priced"]
+        tokens = sum(r["input_tokens"] + r["output_tokens"] for r in priced)
+        blended = sum(r["stored_notional"] for r in priced) / tokens * 1_000_000
+
+        assert blended == pytest.approx(0.4056, abs=5e-4)
+        assert RATES.notional_input_usd <= blended <= RATES.notional_output_usd
+
+    def test_the_blend_over_all_traces_is_the_impossible_one(self, traces: list[Any]) -> None:
+        """Reproduces the bug itself: the merge that review caught, from the real data."""
+        groups = classify(traces, RATES)
+        every_trace = groups["priced"] + groups["unpriced"]
+        tokens = sum(r["input_tokens"] + r["output_tokens"] for r in every_trace)
+        cost = sum(r["stored_notional"] for r in every_trace)
+
+        blended = cost / tokens * 1_000_000
+
+        assert blended < RATES.notional_input_usd, (
+            "the pre-fix table's blended rate must land below the input floor — that "
+            "impossibility is what exposed the population merge"
+        )
+
+    def test_the_langfuse_gap_is_entirely_duplicate_roots(self, traces: list[Any]) -> None:
+        """$0.02776 - $0.01248 = $0.01528, and every cent of it is a double-counted run."""
+        priced = classify(traces, RATES)["priced"]
+        duplicates = find_duplicate_roots(traces)
+
+        assert len(duplicates) == 5
+        orphan_cost = sum(b["cost"] for _, b in duplicates)
+        dashboard_total = sum(float(t.total_cost) for t in traces)
+
+        assert orphan_cost == pytest.approx(0.01528, abs=5e-6)
+        assert dashboard_total == pytest.approx(
+            sum(r["langfuse_cost"] for r in priced) + orphan_cost, abs=5e-6
+        )
+        assert dashboard_total == pytest.approx(0.02776, abs=5e-6)
+
+    def test_most_of_the_window_was_test_traffic(self, traces: list[Any]) -> None:
+        """The dominant cause, and the reason conftest now disables observability."""
+        groups = classify(traces, RATES)
+        synthetic = len(groups["unpriced"]) / len(traces)
+
+        assert synthetic > 0.85
