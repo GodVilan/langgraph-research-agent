@@ -1,21 +1,43 @@
 # AUDIT — arXiv-Agent v2.1
 
-Read-only audit of `/Users/srikanth/Documents/Projects/arXiv-Agent/arXiv-Agent`
-(git `cca16da`, "feat: verified"). Nothing in that directory was modified.
+Read-only audit of **[GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent)**.
+Nothing in that repository was modified.
 
-Every claim below is traceable to a `file:line` in v2.1 or to a command shown inline.
+```bash
+git clone https://github.com/GodVilan/arXiv-Agent.git
+cd arXiv-Agent
+```
 
-**Measured facts about v2.1 as it sits on disk:**
+A fresh clone carries `data/metadata.json`, `data/chunks_512.json`, and the prebuilt
+`results/indices/BGE_cs512.{faiss,pkl}` — enough to reproduce every finding below except the
+PDF count, since the 150 source PDFs are gitignored.
 
-| Fact | Value | How to reproduce (run inside v2.1) |
+### Which revision this audit describes
+
+> Audited against `main` at
+> [`8d3e67f`](https://github.com/GodVilan/arXiv-Agent/commit/8d3e67f4cea716af65d2ce5e5fe8e46567f1fc58)
+> ("feat: decompose and fixes"). Line citations were re-checked against that commit on
+> 2026-08-21 and updated where the code had moved.
+>
+> The original pass was performed against an uncommitted working copy; `8d3e67f` published
+> it along with further refactoring that grew `react_agent.py` from 631 to 760 lines. Every
+> finding below was re-verified against the published code and **all of them still hold** —
+> the fail-open scope guard and critic, the unimported `Callable`, the dead `section_type`
+> filter, the regex-reconstructed sources, the deleted benchmark. Only line numbers moved,
+> and one count (`except Exception`: 70 → 71).
+
+**Measured facts about v2.1** at `8d3e67f`. The PDF row is the exception — the 150 source
+PDFs are gitignored, so a clone reports 0 and that figure comes from a populated checkout:
+
+| Fact | Value | How to reproduce (run inside a v2.1 clone) |
 |---|---|---|
-| Python source | 7,228 lines across 38 files | `wc -l $(find . -name '*.py' -not -path './venv/*' -not -path '*__pycache__*')` |
-| Largest module | `app.py`, 1,925 lines | same command, sorted |
+| Python source | 7,379 lines across 38 files | `wc -l $(find . -name '*.py' -not -path './venv/*' -not -path '*__pycache__*')` |
+| Largest module | `app.py`, 1,946 lines | same command, sorted |
 | Corpus papers | 150 | `python3 -c "import json;print(len(json.load(open('data/metadata.json'))))"` |
-| Corpus PDFs on disk | 150 (561 MB) | `ls data/*.pdf \| wc -l; du -sh data/` |
+| Corpus PDFs (gitignored) | 150 (561 MB) | `ls data/*.pdf \| wc -l; du -sh data/` |
 | Chunks (size 512) | 5,401, mean 380 whitespace tokens | `python3 -c "import json;c=json.load(open('data/chunks_512.json'));print(len(c),sum(x['token_count'] for x in c)/len(c))"` |
 | FAISS index | 22 MB `.faiss` + 15 MB pickled chunk metadata | `ls -lh results/indices/` |
-| `except Exception` blocks | 70 | `grep -rn "except Exception" --include="*.py" rag/ main.py build_index.py \| wc -l` |
+| `except Exception` blocks | 71 | `grep -rn "except Exception" --include="*.py" rag/ main.py build_index.py \| wc -l` |
 | Papers published | all 2026-05-28 | `python3 -c "import json;m=json.load(open('data/metadata.json'));print(min(p['published'] for p in m),max(p['published'] for p in m))"` |
 
 ---
@@ -45,7 +67,7 @@ Every claim below is traceable to a `file:line` in v2.1 or to a command shown in
 
 | Module | LOC | Does | Inputs | Outputs |
 |---|---:|---|---|---|
-| `react_agent.py` | 630 | The orchestrator. Scope guard → planner → per-sub-question ReAct loop → synthesis → critic → optional corrective loop → citation post-processing | query str + scoping flags | `AgentResponse` |
+| `react_agent.py` | 760 | The orchestrator. Scope guard → planner → per-sub-question ReAct loop → synthesis → critic → optional corrective loop → citation post-processing | query str + scoping flags | `AgentResponse` |
 | `tools.py` | 264 | Tool registry: `search_corpus`, `keyword_search`, `fetch_arxiv`, `summarize_paper`, `compare_papers`, `trace_bibliography`, `finish`. Each `Tool` is a dataclass wrapping a `Callable[[str], str]` | tool name + single string arg | formatted string observation |
 | `planner.py` | 56 | One Gemini call classifying simple/complex; returns ≤4 sub-questions | query str | `list[str]` |
 | `critic.py` | 91 | One Gemini call producing verdict + NeurIPS-style peer-review scores | question, answer, context | `CritiqueResult` |
@@ -59,7 +81,7 @@ Every claim below is traceable to a `file:line` in v2.1 or to a command shown in
 
 | File | LOC | Does |
 |---|---:|---|
-| `app.py` | 1,925 | Streamlit UI. Split-pane workspace, conversation threads, citation hydration, `@st.cache_resource` loaders |
+| `app.py` | 1,946 | Streamlit UI. Split-pane workspace, conversation threads, citation hydration, `@st.cache_resource` loaders |
 | `main.py` | 245 | CLI: interactive Q&A, `--query`, `--review`, `--list`, `--notes` |
 | `build_index.py` | 111 | One-shot: chunk → embed → FAISS → BM25 smoke test |
 | `tests/test_retrieval.py` | 133 | BM25 exact-term, `VectorStore` add/search, router merge order, `allowed_paper_ids` scoping. Uses hand-built mocks. Genuinely useful. |
@@ -74,34 +96,34 @@ Every claim below is traceable to a `file:line` in v2.1 or to a command shown in
 
 ### 2.1 The loop
 
-The loop is `for step_num in range(max_steps)` at **`react_agent.py:304`**, inside
+The loop is `for step_num in range(max_steps)` at **`react_agent.py:409`**, inside
 `_react_loop()`. `max_steps` defaults to `config.AGENT_MAX_STEPS = 8`.
 
 `_react_loop` is called from three places:
 
-1. **`react_agent.py:171`** — once per sub-question, inside `for sub_q in sub_questions`
-   (`react_agent.py:170`). Up to `AGENT_MAX_SUBQUESTIONS = 4` sub-questions.
-2. **`react_agent.py:198`** — once per critic `search_hint`, capped at 2 hints, with
+1. **`react_agent.py:190`** — once per sub-question, inside `for sub_q in sub_questions`
+   (`react_agent.py:189`). Up to `AGENT_MAX_SUBQUESTIONS = 4` sub-questions.
+2. **`react_agent.py:247`** — once per critic `search_hint`, capped at 2 hints, with
    `max_steps=3`.
 3. Nowhere else.
 
 Each iteration of the loop body:
 
 ```
-_build_loop_hint(...)            react_agent.py:305   pure string assembly
-_build_system(question, hint)    react_agent.py:307   formats _REACT_SYSTEM template
-_build_user(orig, cur, pad)      react_agent.py:308   serialises the scratchpad back into the prompt
-_call_model(system, user)        react_agent.py:309   ← Gemini call #1..N
-_parse(raw)                      react_agent.py:310   regex-stripped json.loads
+_build_loop_hint(...)            react_agent.py:410   pure string assembly
+_build_system(question, hint)    react_agent.py:412   formats _REACT_SYSTEM template
+_build_user(orig, cur, pad)      react_agent.py:413   serialises the scratchpad back into the prompt
+_call_model(system, user)        react_agent.py:414   ← Gemini call #1..N
+_parse(raw)                      react_agent.py:415   regex-stripped json.loads
 ```
 
 ### 2.2 Tool selection
 
 Tool selection is **the model emitting a JSON string**. There is no function-calling API
-in use. `_parse` (`react_agent.py:506-520`) expects
+in use. `_parse` (`react_agent.py:637-651`) expects
 `{"thought":…, "action":…, "action_input":…}`, strips markdown fences, and falls back to a
 regex that grabs the first `{…"thought"…}` object. The chosen `action` string is looked up
-in a plain dict at `react_agent.py:353`:
+in a plain dict at `react_agent.py:458`:
 
 ```python
 tool = self._tools.get(action)
@@ -121,15 +143,15 @@ Five ways the loop ends, in evaluation order:
 
 | # | Condition | Line | Loud or silent? |
 |---|---|---|---|
-| 1 | `_parse` returns `None` | `react_agent.py:312-313` | **Silent `break`.** One malformed JSON response ends the loop; no retry, no repair, no log |
-| 2 | `action == "finish"` | `react_agent.py:327-330` | Intended path |
-| 3 | 3 consecutive duplicate queries blocked | `react_agent.py:347-349` | Logged at INFO |
-| 4 | `range(max_steps)` exhausted | `react_agent.py:304` | **Silent.** Falls through to §2.4 fallback |
-| 5 | Tool raises | `react_agent.py:360-361` | Caught, stringified into the observation, loop continues |
+| 1 | `_parse` returns `None` | `react_agent.py:417-418` | **Silent `break`.** One malformed JSON response ends the loop; no retry, no repair, no log |
+| 2 | `action == "finish"` | `react_agent.py:432-435` | Intended path |
+| 3 | 3 consecutive duplicate queries blocked | `react_agent.py:452-454` | Logged at INFO |
+| 4 | `range(max_steps)` exhausted | `react_agent.py:409` | **Silent.** Falls through to §2.4 fallback |
+| 5 | Tool raises | `react_agent.py:465-466` | Caught, stringified into the observation, loop continues |
 
 ### 2.4 What happens after the loop
 
-`run()` (`react_agent.py:135-220`) picks a final answer at `react_agent.py:181-191`:
+`run()` (`react_agent.py:154-259`) picks a final answer at `react_agent.py:200-210`:
 
 - complex (>1 sub-question) and context exists → `_synthesise(query, combined)`
 - a `finish` step exists → use its `action_input`
@@ -146,10 +168,10 @@ Then `_critic.evaluate(...)` at line 194; if it fails and returned hints, up to 
 |---|---|---|---|
 | `scratchpad`, `observations`, `used_queries`, `top_result_hits`, `consecutive_same` | local vars in `_react_loop` | one sub-question | the loop body only |
 | `all_steps`, `all_context`, `combined`, `final_answer` | local vars in `run()` | one request | `run()` |
-| `self._allowed_paper_ids`, `self._source_config`, `self._use_arxiv`, `self._custom_instructions` | **instance attributes assigned inside `run()`** (`react_agent.py:143-146`) | until the next `run()` | any caller, concurrently |
+| `self._allowed_paper_ids`, `self._source_config`, `self._use_arxiv`, `self._custom_instructions` | **instance attributes assigned inside `run()`** (`react_agent.py:166-169`) | until the next `run()` | any caller, concurrently |
 | `self._memory` (`ConversationMemory`) | instance | process lifetime | `run()` |
 | `self._research` (`ResearchMemory`) | instance + `data/research_notes.json` | across processes | any caller |
-| Tool closures over `get_allowed_paper_ids` etc. | built once in `__init__` (`react_agent.py:121-126`), read `self._*` lazily | process lifetime | reads whatever `run()` last wrote |
+| Tool closures over `get_allowed_paper_ids` etc. | built once in `__init__` (`react_agent.py:137-142`), read `self._*` lazily | process lifetime | reads whatever `run()` last wrote |
 
 The last row is the important one. The tool registry closes over lambdas that read the
 instance attributes at call time. **Two overlapping `run()` calls on the same `ReActAgent`
@@ -177,7 +199,7 @@ is the reason v3 must carry request scope in graph state, not on the agent objec
 
 | v2.1 component | Replaced by | Honest justification |
 |---|---|---|
-| `ReActAgent` (630 lines) | `StateGraph` with typed `AgentState`, explicit nodes, conditional edges | ~40% of `react_agent.py` is loop-guard machinery (`_build_loop_hint`, `_normalise_query`, `_extract_top_result_title`, `used_queries`, `consecutive_same`) that exists purely because the loop has no structural bound. In a graph the bound is `recursion_limit` + an explicit counter field, and the guard code disappears. |
+| `ReActAgent` (760 lines) | `StateGraph` with typed `AgentState`, explicit nodes, conditional edges | ~40% of `react_agent.py` is loop-guard machinery (`_build_loop_hint`, `_normalise_query`, `_extract_top_result_title`, `used_queries`, `consecutive_same`) that exists purely because the loop has no structural bound. In a graph the bound is `recursion_limit` + an explicit counter field, and the guard code disappears. |
 | `agent/tools.py` string-in/string-out registry | LangChain `@tool` + Pydantic arg schemas | Removes the pipe-delimited-argument hack and the "unknown tool" string, and gives the trace structured tool arguments instead of a truncated `repr`. |
 | `planner.py` / `critic.py` regex JSON parsing | `with_structured_output` on the same prompts | Both currently `json.loads` a regex-stripped model response and fall back to a permissive default on any exception (§4.3, §4.4). |
 | `ConversationMemory` + `ProjectManager` conversation/message tables | `SqliteSaver` checkpointer + `messages` with `add_messages` | This is the single honest justification for the rewrite. v2.1 hand-rolls thread persistence across 911 lines of `project_manager.py` and still cannot resume an interrupted agent run — only completed messages are stored. Checkpointing gives interrupt/resume of a partially executed graph for free. |
@@ -191,7 +213,7 @@ is the reason v3 must carry request scope in graph state, not on the agent objec
 
 | Dropped | One-line rationale |
 |---|---|
-| `app.py` (Streamlit UI, 1,925 lines) | v3 ships an HTTP API; a UI is not one of the five capability gaps and would double the surface to maintain. |
+| `app.py` (Streamlit UI, 1,946 lines) | v3 ships an HTTP API; a UI is not one of the five capability gaps and would double the surface to maintain. |
 | `agent/literature_agent.py` (548 lines) | A second orchestrator duplicating retrieve→synthesise; porting it means building the graph twice before either is proven. → `docs/BACKLOG.md`. |
 | `agent/exporter.py` (docx/LaTeX) | Only exists to serve the literature-review feature that is being dropped. |
 | `agent/memory_consolidator.py` | An extra unbudgeted Gemini call per turn whose extraction quality was never measured; it writes into a schema v3 is not carrying over. → `docs/BACKLOG.md`. |
@@ -210,7 +232,7 @@ Ordered roughly by how much they would cost you in an interview.
 ### Correctness / silent failure
 
 **4.1 — `Callable` is used as a type annotation but never imported.**
-`react_agent.py:141` and `react_agent.py:294` annotate `step_callback: Callable | None`.
+`react_agent.py:159` and `react_agent.py:297` annotate `step_callback: Callable | None`.
 `from typing import Callable` does not appear in the file. This only survives because
 `from __future__ import annotations` (line 6) defers annotation evaluation to strings. Any
 call to `typing.get_type_hints()` on `ReActAgent.run` — which is exactly what Pydantic,
@@ -224,7 +246,7 @@ Confirmed by running, inside v2.1 (needs its venv, since the import pulls in tor
 
 → `NameError: name 'Callable' is not defined`
 
-**4.2 — The scope guard fails open.** `react_agent.py:256-258`:
+**4.2 — The scope guard fails open.** `react_agent.py:361-363`:
 
 ```python
 except Exception as exc:
@@ -247,11 +269,11 @@ returns `[query]`. A permanently broken planner degrades every complex query to 
 hop with no signal anywhere except a WARNING log.
 
 **4.5 — A single malformed JSON response silently ends the ReAct loop.**
-`react_agent.py:312-313`: `if parsed is None: break`. No retry, no repair prompt, no log
+`react_agent.py:417-418`: `if parsed is None: break`. No retry, no repair prompt, no log
 line. The run then falls into the "synthesise from whatever we have" branch and returns an
 answer that looks normal.
 
-**4.6 — 70 `except Exception` blocks.** 36 of them in `project_manager.py` alone, most of
+**4.6 — 71 `except Exception` blocks.** 36 of them in `project_manager.py` alone, most of
 the shape `log.error(...); return False` or `return []`. Callers do not distinguish "no
 results" from "the database is gone".
 
@@ -261,20 +283,20 @@ results" from "the database is gone".
 
 | Stage | Calls | Source |
 |---|---:|---|
-| Scope check (keyword miss) | 1 | `react_agent.py:242` |
+| Scope check (keyword miss) | 1 | `react_agent.py:347` |
 | Planner | 1 | `planner.py:42` |
-| ReAct: 4 sub-questions × `AGENT_MAX_STEPS` 8 | 32 | `react_agent.py:170`, `:304` |
-| Synthesis | 1 | `react_agent.py:182` |
-| Critic | 1 | `react_agent.py:194` |
-| Corrective: 2 hints × `max_steps=3` | 6 | `react_agent.py:198` |
-| Re-synthesis | 1 | `react_agent.py:202` |
+| ReAct: 4 sub-questions × `AGENT_MAX_STEPS` 8 | 32 | `react_agent.py:189`, `:304` |
+| Synthesis | 1 | `react_agent.py:201` |
+| Critic | 1 | `react_agent.py:213` |
+| Corrective: 2 hints × `max_steps=3` | 6 | `react_agent.py:247` |
+| Re-synthesis | 1 | `react_agent.py:251` |
 | **Total** | **43** | |
 
 Plus `generate_follow_ups` and `MemoryConsolidator.consolidate` from the UI layer. There is
 no token counter, no cost accumulator, no wall-clock deadline, and no cap on
 `observation` length going back into the prompt. `AGENT_MAX_STEPS` bounds *steps*, not
 *spend* — and each step's prompt grows, because `_build_user` re-serialises the entire
-scratchpad every iteration (`react_agent.py:471-484`), with observations truncated to 500
+scratchpad every iteration (`react_agent.py:600-613`), with observations truncated to 500
 chars each. Prompt size is therefore O(steps²) in the worst case.
 
 **4.8 — The rate limiter guards a code path the agent never uses.** `_RateLimiter`
@@ -287,7 +309,7 @@ grep -rn "_limiter\|RateLimiter" --include="*.py" rag/     # → generator.py on
 grep -rln "generate_content" --include="*.py" rag/          # → 7 files
 ```
 
-**4.9 — No timeout on any Gemini call.** `_call_model` (`react_agent.py:488-502`) passes no
+**4.9 — No timeout on any Gemini call.** `_call_model` (`react_agent.py:617-631`) passes no
 timeout and the client default is not configured. A hung request hangs the request thread
 indefinitely. (Contrast: the PDF fetch does set `timeout=30`, `arxiv_fetcher.py:80`.)
 
@@ -303,8 +325,8 @@ instruction/data separation. This is the largest gap in the system.**
 `tools.py:36` builds an observation as
 `f"[{i}] **{chunk.title}** {src} (score: {score:.3f})\n{chunk.text[:400]}…"`. That string
 becomes `step.observation`, which `_build_user` splices verbatim into the next turn's user
-message (`react_agent.py:482`), and which `_synthesise` splices verbatim into the synthesis
-prompt (`react_agent.py:434`). There is no delimiter, no "treat the following as data",
+message (`react_agent.py:611`), and which `_synthesise` splices verbatim into the synthesis
+prompt (`react_agent.py:563`). There is no delimiter, no "treat the following as data",
 and no detector.
 
 The exposure is not theoretical, because of `fetch_arxiv`: the agent downloads an arbitrary
@@ -329,8 +351,8 @@ pattern, and `pdf_uploader.py` derives titles from a caller-supplied `filename`.
 ### State and data-model bugs
 
 **4.14 — Per-request scope is stored on the shared agent instance.** Covered in §2.5.
-`react_agent.py:143-146` writes four instance attributes at the start of every `run()`;
-`react_agent.py:121-126` builds tool closures that read them lazily. Concurrent requests
+`react_agent.py:166-169` writes four instance attributes at the start of every `run()`;
+`react_agent.py:137-142` builds tool closures that read them lazily. Concurrent requests
 cross-contaminate paper scoping and the arXiv-enabled flag.
 
 **4.15 — "Layout-aware structural RAG" is not wired up, and the shipped corpus does not
@@ -369,14 +391,14 @@ scoped queries the feature exists for.
 `session_index.py:155-159`. O(n) disk write per fetch; the file is already 1.6 MB.
 
 **4.19 — Retrieval provenance is reconstructed by regex from formatted display strings.**
-`_extract_sources` (`react_agent.py:524-538`) scans observations for
+`_extract_sources` (`react_agent.py:655-669`) scans observations for
 `\*\*(.+?)\*\*.*?\((?:score|bm25):\s*([\d.]+)\)`. Two consequences: (a) any change to a
 tool's output format silently empties the sources list; (b) `summarize_paper`,
 `compare_papers`, and `trace_bibliography` do not emit that pattern at all
 (`tools.py:100,117,157`), so **answers built from those three tools report zero sources**.
 
 **4.20 — Citation linking uses bidirectional substring matching.**
-`react_agent.py:620-625`: `if clean_title in clean_t or clean_t in clean_title`. A short
+`react_agent.py:748-753`: `if clean_title in clean_t or clean_t in clean_title`. A short
 paper title is a substring of many longer ones, and the first match wins by iteration
 order. Citations can silently link to the wrong paper.
 

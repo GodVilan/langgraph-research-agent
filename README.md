@@ -2,9 +2,10 @@
 
 A graph-orchestrated research agent over a 150-paper arXiv machine-learning corpus.
 
-This is a rebuild of [arXiv-Agent v2.1](docs/AUDIT.md), which used a hand-rolled ReAct
-loop. v3 keeps v2.1's retrieval unchanged and replaces the orchestration, guardrails,
-observability, evaluation, and serving layers.
+This is a rebuild of **[arXiv-Agent v2.1](https://github.com/GodVilan/arXiv-Agent)**, which used a hand-rolled ReAct loop.
+v3 keeps v2.1's retrieval unchanged and replaces the orchestration, guardrails,
+observability, evaluation, and serving layers. The audit that opened this project is in
+[docs/AUDIT.md](docs/AUDIT.md).
 
 **Status: Phase 3 of 5.** The graph compiles, checkpoints, and terminates correctly under
 the full test suite, and retrieval runs against the real index. There are **no answer
@@ -28,10 +29,10 @@ rather than incidental. The three that drove the decision:
 v2.1's HEAD commit, and every one of its 100 `paper_id`s refers to a `2604.*` corpus with
 **zero overlap** — by id and by title — with the `2605.*` corpus the project ships. The
 corpus was replaced and the benchmark was orphaned. Those numbers cannot be regenerated,
-so v3 does not carry them forward and does not claim improvement over them. Full evidence
-in [AUDIT §5](docs/AUDIT.md).
+so v3 does not carry them forward and does not claim improvement over them. Full evidence,
+reproducible against [the v2.1 repository](https://github.com/GodVilan/arXiv-Agent), is in [AUDIT §5](docs/AUDIT.md).
 
-**Its bounds were prompts, not structure.** Roughly 40% of the 630-line orchestrator was
+**Its bounds were prompts, not structure.** Roughly 40% of the 760-line orchestrator was
 loop-guard machinery — tracking repeated queries, counting duplicate top results, and
 telling the model "⚠ You are looping" — because a free-tool-choice ReAct loop has no
 structural bound. Worst case was ~43 LLM calls for one question with no cost ceiling
@@ -187,7 +188,7 @@ What changed is everything around them:
 
 | | v2.1 | v3 |
 |---|---|---|
-| Orchestration | 630-line ReAct loop, model picks tools by emitting JSON | Typed `StateGraph`, 6 nodes, 3 conditional edges |
+| Orchestration | 760-line ReAct loop, model picks tools by emitting JSON | Typed `StateGraph`, 6 nodes, 3 conditional edges |
 | Tool choice | model's free choice, guarded by prompts | deterministic rule: dense → BM25 when dense under-delivers → live arXiv on opt-in |
 | Loop bound | `AGENT_MAX_STEPS`, plus ~90 lines of loop-guard prompting | explicit counters + `recursion_limit` backstop |
 | Cost control | none | token / cost / wall-clock / tool-call ceilings, per request |

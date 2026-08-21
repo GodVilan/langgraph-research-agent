@@ -1,6 +1,8 @@
 # MIGRATION MAP — v2.1 → v3 (LangGraph)
 
 Companion to [`AUDIT.md`](./AUDIT.md). Section references like *(AUDIT §4.11)* point there.
+v2.1 source referenced throughout is [GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent); see AUDIT's
+"Which revision this audit describes" note before checking a `file:line`.
 
 Nothing in this document has been implemented. It is the plan Phase 1 will be held to.
 

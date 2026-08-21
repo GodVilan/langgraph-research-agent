@@ -5,6 +5,7 @@ list of what was considered and set aside, so that "we didn't build it" is disti
 from "we didn't think of it".
 
 Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./MIGRATION_MAP.md).
+v2.1 is [GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent).
 
 ---
 
@@ -19,7 +20,7 @@ Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./M
 | `trace_bibliography` tool | Finds "references" by semantic similarity over 512-token chunks and asks the LLM to extract citations from whatever comes back. Output never evaluated. | A real reference parser (e.g. GROBID) is in the pipeline — otherwise it should not exist |
 | `pdf_uploader.py` — user PDF upload | A public API accepting arbitrary PDFs is an abuse surface not worth opening in Phase 5 | Auth exists on the endpoint |
 | `enrich_with_semantic_scholar` | Unused by the agent; UI-only | A citation-count feature is actually requested |
-| Streamlit UI (`app.py`, 1,925 lines) | v3 ships an HTTP API; a UI is not one of the five capability gaps | After v3.0 ships, if a demo surface is wanted |
+| Streamlit UI (`app.py`, 1,946 lines) | v3 ships an HTTP API; a UI is not one of the five capability gaps | After v3.0 ships, if a demo surface is wanted |
 
 ## Deferred design choices
 
@@ -52,6 +53,8 @@ Opened during Phase 0. See [`AUDIT.md`](./AUDIT.md) and [`MIGRATION_MAP.md`](./M
 
 | Item | Why it matters | Act at |
 |---|---|---|
+| ~~Push v2.1's working copy~~ | **Done 2026-08-21** — published as `8d3e67f`. `AUDIT.md` citations were re-verified against it; all 20 findings still hold, only line numbers moved. | — |
+| **Pin the v2.1 commit in every baseline** | v2.1 is a moving target: `react_agent.py` grew 631 → 760 lines between the Phase 0 audit and `8d3e67f`. A baseline that does not record the commit is not reproducible. | Phase 4 |
 | **v2.1 baseline must use `gemini-3.5-flash-lite`** | Q2's rationale was holding the generator constant so the delta is attributable to orchestration. The forced 2.5→3.5 switch (D-012) preserves that **only if the v2.1 re-run uses 3.5 too**. Written down now so the constraint does not quietly lapse. | Phase 4 spec |
 | **`dense_only` comparison arm** | v3 calls BM25 automatically when dense under-delivers; v2.1 called it only when the model chose to. That is a policy difference (D-015), so the fallback's contribution should be isolated from the orchestration delta rather than bundled with it. | Phase 4 |
 | **Corpus diversity is a construction constraint** | 150 cs.LG papers all published 2026-05-28 is one day of one category. Multi-hop questions needing genuinely distinct papers may be hard to build, and the 15 unanswerable items need topics far enough outside that slice to be unambiguous. Discovering this halfway through QA generation would waste the effort. | Before QA generation |

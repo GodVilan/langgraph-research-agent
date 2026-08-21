@@ -6,6 +6,8 @@ it costs, and what would reverse it. Newest last.
 Related: [`AUDIT.md`](./AUDIT.md) (what v2.1 does), [`MIGRATION_MAP.md`](./MIGRATION_MAP.md)
 (the plan), [`BUDGET.md`](./BUDGET.md) (spend tracking).
 
+v2.1, the system being rebuilt, is [GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent).
+
 ---
 
 ## D-001 — Gemini Flash-Lite free tier runs the agent; OpenAI judges only
