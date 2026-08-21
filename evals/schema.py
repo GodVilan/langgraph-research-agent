@@ -80,10 +80,45 @@ class Provenance(BaseModel):
     source_paper_ids: list[str] = Field(default_factory=list)
 
 
-class Verification(BaseModel):
-    """What has actually been checked. Every flag defaults to *unchecked*."""
+class AnchorClass(StrEnum):
+    """How reliably the cross-citation check can recognise an item's anchor paper.
+
+    Only 45 of 150 papers carry a method name distinctive enough to match on; for the rest
+    the check rests on the arXiv id alone and is correspondingly weaker. Recording the class
+    per item keeps that difference identifiable instead of averaged into one number.
+    """
+
+    STRONG = "strong"  # distinctive method name plus arXiv id
+    WEAK = "weak"  # arXiv id only
+
+
+class MachineCheck(BaseModel):
+    """One automated verdict, recorded so a disagreement points at a specific check."""
 
     model_config = ConfigDict(extra="forbid")
+
+    name: str
+    passed: bool
+    detail: str = ""
+
+
+class Verification(BaseModel):
+    """What has actually been checked. Every flag defaults to *unchecked*.
+
+    The human label and the machine verdicts are stored side by side and never merged. The
+    verification CLI takes the human decision **before** showing any machine verdict, so
+    ``human_accepted`` is an independent judgement rather than a ratification: a verifier
+    shown "necessity: PASS" first produces an agreement rate that measures agreement with
+    the checker, not the generator-vs-human disagreement this stratum's validity rests on.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # None until a human has ruled. Distinct from ``human_verified`` (accepted) so that
+    # "rejected" and "not yet seen" cannot collapse into the same falsy value.
+    human_accepted: bool | None = None
+    machine_checks: list[MachineCheck] = Field(default_factory=list)
+    disclosure_order: str = "human_first"
 
     # Full-corpus, never the anchor paper alone. Papers cite each other's numbers in related
     # work, so "absent from paper X" does not imply "unanswerable from the corpus" — the
@@ -100,6 +135,32 @@ class Verification(BaseModel):
     human_verified: bool = False
     human_notes: str = ""
 
+    @property
+    def machines_all_passed(self) -> bool | None:
+        return all(c.passed for c in self.machine_checks) if self.machine_checks else None
+
+    @property
+    def agrees(self) -> bool | None:
+        """Whether the human and the automated pipeline reached the same verdict."""
+        machine = self.machines_all_passed
+        if self.human_accepted is None or machine is None:
+            return None
+        return self.human_accepted == machine
+
+    def disagreeing_checks(self) -> list[MachineCheck]:
+        """The specific checks a disagreement is attributable to.
+
+        A blanket "3 disagreements" says nothing actionable. Naming the check that differed
+        is what turns a disagreement into either a fixed check or a documented limit.
+        """
+        if self.agrees is not False or self.human_accepted is None:
+            return []
+        # Human accepted, some check failed -> those checks are over-strict (or wrong).
+        # Human rejected, all checks passed -> every check missed something.
+        if self.human_accepted:
+            return [c for c in self.machine_checks if not c.passed]
+        return list(self.machine_checks)
+
 
 class EvalItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -112,6 +173,7 @@ class EvalItem(BaseModel):
     gold_answer: str = ""
     absence_shape: AbsenceShape | None = None
     anchor_paper_id: str = ""
+    anchor_class: AnchorClass | None = None
     absent_term: str = ""
     provenance: Provenance
     verification: Verification = Field(default_factory=Verification)
@@ -138,6 +200,12 @@ class EvalItem(BaseModel):
                 raise ValueError(
                     f"{self.item_id}: absence_shape is required so the sub-stratum cannot "
                     f"collapse into eleven copies of one question shape"
+                )
+            if self.anchor_class is None:
+                raise ValueError(
+                    f"{self.item_id}: anchor_class is required — the cross-citation check "
+                    f"is weaker for papers with no distinctive method name, and that has to "
+                    f"stay visible per item rather than averaged away"
                 )
         elif self.stratum is Stratum.UNANSWERABLE_TOPIC and self.anchor_paper_id:
             raise ValueError(
@@ -179,6 +247,43 @@ class EvalSet(BaseModel):
         for item in self.items:
             if item.absence_shape is not None:
                 counts[item.absence_shape.value] = counts.get(item.absence_shape.value, 0) + 1
+        return counts
+
+    def agreement_by_stratum(self) -> dict[str, dict[str, int]]:
+        """Human-vs-machine agreement, per stratum, never pooled.
+
+        Pooled agreement would hide exactly what matters: multi-hop and
+        unanswerable-attribute rest entirely on automated checks, so their agreement rate is
+        evidence about those checks. Single-paper factual agreement is close to free and
+        would dilute the figure if averaged in.
+        """
+        report: dict[str, dict[str, int]] = {}
+        for item in self.items:
+            row = report.setdefault(item.stratum.value, {"ruled": 0, "agree": 0, "disagree": 0})
+            agrees = item.verification.agrees
+            if agrees is None:
+                continue
+            row["ruled"] += 1
+            row["agree" if agrees else "disagree"] += 1
+        return report
+
+    def disagreements(self) -> list[tuple[str, str, list[str]]]:
+        """(item_id, stratum, names of the checks the disagreement is attributable to)."""
+        return [
+            (
+                item.item_id,
+                item.stratum.value,
+                [c.name for c in item.verification.disagreeing_checks()],
+            )
+            for item in self.items
+            if item.verification.agrees is False
+        ]
+
+    def anchor_class_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for item in self.items:
+            if item.anchor_class is not None:
+                counts[item.anchor_class.value] = counts.get(item.anchor_class.value, 0) + 1
         return counts
 
     def write(self, path: Path) -> None:

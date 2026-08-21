@@ -122,6 +122,64 @@ If the necessity check eliminates a large share of the 20, that is reported as a
 An item that only looks multi-hop inflates the hardest stratum with easier items and makes
 the headline number better than the system is.
 
+### The necessity check is circular, and stays that way
+
+`evals/multihop.py` decides whether a question needs two papers by asking
+`gemini-3.5-flash-lite` — **the same model family that generates the agent's answers.**
+Multi-hop difficulty is therefore calibrated to the reading ability of the system under
+test. If that model is unusually good at synthesising from one paper, questions it can
+answer alone are culled, and the surviving stratum is *systematically easier* for the agent
+than a human-labelled stratum would be. The bias runs in the flattering direction.
+
+This is not fixed. Fixing it means either a second model family for necessity checking —
+which is the judge budget, spent on item construction instead of judging (D-001) — or
+hand-labelling all twenty, which is most of the human verification budget for one stratum.
+Neither is worth it at n=20.
+
+What is done instead: the limitation is stated here, the necessity check's model and
+snapshot are recorded in each item's provenance, and **10 of the 25 hand-verified items are
+multi-hop** — a deliberate over-weighting of the stratum that has no other validation. The
+human-vs-machine agreement rate on those 10 is the only independent evidence about this
+check, which is why the verification CLI takes the human decision before revealing the
+machine verdict.
+
+### Measured cull rate, and what it actually measured
+
+A first pass drafted 8 questions from the 8 most strongly-related paper pairs and put them
+through the necessity check. **7 of 8 were culled (87.5%)** — and every one for the same
+reason: `neither-nor-joint`, meaning the two papers *together* do not answer the question.
+None was culled for being single-paper.
+
+That number is not the corpus's multi-hop capacity. It is a measurement of the drafting
+prompt, and the drafted questions say why:
+
+> "How can multi-key homomorphic encryption for secure client aggregation be integrated
+> into…"
+> "How can the trajectory-based dynamic weighting scheme from the second study be
+> integrated into…"
+
+These are **research proposals, not questions**. Asked to write something requiring both
+papers, the model proposed combining them — which no paper answers, because nobody has done
+it. They read as sophisticated multi-hop questions and are unanswerable by construction.
+
+Two causes, both mine:
+
+1. The drafter was given **abstracts**, not papers — violating this document's own first
+   construction rule. With 1,200 characters of abstract it cannot know what either paper
+   actually reports, so it writes about what they are *about*.
+2. The word "synthesis" in the drafting prompt invites invention. The prompt must require
+   that both papers *contain* the facts needed, and explicitly forbid asking how one method
+   could be applied to the other's setting.
+
+**The check did its job.** Seven items that would have entered the hardest stratum as
+unanswerable-by-construction were caught before a human ever saw them, and the failure mode
+they share is legible because the rejection reason distinguishes `neither-nor-joint` from
+`single-paper`. A cull rate reported without that breakdown would have looked like corpus
+scarcity and prompted the wrong fix — padding the stratum from weaker pairs.
+
+The real cull rate, against a prompt drafting from full papers and forbidding speculative
+integration, is measured before the set is frozen and reported alongside the final counts.
+
 ---
 
 ## Hazard 3 — one item measured eleven times
@@ -152,6 +210,11 @@ These come from the Phase 4 plan and are enforced in code where enforcement is p
   snapshot, prompt version, and date.
 * Assert `data/CORPUS.sha256` at eval startup and record it in every baseline JSON. This is
   the record whose absence made v2.1's benchmark unusable when its corpus was swapped.
+* 25 items verified by hand, weighted toward the strata that rest entirely on automated
+  checks rather than toward the set's own proportions: **10 multi-hop, 8
+  unanswerable-attribute, 5 single-paper factual, 2 ambiguous.** Single-paper factual has a
+  gold chunk a human can read in seconds and does not need the scrutiny; multi-hop and
+  attribute have nothing else.
 * 25 items verified by hand. Generator-vs-human disagreement is **reported, not resolved
   silently** — rejected items stay in the file carrying their reason.
 
@@ -165,9 +228,24 @@ python -m evals.verify_cli evals/datasets/draft.json --report    # progress only
 python -m evals.verify_cli evals/datasets/draft.json --stratum multi_hop
 ```
 
-Every automated check runs and is displayed **before** the question, so that the human sees
-what the pipeline believes and can disagree with it. A verifier who reads the question first
-is anchored by it.
+**The human decides first. Automated verdicts are revealed only afterwards.**
+
+This ordering is the point of the tool, not a detail of it. Displaying `necessity: PASS`
+before the decision makes the label dependent on the check, and the agreement rate then
+measures agreement-with-the-machine rather than generator-vs-human disagreement. Multi-hop
+and unanswerable-attribute have no validation *other* than that number — every other check
+on them is automated — so it is worthless unless arrived at independently.
+
+So the screen shows the question, the gold chunks or the claimed absent term, and the
+provenance; the decision and its reason are taken; and only then do the machine verdicts
+appear, alongside whether the two agree. Both labels are stored (`human_accepted` and
+`machine_checks`), never merged, and each disagreement is attributable to a **named** check
+(`topic_absence`, `attribute_absence`, `gold_chunks_exist`, `multi_hop_necessity`) rather
+than to "the pipeline". `--report` prints agreement per stratum, never pooled.
+
+Disagreement is recorded, not resolved. A human acceptance over a failed check means the
+check is over-strict; a human rejection over passing checks means every check missed
+something. Both are findings.
 
 Rejection is one keystroke and takes a reason. Progress is written after every decision, so a
 crash at item 20 of 25 does not cost the first 19. The stratum is deliberately not editable —

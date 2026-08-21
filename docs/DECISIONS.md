@@ -716,6 +716,24 @@ README test-count guard had never executed in CI at all. A gate that cannot fire
 that skips its own failure, and a workflow nothing requires are three versions of one
 mistake: *running is not blocking*.
 
+**A fourth instance, from Phase 4.** The cross-citation rule in `evals/absence.py` eliminates
+**0 of 979** candidate unanswerable items. That number is equally consistent with two
+opposite readings — the corpus is clean, or the check cannot fire — and nothing about the
+number itself separates them. It is the same shape as the three above: *not observing a
+failure is not evidence the detector works.*
+
+Resolved the way the others should have been, by making it fire on demand:
+`verify_attribute_absent_in` takes a corpus argument, and
+`tests/test_evals_absence.py::TestTheCrossCitationRuleCanActuallyFire` injects a chunk
+attributing a benchmark to its anchor paper and asserts the elimination — through both the
+method-name path and the weaker arXiv-id path — plus a negative case proving an unrelated
+mention does *not* trip it. The zero is now a measurement rather than an absence of evidence.
+(The real reason it is zero: all 150 papers were published on the same afternoon, so no paper
+can cite another's results.)
+
+**The general rule this family points at:** every detector needs a case that makes it fire,
+written at the same time as the detector. A clean run proves nothing on its own.
+
 **Cost:** an unreviewed red commit can reach `main`. Accepted because the author is the sole
 committer and runs `make check` locally, but it is a real weakness and is named as one.
 

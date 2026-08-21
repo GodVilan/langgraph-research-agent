@@ -23,11 +23,12 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from pydantic import BaseModel, Field
 
 from evals.absence import load_corpus
+from evals.ratelimit import limited
 from src.agent.llm import call_structured
 from src.config import get_settings
 
@@ -130,15 +131,21 @@ async def check_single_paper_sufficiency(
         text = paper_text(paper_id)
         if not text:
             raise ValueError(f"no chunks for paper {paper_id!r}")
-        verdict, _ = await call_structured(
-            SufficiencyVerdict,
-            SYSTEM,
-            USER.format(
-                paper_id=paper_id,
-                title=_titles().get(paper_id, ""),
-                text=text,
-                question=question,
-            ),
+        # `partial`, not a lambda: the loop variables would be late-bound in a closure,
+        # which happens to be harmless while the call is awaited in the same iteration and
+        # would silently break the moment these were gathered concurrently.
+        verdict, _ = await limited(
+            partial(
+                call_structured,
+                SufficiencyVerdict,
+                SYSTEM,
+                USER.format(
+                    paper_id=paper_id,
+                    title=_titles().get(paper_id, ""),
+                    text=text,
+                    question=question,
+                ),
+            )
         )
         verdicts[paper_id] = verdict.sufficient
         reasons[paper_id] = verdict.reason
@@ -151,16 +158,20 @@ async def check_single_paper_sufficiency(
 
     # The other half of the definition. Without it, a question no paper can answer passes
     # as "multi-hop" purely because no *single* paper answered it.
-    joint, _ = await call_structured(
-        SufficiencyVerdict,
-        SYSTEM,
-        JOINT_USER.format(
-            papers="\n\n".join(
-                f'<paper id="{pid}" title="{_titles().get(pid, "")}">\n{paper_text(pid)}\n</paper>'
-                for pid in source_paper_ids
+    joint, _ = await limited(
+        partial(
+            call_structured,
+            SufficiencyVerdict,
+            SYSTEM,
+            JOINT_USER.format(
+                papers="\n\n".join(
+                    f'<paper id="{pid}" title="{_titles().get(pid, "")}">'
+                    f"\n{paper_text(pid)}\n</paper>"
+                    for pid in source_paper_ids
+                ),
+                question=question,
             ),
-            question=question,
-        ),
+        )
     )
     log.info(
         "joint sufficiency: %s (%s)",

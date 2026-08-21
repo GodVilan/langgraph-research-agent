@@ -84,6 +84,7 @@ v2.1 is [GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent).
 
 | Item | Why deferred | Revisit at |
 |---|---|---|
+| Token-bucket rate limiter in the agent path | v2.1 had one; v3 does not. The Gemini free tier allows **15 requests/minute**, and a batch of eval-construction calls hit `RESOURCE_EXHAUSTED` mid-run. `evals/ratelimit.py` paces the *construction* tooling, deliberately not the agent: a limiter inside `src/agent/llm.py` would inject sleep into the path Phase 4 measures p50/p95 latency on, turning a latency metric into a measurement of the limiter. | Phase 5, where a public endpoint needs real throttling and latency is reported per-request rather than as a batch figure |
 | Trace sampling | Every run is traced. Free at this volume; a deployed instance with real traffic needs a policy and does not have one. | Phase 5, once there is traffic to sample |
 | Prometheus + Grafana in `infra/` | Metrics are exposed; nothing scrapes them. Adding a stack now would be a dashboard nobody watches, on top of six Langfuse containers. | Phase 5, alongside the deployed service |
 | First-class per-node cost attribution | Cost is attributed per model call by the handler and rolled up in trace metadata, not as a per-node cost field. | If Phase 4 needs per-node cost to explain a regression |

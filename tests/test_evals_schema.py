@@ -16,10 +16,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from evals.schema import (
     AbsenceShape,
+    AnchorClass,
     EvalItem,
     EvalSet,
+    MachineCheck,
     Provenance,
     Stratum,
+    Verification,
 )
 
 
@@ -50,6 +53,7 @@ class TestTheTwoRefusalStrataStayApart:
                 gold_chunk_ids=[],
                 absent_term="gsm8k",
                 absence_shape=AbsenceShape.BENCHMARK,
+                anchor_class=AnchorClass.STRONG,
                 anchor_paper_id="",
             )
 
@@ -90,6 +94,7 @@ class TestTheTwoRefusalStrataStayApart:
                     gold_chunk_ids=[],
                     absent_term="gsm8k",
                     anchor_paper_id="2605.30148",
+                    anchor_class=AnchorClass.STRONG,
                     absence_shape=AbsenceShape.BENCHMARK,
                 ),
             ],
@@ -159,6 +164,7 @@ class TestFreezing:
                     gold_chunk_ids=[],
                     absent_term="x",
                     anchor_paper_id="2605.30148",
+                    anchor_class=AnchorClass.STRONG,
                     absence_shape=shape,
                 )
                 for n, shape in enumerate([AbsenceShape.BENCHMARK, AbsenceShape.ABLATION])
@@ -166,3 +172,83 @@ class TestFreezing:
         )
 
         assert evalset.absence_shape_counts() == {"benchmark": 1, "ablation": 1}
+
+
+class TestDisclosureOrder:
+    """The human label must be independent of the machine verdict.
+
+    Showing "necessity: PASS" before the decision turns the agreement rate into
+    agreement-with-the-checker. Multi-hop and unanswerable-attribute have no other
+    validation, so that number is only worth having if it was reached independently.
+    """
+
+    def _ruled(self, *, human: bool, machine: bool) -> EvalItem:
+        return item(
+            verification=Verification(
+                human_accepted=human,
+                human_verified=human,
+                machine_checks=[MachineCheck(name="multi_hop_necessity", passed=machine)],
+            )
+        )
+
+    def test_an_unruled_item_has_no_agreement_verdict(self) -> None:
+        """ "Not yet seen" must not read as agreement or disagreement."""
+        assert item().verification.agrees is None
+
+    def test_a_ruled_item_with_no_checks_has_no_agreement_verdict(self) -> None:
+        checks = Verification(human_accepted=True, human_verified=True)
+
+        assert checks.agrees is None
+
+    @pytest.mark.parametrize(
+        ("human", "machine", "expected"),
+        [(True, True, True), (False, False, True), (True, False, False), (False, True, False)],
+    )
+    def test_agreement_is_computed_from_both_labels(
+        self, human: bool, machine: bool, expected: bool
+    ) -> None:
+        assert self._ruled(human=human, machine=machine).verification.agrees is expected
+
+    def test_a_disagreement_names_the_check_responsible(self) -> None:
+        """ "3 disagreements" is not actionable; "the necessity check disagreed" is."""
+        names = [
+            c.name for c in self._ruled(human=True, machine=False).verification.disagreeing_checks()
+        ]
+
+        assert names == ["multi_hop_necessity"]
+
+    def test_rejection_is_distinguishable_from_not_yet_seen(self) -> None:
+        rejected = self._ruled(human=False, machine=True).verification
+        unseen = item().verification
+
+        assert rejected.human_accepted is False
+        assert unseen.human_accepted is None
+        assert not rejected.human_verified and not unseen.human_verified
+
+    def test_agreement_is_reported_per_stratum_never_pooled(self) -> None:
+        evalset = EvalSet(
+            name="t",
+            corpus_sha256="abc",
+            items=[
+                item(
+                    item_id="f1",
+                    verification=Verification(
+                        human_accepted=True, machine_checks=[MachineCheck(name="g", passed=True)]
+                    ),
+                ),
+                item(
+                    item_id="m1",
+                    stratum=Stratum.MULTI_HOP,
+                    provenance=Provenance(generator_model="g", source_paper_ids=["a", "b"]),
+                    verification=Verification(
+                        human_accepted=True,
+                        machine_checks=[MachineCheck(name="multi_hop_necessity", passed=False)],
+                    ),
+                ),
+            ],
+        )
+        report = evalset.agreement_by_stratum()
+
+        assert report["single_paper_factual"] == {"ruled": 1, "agree": 1, "disagree": 0}
+        assert report["multi_hop"] == {"ruled": 1, "agree": 0, "disagree": 1}
+        assert evalset.disagreements() == [("m1", "multi_hop", ["multi_hop_necessity"])]

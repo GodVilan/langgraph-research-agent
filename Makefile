@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity verify-evals readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity verify-evals select-attributes readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -54,6 +54,9 @@ corpus-info:  ## print reproducible corpus statistics
 
 corpus-diversity:  ## can the corpus honestly fill the four eval strata?
 	$(PY) scripts/corpus_diversity.py
+
+select-attributes:  ## deterministic, stratified pick of the 11 absent-attribute anchors
+	$(PY) -m evals.select_attributes
 
 verify-evals:  ## verify eval items by hand (FILE=evals/datasets/draft.json)
 	$(PY) -m evals.verify_cli $(FILE)

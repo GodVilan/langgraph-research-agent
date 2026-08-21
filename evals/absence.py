@@ -199,6 +199,53 @@ def verify_attribute_absent(anchor_paper_id: str, term: str) -> AbsenceResult:
     )
 
 
+def verify_attribute_absent_in(
+    chunks: list[dict[str, object]],
+    handles: dict[str, frozenset[str]],
+    anchor_paper_id: str,
+    term: str,
+) -> AbsenceResult:
+    """``verify_attribute_absent`` against a supplied corpus rather than the real one.
+
+    Exists so the cross-citation rule can be tested by injecting a chunk that trips it.
+    "0 of 979 eliminated" is either *verified clean* or *inert*, and nothing about the
+    number itself distinguishes those two readings — a check that has never fired is
+    indistinguishable from one that cannot (DECISIONS D-023).
+    """
+    own = " ".join(str(c["text"]) for c in chunks if str(c["paper_id"]) == anchor_paper_id).lower()
+    if not own:
+        return AbsenceResult(False, f"no paper {anchor_paper_id!r}", len(chunks))
+    if _mentions(own, term.lower()):
+        return AbsenceResult(
+            False, f"{anchor_paper_id} does mention {term!r} in its own text", len(chunks)
+        )
+
+    anchor_handles = handles.get(anchor_paper_id, frozenset({anchor_paper_id}))
+    for chunk in chunks:
+        if str(chunk["paper_id"]) == anchor_paper_id:
+            continue
+        text = str(chunk["text"])
+        if not _mentions(text.lower(), term.lower()):
+            continue
+        for handle in anchor_handles:
+            if _mentions(text, handle):
+                return AbsenceResult(
+                    absent=False,
+                    reason=(
+                        f"chunk {chunk['chunk_id']} (paper {chunk['paper_id']}) mentions both "
+                        f"{term!r} and {handle!r} — another paper may report this figure for "
+                        f"{anchor_paper_id}, which would make the item answerable"
+                    ),
+                    chunks_scanned=len(chunks),
+                    mentioning_chunk_ids=[str(chunk["chunk_id"])],
+                )
+    return AbsenceResult(
+        absent=True,
+        reason=f"{term!r} absent from {anchor_paper_id} and unattributed elsewhere",
+        chunks_scanned=len(chunks),
+    )
+
+
 def candidate_pairs(benchmarks: list[str]) -> dict[str, int]:
     """How much full-corpus verification actually eliminates, on this corpus.
 

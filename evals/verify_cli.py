@@ -4,10 +4,11 @@ Backs `make verify-evals`. Srikanth verifies 25 items by hand; this is what he s
 
 Design constraints that are not negotiable:
 
-* **Every automated check runs and is shown before the question.** A verifier who reads the
-  question first is anchored by it. The absence checks and the multi-hop sufficiency check
-  are what the automated pipeline believes; showing them first makes disagreement visible
-  rather than polite.
+* **The human decides first; automated verdicts are revealed afterwards.** This is the
+  important one. Showing "necessity: PASS" before the decision makes the label dependent on
+  the check, and the resulting agreement rate then measures agreement-with-the-machine
+  rather than generator-vs-human disagreement. Multi-hop and unanswerable-attribute have no
+  validation *other* than that number, so it has to be arrived at independently.
 * **Rejecting is as cheap as accepting.** A verification tool that makes rejection
   effortful produces a verified set that means nothing.
 * **Progress is saved after every decision.** A crash at item 20 of 25 must not cost the
@@ -30,7 +31,7 @@ from typing import Annotated
 import typer
 
 from evals.absence import load_corpus, verify_attribute_absent, verify_topic_absent
-from evals.schema import EvalItem, EvalSet, Stratum
+from evals.schema import EvalItem, EvalSet, MachineCheck, Stratum
 
 app = typer.Typer(add_completion=False, help="Verify eval items by hand.")
 
@@ -51,52 +52,58 @@ def show_chunk(chunk_id: str, limit: int = 400) -> None:
     typer.echo(_c(f"    [{chunk_id}] NOT FOUND IN CORPUS", typer.colors.RED))
 
 
-def run_automated_checks(item: EvalItem) -> list[tuple[bool, str]]:
-    """Everything the machine can decide, run before the human sees the question."""
-    results: list[tuple[bool, str]] = []
+def run_automated_checks(item: EvalItem) -> list[tuple[str, bool, str]]:
+    """Every automated verdict, as (name, passed, detail).
+
+    Named rather than positional so a disagreement is attributable to a specific check
+    instead of to "the pipeline". These are computed only after the human has ruled.
+    """
+    results: list[tuple[str, bool, str]] = []
 
     if item.stratum is Stratum.UNANSWERABLE_TOPIC:
         outcome = verify_topic_absent(item.absent_term)
-        results.append((outcome.absent, f"topic absence (all chunks): {outcome.reason}"))
+        results.append(("topic_absence", outcome.absent, outcome.reason))
     elif item.stratum is Stratum.UNANSWERABLE_ATTRIBUTE:
         outcome = verify_attribute_absent(item.anchor_paper_id, item.absent_term)
-        results.append((outcome.absent, f"attribute absence (all chunks): {outcome.reason}"))
+        results.append(("attribute_absence", outcome.absent, outcome.reason))
     else:
         corpus_ids = {str(c["chunk_id"]) for c in load_corpus().chunks}
         missing = [g for g in item.gold_chunk_ids if g not in corpus_ids]
         detail = f"missing from the corpus: {missing}" if missing else "all present"
-        results.append((not missing, f"gold chunks exist: {detail}"))
+        results.append(("gold_chunks_exist", not missing, detail))
 
     if item.stratum is Stratum.MULTI_HOP:
         checked = item.verification.single_paper_sufficiency_checked
         alone = item.verification.answerable_by_one_paper
         results.append(
             (
+                "multi_hop_necessity",
                 checked and not alone,
-                "single-paper sufficiency: "
-                + (
-                    "NOT CHECKED — run the drafter's check first"
-                    if not checked
-                    else "one paper answers it alone; this is not multi-hop"
-                    if alone
-                    else "no single paper answers it"
-                ),
+                "NOT CHECKED — run the drafter's check first"
+                if not checked
+                else "one paper answers it alone; this is not multi-hop"
+                if alone
+                else "no single paper answers it, and the papers together do",
             )
         )
     return results
 
 
 def render(item: EvalItem, index: int, total: int) -> None:
+    """Everything the human needs to rule, and **nothing the machine concluded**.
+
+    The automated verdicts are deliberately withheld until after the decision is taken. A
+    verifier shown "necessity: PASS" before the question is anchored by it, and the
+    resulting agreement rate then measures agreement-with-the-checker rather than the
+    generator-vs-human disagreement the multi-hop and attribute strata rest on. Those two
+    strata have no other validation, so that number has to be independent to be worth
+    anything.
+    """
     typer.echo("\n" + "=" * 78)
     typer.echo(
         f"Item {index}/{total}   {_c(item.stratum.value, typer.colors.CYAN)}   {item.item_id}"
     )
     typer.echo("=" * 78)
-
-    typer.echo(_c("\nAutomated checks", typer.colors.BRIGHT_BLACK))
-    for ok, message in run_automated_checks(item):
-        mark = _c("  PASS", typer.colors.GREEN) if ok else _c("  FAIL", typer.colors.RED)
-        typer.echo(f"{mark}  {message}")
 
     typer.echo(_c("\nQuestion", typer.colors.BRIGHT_BLACK))
     typer.echo(f"  {item.question}")
@@ -119,6 +126,37 @@ def render(item: EvalItem, index: int, total: int) -> None:
         f"{item.provenance.generator_snapshot} prompt={item.provenance.prompt_version}"
     )
     typer.echo(f"  papers: {', '.join(item.provenance.source_paper_ids) or '-'}")
+
+
+def reveal(item: EvalItem) -> None:
+    """Show the automated verdicts *after* the human has ruled, and name any disagreement."""
+    checks = item.verification
+    typer.echo(
+        _c(
+            "\n  ---- automated verdicts (revealed after your decision) ----",
+            typer.colors.BRIGHT_BLACK,
+        )
+    )
+    for check in checks.machine_checks:
+        mark = _c("PASS", typer.colors.GREEN) if check.passed else _c("FAIL", typer.colors.RED)
+        typer.echo(f"  {mark}  {check.name}: {check.detail}")
+
+    if checks.agrees is True:
+        typer.echo(_c("  agreement: human and pipeline concur", typer.colors.GREEN))
+    elif checks.agrees is False:
+        named = ", ".join(c.name for c in checks.disagreeing_checks()) or "-"
+        verdict = (
+            "you accepted, the pipeline rejected"
+            if checks.human_accepted
+            else "you rejected, the pipeline accepted"
+        )
+        typer.echo(_c(f"  DISAGREEMENT: {verdict} (checks: {named})", typer.colors.YELLOW))
+        typer.echo(
+            _c(
+                "  recorded, not resolved. This is the number the stratum's validity rests on.",
+                typer.colors.BRIGHT_BLACK,
+            )
+        )
 
 
 def prompt_decision() -> str:
@@ -170,6 +208,26 @@ def main(
         shapes = evalset.absence_shape_counts()
         if shapes:
             typer.echo(f"  absence shapes: {shapes}")
+        anchors = evalset.anchor_class_counts()
+        if anchors:
+            typer.echo(f"  anchor classes: {anchors}")
+
+        # Per stratum, never pooled: multi-hop and unanswerable-attribute rest entirely on
+        # automated checks, so their agreement rate is evidence about those checks.
+        # Averaging in single-paper factual, which is close to free, would dilute it.
+        agreement = evalset.agreement_by_stratum()
+        if any(row["ruled"] for row in agreement.values()):
+            typer.echo("\n  human-vs-pipeline agreement (independent: human ruled first)")
+            for name, row in sorted(agreement.items()):
+                if not row["ruled"]:
+                    continue
+                rate = row["agree"] / row["ruled"]
+                typer.echo(
+                    f"    {name:28} {row['agree']:2d}/{row['ruled']:2d} agree "
+                    f"({rate:.0%}), {row['disagree']} disagree"
+                )
+        for item_id, stratum, names in evalset.disagreements():
+            typer.echo(f"    disagreement {item_id} ({stratum}) -> {', '.join(names) or '-'}")
         raise typer.Exit(0)
 
     queue = [
@@ -198,26 +256,29 @@ def main(
             decisions["edited"] += 1
             choice = ACCEPT
 
-        if choice == REJECT:
-            notes = typer.prompt("why rejected", default="")
-            item = item.model_copy(
-                update={
-                    "verification": item.verification.model_copy(
-                        update={"human_verified": False, "human_notes": f"REJECTED: {notes}"}
-                    )
-                }
-            )
-            decisions["rejected"] += 1
-        else:
-            notes = typer.prompt("notes (optional)", default="")
-            item = item.model_copy(
-                update={
-                    "verification": item.verification.model_copy(
-                        update={"human_verified": True, "human_notes": notes}
-                    )
-                }
-            )
-            decisions["accepted"] += 1
+        accepted = choice != REJECT
+        prompt_text = "notes (optional)" if accepted else "why rejected"
+        notes = typer.prompt(prompt_text, default="")
+        decisions["accepted" if accepted else "rejected"] += 1
+
+        # Only now. Running the checks earlier would be harmless; *showing* them would not.
+        checks = [
+            MachineCheck(name=name, passed=passed, detail=detail)
+            for name, passed, detail in run_automated_checks(item)
+        ]
+        item = item.model_copy(
+            update={
+                "verification": item.verification.model_copy(
+                    update={
+                        "human_accepted": accepted,
+                        "human_verified": accepted,
+                        "human_notes": notes if accepted else f"REJECTED: {notes}",
+                        "machine_checks": checks,
+                    }
+                )
+            }
+        )
+        reveal(item)
 
         evalset.items[by_id[item.item_id]] = item
         # Written after every decision: a crash at item 20 must not cost the first 19.

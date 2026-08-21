@@ -17,6 +17,7 @@ from evals.absence import (
     load_corpus,
     paper_handles,
     verify_attribute_absent,
+    verify_attribute_absent_in,
     verify_topic_absent,
 )
 
@@ -89,3 +90,98 @@ class TestHandles:
         named = sum(1 for hs in paper_handles().values() if len(hs) > 1)
 
         assert 30 <= named <= 60
+
+
+class TestTheCrossCitationRuleCanActuallyFire:
+    """Prove the check is *clean*, not *inert*.
+
+    On the real corpus the cross-citation rule eliminates 0 of 979 candidate pairs, because
+    all 150 papers were published on the same afternoon and cannot cite one another. That
+    number alone cannot distinguish "nothing to catch" from "catches nothing" — the same
+    defect as a workflow that cannot fire and a test that skips its own failure
+    (DECISIONS D-023). So a chunk that should trip it is injected, and it must trip.
+    """
+
+    ANCHOR = "2605.30075"
+    OTHER = "2605.30123"
+
+    def _corpus(self, extra: list[dict[str, object]]) -> list[dict[str, object]]:
+        return [
+            {"chunk_id": "a_0", "paper_id": self.ANCHOR, "text": "We study federated aggregation."},
+            {"chunk_id": "b_0", "paper_id": self.OTHER, "text": "Unrelated related work."},
+            *extra,
+        ]
+
+    def test_absent_when_nothing_attributes_the_term(self) -> None:
+        result = verify_attribute_absent_in(
+            self._corpus([]),
+            {self.ANCHOR: frozenset({self.ANCHOR, "Q-ANCHOR"})},
+            self.ANCHOR,
+            "imagenet",
+        )
+
+        assert result.absent
+
+    def test_fires_when_another_paper_attributes_the_benchmark_by_method_name(self) -> None:
+        """The exact scenario the rule exists for, and the one the corpus cannot produce."""
+        citing = {
+            "chunk_id": "b_1",
+            "paper_id": self.OTHER,
+            "text": "Prior work: Q-ANCHOR reports 71.2% top-1 on ImageNet under this protocol.",
+        }
+        result = verify_attribute_absent_in(
+            self._corpus([citing]),
+            {self.ANCHOR: frozenset({self.ANCHOR, "Q-ANCHOR"})},
+            self.ANCHOR,
+            "imagenet",
+        )
+
+        assert not result.absent
+        assert result.mentioning_chunk_ids == ["b_1"]
+        assert "Q-ANCHOR" in result.reason
+
+    def test_fires_when_another_paper_attributes_it_by_arxiv_id(self) -> None:
+        """The weak-anchor path: 105 of 150 papers have only this."""
+        citing = {
+            "chunk_id": "b_2",
+            "paper_id": self.OTHER,
+            "text": f"As reported in {self.ANCHOR}, ImageNet accuracy reaches 71.2%.",
+        }
+        result = verify_attribute_absent_in(
+            self._corpus([citing]),
+            {self.ANCHOR: frozenset({self.ANCHOR})},
+            self.ANCHOR,
+            "imagenet",
+        )
+
+        assert not result.absent
+
+    def test_does_not_fire_on_an_unrelated_mention_of_the_benchmark(self) -> None:
+        """Another paper using ImageNet itself says nothing about the anchor's score."""
+        unrelated = {
+            "chunk_id": "b_3",
+            "paper_id": self.OTHER,
+            "text": "We evaluate our own method on ImageNet and report 68.4%.",
+        }
+        result = verify_attribute_absent_in(
+            self._corpus([unrelated]),
+            {self.ANCHOR: frozenset({self.ANCHOR, "Q-ANCHOR"})},
+            self.ANCHOR,
+            "imagenet",
+        )
+
+        assert result.absent
+
+    def test_the_real_corpus_uses_the_same_code_path(self) -> None:
+        """Guards against the injected-corpus variant drifting from the shipped one."""
+        injected = verify_attribute_absent_in(
+            [
+                {"chunk_id": c["chunk_id"], "paper_id": c["paper_id"], "text": c["text"]}
+                for c in load_corpus().chunks
+            ],
+            dict(paper_handles()),
+            "2605.30348",
+            "gsm8k",
+        )
+
+        assert injected.absent == verify_attribute_absent("2605.30348", "gsm8k").absent
