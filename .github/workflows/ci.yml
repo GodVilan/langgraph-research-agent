@@ -5,8 +5,11 @@ name: CI
 # install from a clean environment.
 
 on:
+  # Every branch, not just main. This project's working agreement is that Srikanth commits
+  # to main directly and pull requests are never opened, so the conventional
+  # `push: [main] + pull_request` pair would leave every phase branch untested — and the
+  # first push of this file proved it, triggering nothing at all.
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
