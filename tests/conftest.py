@@ -32,6 +32,21 @@ def settings() -> Settings:
     )
 
 
+# Every ``BaseSettings`` subclass under ``src/`` that the autouse fixtures below isolate.
+#
+# This registry exists because the two settings objects diverged silently. ``Settings`` was
+# isolated from the start; ``ObservabilitySettings`` is a *separate* object — deliberately
+# so, since the agent must not import Langfuse or OpenTelemetry unless tracing is switched
+# on — and nothing connected the two. So the suite kept reading the real `.env` for
+# observability alone and shipped 187 synthetic traces into the live project (D-021).
+#
+# Unifying the classes would undo that deliberate separation, so the invariant is enforced
+# instead: `test_settings_isolation.py` discovers every settings class in `src/` and fails
+# if one is missing here. Phase 5's FastAPI config will trip that test on the day it is
+# added, which is the point.
+ISOLATED_SETTINGS = frozenset({"Settings", "ObservabilitySettings"})
+
+
 @pytest.fixture(autouse=True)
 def _isolate_settings_cache(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> None:
     """Make ``get_settings()`` return the test settings everywhere it is called.
@@ -50,6 +65,42 @@ def _isolate_settings_cache(monkeypatch: pytest.MonkeyPatch, settings: Settings)
         "src.agent.runner",
     ):
         monkeypatch.setattr(f"{module}.get_settings", lambda: settings, raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _sever_settings_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stop *every* settings class reading the developer's real `.env`.
+
+    This runs first and underpins the two fixtures below. They patch ``get_settings`` and
+    ``get_observability_settings`` per module, which only works for modules already listed
+    by name — a module doing its own ``ObservabilitySettings()`` is unaffected, and that is
+    the shape of the bug that let the suite write to the live Langfuse project.
+
+    So the environment itself is neutralised at the source: `env_file` is cleared on every
+    `BaseSettings` subclass under `src/`, discovered by walking the package rather than
+    listed, and the variables they read are unset. A settings class added in Phase 5 is
+    covered on the day it is written, with nobody having to remember.
+    """
+    import importlib
+    import inspect
+    import pkgutil
+
+    from pydantic_settings import BaseSettings
+
+    import src
+
+    for module_info in pkgutil.walk_packages(src.__path__, prefix="src."):
+        module = importlib.import_module(module_info.name)
+        for obj in vars(module).values():
+            if (
+                inspect.isclass(obj)
+                and issubclass(obj, BaseSettings)
+                and obj is not BaseSettings
+                and obj.__module__.startswith("src.")
+            ):
+                monkeypatch.setitem(obj.model_config, "env_file", None)
+                for field in obj.model_fields:
+                    monkeypatch.delenv(field.upper(), raising=False)
 
 
 @pytest.fixture(autouse=True)

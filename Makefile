@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -25,7 +25,10 @@ test:  ## full test suite
 	$(PY) -m pytest -q
 
 test-fast:  ## skip tests that load the embedding model or hit the network
-	$(PY) -m pytest -q -m "not slow and not network"
+	$(PY) -m pytest -q -m "not slow and not network and not integration"
+
+test-integration:  ## one real trace against a live local Langfuse (needs make langfuse-up)
+	$(PY) -m pytest -q -m integration
 
 check: lint type test-fast  ## what CI runs on every push
 

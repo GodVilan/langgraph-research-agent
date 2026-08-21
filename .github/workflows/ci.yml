@@ -49,8 +49,10 @@ jobs:
       - name: Type check
         run: mypy src
 
+      # `integration` is excluded rather than left to skip itself: it needs a six-container
+      # Langfuse stack, and a job full of silent skips reads as green without testing much.
       - name: Tests
-        run: pytest -q -m "not slow and not network"
+        run: pytest -q -m "not slow and not network and not integration"
 
   clean-install:
     name: install from a clean environment

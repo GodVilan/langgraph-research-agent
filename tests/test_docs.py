@@ -8,9 +8,8 @@ so the one number most likely to drift gets a test.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
-
-import pytest
 
 REPO = Path(__file__).resolve().parent.parent
 README = REPO / "README.md"
@@ -50,16 +49,25 @@ class TestReadmeStats:
         assert block is not None
         claimed = int(re.search(r"\|\s*Tests\s*\|\s*(\d+)", block.group(1)).group(1))  # type: ignore[union-attr]
 
+        # `sys.executable`, not `.venv/bin/python`: the hardcoded path exists only on a
+        # machine laid out like the developer's, so in CI this raised FileNotFoundError and
+        # the guard failed rather than checking anything. Found by the first CI run
+        # (DECISIONS D-022 — a working local environment is not evidence of a portable one).
         proc = subprocess.run(
-            [str(REPO / ".venv/bin/python"), "-m", "pytest", "--collect-only", "-q"],
+            [sys.executable, "-m", "pytest", "--collect-only", "-q"],
             cwd=REPO,
             capture_output=True,
             text=True,
             check=False,
         )
         match = re.search(r"(\d+) tests collected", proc.stdout)
-        if match is None:
-            pytest.skip("could not collect tests in a subprocess")
+        # Deliberately not `pytest.skip`. A guard that skips when it cannot run is a guard
+        # that disappears exactly when something is wrong — which is what happened in CI,
+        # where the FileNotFoundError above meant this check had never once executed there.
+        assert match is not None, (
+            f"could not collect tests in a subprocess (exit {proc.returncode}).\n"
+            f"stdout: {proc.stdout[-500:]}\nstderr: {proc.stderr[-500:]}"
+        )
         assert claimed == int(match.group(1)), (
             f"README claims {claimed} tests, pytest collects {match.group(1)}. "
             f"Run `make readme-stats`."

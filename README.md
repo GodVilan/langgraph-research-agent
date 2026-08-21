@@ -159,7 +159,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 257, all passing | `make test` |
+| Tests | 270, all passing | `make test` |
 | First-party Python | 38 files, 4,523 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |

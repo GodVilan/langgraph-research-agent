@@ -88,4 +88,5 @@ asyncio_mode = "auto"
 markers = [
     "slow: loads the embedding model or the FAISS index",
     "network: makes a live outbound call",
+    "integration: requires a live local Langfuse (make langfuse-up); excluded from `make check`",
 ]

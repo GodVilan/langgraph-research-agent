@@ -21,7 +21,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from langchain_core.messages import AIMessage
 
-from scripts.budget_from_traces import check_blended_rate, summarise
+from scripts.budget_from_traces import (
+    check_blended_rate,
+    is_test_environment,
+    render,
+    summarise,
+)
 from scripts.reconcile_cost import (
     FIXTURE,
     classify,
@@ -315,3 +320,35 @@ class TestD021IsReproducibleFromCommittedEvidence:
         synthetic = len(groups["unpriced"]) / len(traces)
 
         assert synthetic > 0.85
+
+
+class TestTestTrafficIsNotAgentSpend:
+    """`test_trace_integration.py` writes real traces on purpose. They are not spend.
+
+    A smaller replay of D-021: traces that are genuine at the API level but do not represent
+    agent usage must be visible without being counted.
+    """
+
+    def test_the_integration_environment_is_recognised(self) -> None:
+        assert is_test_environment("integration-test")
+        assert is_test_environment("eval-test")
+        assert not is_test_environment("development")
+        assert not is_test_environment("production")
+
+    def test_test_traffic_is_excluded_from_the_blended_rate_check(self) -> None:
+        """Test traces must not be able to push the published blend around."""
+        rows = summarise([trace(usage=priced_usage(1000, 100), environment="integration-test")])
+
+        assert check_blended_rate(rows) is None
+
+    def test_a_table_of_only_test_traffic_totals_zero(self) -> None:
+        rows = summarise(
+            [
+                trace(tid="a", usage=priced_usage(1000, 100), environment="integration-test"),
+                trace(tid="b", usage=priced_usage(2000, 200), environment="integration-test"),
+            ]
+        )
+        block = render(rows, days=30, n_traces=2)
+
+        assert "_(test traffic)_" in block
+        assert "| **total** | **0** | **0** | **0** | | **$0.00000** | **$0.00000** |" in block
