@@ -1,0 +1,3888 @@
+{
+  "schema_version": 1,
+  "generated_by": "scripts/reconcile_cost.py --dump",
+  "generated_at": "2026-08-21T15:55:05.050450+00:00",
+  "window_days": 30,
+  "n_traces": 214,
+  "sha256": "358790c7a1cfaa176d9c39e6d6ba53c4306aac29d77b8dfcaa3be8491b119ef1",
+  "description": "Langfuse trace window backing DECISIONS D-021. Captured before `make langfuse-reset` cleared the store for Phase 4. Reduced to the fields the reconciliation reads; no answer text or prompt bodies.",
+  "traces": [
+    {
+      "id": "5beb30ebf674a098f30ed58e0dac88fe",
+      "name": "query",
+      "timestamp": "2026-08-20T17:51:11.618000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": "What approaches address catastrophic forgetting in continual learning?"
+    },
+    {
+      "id": "6c8ea88f335a40744045e2bb02d5a72e",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:51:11.633000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.005942199999,
+      "usage": null,
+      "question": "What approaches address catastrophic forgetting in continual learning?"
+    },
+    {
+      "id": "610ece9d53801bdc82bcc64bde9a1ce7",
+      "name": "query",
+      "timestamp": "2026-08-20T17:51:44.809000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": "Compare LoRA and prefix tuning on parameter efficiency"
+    },
+    {
+      "id": "c85b71f902cdf7fce7224e710c0defde",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:51:44.819000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0047065,
+      "usage": null,
+      "question": "Compare LoRA and prefix tuning on parameter efficiency"
+    },
+    {
+      "id": "fa213c3a5f52be324c181e0ee3f9b95d",
+      "name": "query",
+      "timestamp": "2026-08-20T17:51:55.211000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": "Who won the 2018 world cup?"
+    },
+    {
+      "id": "5ad3471887d0f2ea82d780261d666304",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:51:55.220000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0001177,
+      "usage": null,
+      "question": "Who won the 2018 world cup?"
+    },
+    {
+      "id": "adf63aadfc3e89dae2d29d38ec05ac1e",
+      "name": "query",
+      "timestamp": "2026-08-20T17:52:03.063000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": "What is catastrophic forgetting?"
+    },
+    {
+      "id": "8e1eb4828233fa53a3f7e5e138ca5a3a",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:52:03.074000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0039783,
+      "usage": null,
+      "question": "What is catastrophic forgetting?"
+    },
+    {
+      "id": "a39be0b634dced38455777cdea426fa9",
+      "name": "query",
+      "timestamp": "2026-08-20T17:52:08.019000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": "What addresses catastrophic forgetting?"
+    },
+    {
+      "id": "9f52cdf16ecb19535755dade9a8ceb35",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:52:08.025000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0005369,
+      "usage": null,
+      "question": "What addresses catastrophic forgetting?"
+    },
+    {
+      "id": "03b74beaf696e0e93288c8e889b97ad3",
+      "name": "query",
+      "timestamp": "2026-08-20T17:54:59.594000+00:00",
+      "session_id": "b580338f2d914b1ca44655935b7166f3",
+      "environment": "development",
+      "total_cost": 0.0037282,
+      "usage": {
+        "input_tokens": 10544,
+        "output_tokens": 226,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0037281999999999997,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is catastrophic forgetting in neural networks?"
+    },
+    {
+      "id": "0d06c3c46864f3e718226f381a69be5d",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.521000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "918d77afd969143ed725b7a5afbfc8e2",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.614000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "f72303a2efed3d63c7a1fd4605dccbbd",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.655000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "f79dd8f28079cfb15faf79fa32d4a187",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.677000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "8216ce5d785318231a85697a1870958e",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.717000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ccd93755fa116db7529c6d4e1dc5c2e1",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:55:38.740000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "c1354ef5db23e91bef795cb0053ddede",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:38.754000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "a9ab61c49cc290b1c55becab79b6993c",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.684000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "1c18bd1d93c3924a82cc9b8a8deee53f",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.732000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "d3e74db402fe6279ff6d4bfd4f9bfc8f",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.764000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "7ef0734911ed24eb4cb41ab60b53617e",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.805000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "d5997b33b811078d2320c6a5c4893e8a",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.850000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "cbf6ef26914549147296d59fb7f7f3c2",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.891000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "919621d52b8051f180bb58274216ba27",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.924000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "7876d63eead96250e67a8b6af07601c1",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:39.957000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "a908f4cbb089947c76d875fb828fdb2b",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:40.011000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "22ec67b2f077c559ead7df23670caf97",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:40.045000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "a67282065282ffceccbd20b3a73916bd",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:40.074000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "46fa1a793baf4eb96e75026c97cda8ef",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.595000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "885b9ebd6b1e15203983786f552e79f7",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.654000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "439ac12843532dd3f05fe214a606c4fa",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.692000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "98edbff40b759402dae60e41e833ef99",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.711000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "d49f9c334952aa5a369f81ea3eda7fc0",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.757000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "552f55cd8efc8aeb24e48a310e5c9c3d",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:55:53.779000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "8ca90bf5665d5bbbf8b70b90bb87c59d",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:53.795000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "2e5e2c04073973694c418362819e4c68",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.739000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "77fb1f76d94c4fc49d894c89b4256961",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.783000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "fb06592f6585d5567aca506339d8dc20",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.815000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "5035ca0560e14b4bb84bcc716898d410",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.850000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "5214e16ade246078f26b0b7f971a088d",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.881000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "0e2dc3936f5fa45c749ab326f6c0b381",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.923000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "47df97a143e04b1495c133af90eab244",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.955000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "bc845345c617070a45fd37f82083dbdb",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:54.991000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "523a2c3e985ef64f2cefe8d206177d17",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:55.046000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "db8a07ce29f62e352f49920b4d7c8a13",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:55.080000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "16652f7445bc2c30818e755763f3aaa4",
+      "name": "query",
+      "timestamp": "2026-08-20T17:55:55.107000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "de4847a21ce34c5d6268e9be7070f508",
+      "name": "query",
+      "timestamp": "2026-08-20T17:56:02.651000+00:00",
+      "session_id": "c7eebcf4de1348cbaa57aa24365ef7b6",
+      "environment": "development",
+      "total_cost": 0.0040717,
+      "usage": {
+        "input_tokens": 10289,
+        "output_tokens": 394,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0040717,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is parameter efficient fine tuning?"
+    },
+    {
+      "id": "f712b07edef47f649d9760f5b17b8438",
+      "name": "query",
+      "timestamp": "2026-08-20T17:56:51.833000+00:00",
+      "session_id": "a1711f3c20e84ee0ad1a113b3fa1fb17",
+      "environment": "development",
+      "total_cost": 0.003008599999,
+      "usage": {
+        "input_tokens": 5587,
+        "output_tokens": 533,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0030086,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is low rank adaptation?"
+    },
+    {
+      "id": "7782a66aae3a61f384fe2b1c76e6a5b2",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.403000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "82bf468de998d21942cbb5944919d960",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.468000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "10d92f4c6c59f242bdc70b4162240306",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.508000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "a966754f120de8b07555b9524b459d77",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.527000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "282bcd8f3b9edac45cc3891bb10af6a0",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.568000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "b2dbf6fae9fe7625c9980392263ad262",
+      "name": "LangGraph",
+      "timestamp": "2026-08-20T17:59:18.591000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "d69e768b39b7aafb12a731ef10efd96f",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:18.608000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "9c0783c07570d2b40a81740373c7283c",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.541000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "400371e9c84c735fd92d363017df6020",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.586000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "2965cb66c4eb2f9908eb040d6a96894a",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.618000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "fb84f998a6648f3449c692635f27a79a",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.658000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "d039665ae543f4fb3413dd263b26cd37",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.688000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "b3b78d67f6b388fb3d15938c82be5314",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.729000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "6bf8dd07ce428de728ea0118c504a11d",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.759000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "966bdf8a8e7ef11a303593d50b63f17b",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.790000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "51992f2e7bc5bf5400f1040a8697757e",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.848000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "287c03176c4a465f8eac3055ff3cc3c3",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.885000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "e4b1358f3b491ef3576f4cddaa119a10",
+      "name": "query",
+      "timestamp": "2026-08-20T17:59:19.913000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "b358ba7d361997a501de488cdefb6993",
+      "name": "query",
+      "timestamp": "2026-08-20T23:46:52.746000+00:00",
+      "session_id": "demo-guardrail",
+      "environment": "development",
+      "total_cost": 0.000528699998,
+      "usage": {
+        "input_tokens": 954,
+        "output_tokens": 97,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0005287,
+        "missing_usage_metadata": 0
+      },
+      "question": "What approaches address catastrophic forgetting in continual learning?"
+    },
+    {
+      "id": "b0fe74ce2b58209723d81ac233d2a5e7",
+      "name": "query",
+      "timestamp": "2026-08-20T23:48:45.468000+00:00",
+      "session_id": "demo-public",
+      "environment": "development",
+      "total_cost": 0.0005749,
+      "usage": {
+        "input_tokens": 958,
+        "output_tokens": 115,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0005748999999999999,
+        "missing_usage_metadata": 0
+      },
+      "question": "What approaches address catastrophic forgetting in continual learning?"
+    },
+    {
+      "id": "6f7193513c715344007e08bb6e9d652c",
+      "name": "query",
+      "timestamp": "2026-08-20T23:56:03.458000+00:00",
+      "session_id": "demo-public2",
+      "environment": "development",
+      "total_cost": 0.000566499999,
+      "usage": {
+        "input_tokens": 955,
+        "output_tokens": 112,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0.0005665,
+        "missing_usage_metadata": 0
+      },
+      "question": "What approaches address catastrophic forgetting in continual learning?"
+    },
+    {
+      "id": "a95a559f75d81b37575793fa4fa1aa90",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:49.916000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "0deca0acf35d250b02c4ed38cd78dfdc",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:50.003000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "0b3455f3deef0cb3c3ec383601e58a80",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:50.050000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "72e45b93326e48790ce90b20750f2cbc",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:50.073000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "c49c0de306ee6956b07fd598c589f556",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:50.115000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "1192b77bacba0ccf6716841790a07e1b",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:03:50.141000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "239bb2a9da937e392fe728d8b30a1b09",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:50.156000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "fb0d3ba78942ef4787cad1a983712744",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.213000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "7dad922ae548e8b96e6f4c91d4874165",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.261000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "57d45285e46432fb9d8121efb55ff8f6",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.293000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "14f6095c70f614a648f8c1129711a244",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.332000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "004ff648d3179d78b552695579434a5b",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.366000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "46dd676370b3a16a42c522d2ae1e6200",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.407000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "e9430b5008086e313d9a809a4ada90c6",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.442000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "5df6d9fbd4b1fe4b651202724b744098",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.476000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "0359f762934f1849d56cfda153100fd0",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.542000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "995a49fc18ab2f084ffe377929636ac5",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.587000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "8d622da46793085dbd84d2d1837f23ec",
+      "name": "query",
+      "timestamp": "2026-08-21T00:03:51.612000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "5b71f3e418d6bab38a890d93c350ed4e",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.208000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ae4ab883885e0b9b44440587933bdfe7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.308000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "962353df193f916008fd12a0d6bc48cc",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.370000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "40ec568253eac61d3bbfa32997104495",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.389000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "cc9d65466074078746928c22b0bce3d9",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.425000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5cd608c12ad434999545ef85cdbc6771",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:05:35.449000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "7c6f7e78395303708dbb174fcf1ce363",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:35.468000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5ff6288a698ed33bd93e7d2f2d83ac85",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.441000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "995b06d5e431d130d3bad0e69cece0e4",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.487000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "675e8021d7e5c64c4464696b36ddbbe8",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.524000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "a257d883e532512ca3488dbb857503fc",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.575000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "f41fa995b47fb043f096053ad8b25480",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.611000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5975b990c969e6eda5e55050251f4c06",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.653000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "f884510e3c39c24206a67268b2acb43c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.687000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "e88657994a9661641a303f86d96c10cd",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.726000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "16632e717d16d6d810b5da694ea1c0ee",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.779000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "8965eb9c688537c7be1a8e481789eb20",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.814000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "fcfcc1d14cb3fb32949181200f3e619c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:05:36.845000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "b1bc89aee3495f8b9e7101a04b90ae37",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.066000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "c6818166c90b872b123539e3681f72ff",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.164000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "d96a2a5169f90cb80782f4d6db59af48",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.233000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "33783f53ed324363e83de72a6ebde698",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.257000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "aa496b83ba96700f938597e301c3ca18",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.320000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5cbd0f692cac22361d7fd3e8cb1429a2",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:07:20.345000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "57c6597c36597396f2d52d184d57f18e",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:20.360000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "082c20a2ef6d5b01581b1007597476f7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.365000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "c54f782ac7b7f377d7b4463c74192ea7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.397000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "2d59e8efffa98e50c14f4cb957f22405",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.429000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "c62d13a5e543dfd62bf7015776b77e11",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.461000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "643c7a5105d8f5ea735b9beeea8bf2a8",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.498000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "9f0f35e1d00c7c316365bdfa2978f14c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.533000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "9aeb0de77a32d9d723ff96fcc7c8929c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.572000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "6d3c46ea3c0e6faff0b2c844dad6ec39",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.608000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "07d156386343c9fbe488cd54f865622a",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.668000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "29c221c044cd052d7f16965ad6ae2363",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.706000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "1b7063b77f77811f2232fc7f71f7b4a3",
+      "name": "query",
+      "timestamp": "2026-08-21T00:07:21.733000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "f169702cfaa9cf31d668a03002c0da64",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.651000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "1be7631fc646070b960c2f5650dfa0c6",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.791000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "d92867a69fc2e31aa1fafddd91d3cb80",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.831000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "e5781aa172a22c8bb82b5b1d354c42b7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.851000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "1ef2c1779aa6bb971d5dd8d260b311c8",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.890000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "56231bd5652f093030d68792761b9882",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:22:13.912000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "3ea2341d3d3cb703cd34e8a5618801f9",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:13.927000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "37f0508661abe96068bbb7ddf37d3e5c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:14.840000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "924029a082980593d534c5eaa27c3228",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:14.881000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "0d357537584590e4a1e24c1a04186bba",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:14.912000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "73e3bc1b2decd9f11cabd003be5fbc39",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:14.944000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "96a2e8afb76e498fb655621e1a1050c8",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:14.984000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "2bfc1bad342957b4458709155519ab0d",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.038000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5d5038ee0fa8800f8f43791da06a24a3",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.068000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "b3f7cb9da97c5af07d9dc3ab936a494c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.101000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "6f241f5e62c500f0f98e5f358e9475b2",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.153000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "a387fb8eba1de447b2b8379ded7656ec",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.188000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "315eda7e046d7f5c7ddf6e189048b54c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:22:15.212000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "1ce4aebf4c2c4caea8ffa7f6853569c3",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.427000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "251bf6b3fd8244cd034dd170cf50c3db",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.552000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "4d0e01fb81f4a7a1a9b6c16fcc01c177",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.640000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "3a340dcc057da8aedf19e312eeb7b226",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.677000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "d2d087846626b189da2d1bb4137ab41d",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.713000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "edb389c89090eeb2b484a0d519651bb6",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:55:16.736000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "25536dc364035ba1abab8e2ba0b329dd",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:16.749000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "0bacf80bfad0bc052b0f3d1fa4ca67ef",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.687000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "9324a45a59f293d01515a48dce89e5d4",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.723000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "9fd9c1dedef2be26859685718359abee",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.755000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "51578c8ff972e4ab0fc0b97ad814f658",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.786000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "48b7f7fac144c3760fea813cceca6b7c",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.819000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5a1474b8ab5377d7d608667f9f1e5f60",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.856000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "029311993fd9a8dc159a0f39c379d7e0",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.890000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "a5ad63031754aea87700212cbc45b5e7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.924000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "0df444645f019632700b62e51f1cf9f6",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:17.987000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "2aae1f3217a14d98bc6f1dc3d90c6b14",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:18.042000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "fec5eda92de337dcbc5844e88eefc7f7",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:18.068000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "4e9151a838a39f65b062054f3fe24541",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.630000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "d470599cbb4ce5fcb3987238f7b6e87d",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.711000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "a29bcd9b8cdd368ab23fd277720108d4",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.764000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "1be042b182ec1ac3a12ebec23a555574",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.789000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "aed4460b6a3c660ea60d9eed8facc007",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.841000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "4daec0048f527ebf61acda1cb12470bf",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T00:55:45.886000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "2645a61becd18fd57d11b3f97aa8ae79",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:45.911000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5917ef7f672ba360f50802336ccba83e",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:46.866000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "b6c77eebff1fa72dc5aca0ec2f09563a",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:46.913000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "79a39c647a3ebe129a59c2b160e8506b",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:46.945000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "900b61caea5f773634a23c1958feac84",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:46.977000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "5df9d3326e661fceb9be6a6125692af8",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.013000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "02fdc0cf397c0e3be53ef44f2eb74190",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.047000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "c5ad55e1d461b01c0e882731dc05bb2a",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.084000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "11abb23306e655522f5e82de201a97d3",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.122000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "6a1854c5d2a7857b76f380e5217c4e6e",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.174000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "96426f0ce42ae389c255588c0190e891",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.208000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "e66363b9c539f29dfb9d7a865f8484d4",
+      "name": "query",
+      "timestamp": "2026-08-21T00:55:47.240000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "8f8f7086236a8abe561e99c10255a54b",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.315000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ecdb7de787f5149cf1432e175614dc20",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.420000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "5738db2a71c65798d6a281849e18f227",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.484000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "1969b94d2b0159e1da1ebb162c406e7e",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.503000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "3549c7d480b65998e1fdeb55445dfa08",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.544000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "00d25f06d845556954d2b2969054399e",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T01:27:51.574000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "2a48cadeb29c19247d01813a8cb6d057",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:51.594000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "7ccc5512a6756f13c64a9455923c9715",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.534000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "d73411c60a5a6ffff53cc323cd09202d",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.579000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "a9bbf0c9a86862de71e546eb7241a9b6",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.613000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "90a87122ad0a7b3b4fb15399cfb47f00",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.650000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "fc29e6530185042f61660f7be4b2881f",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.684000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ea6513c8ab34643a5439120247b2026d",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.724000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "7d9e94b68b119c1bdd751291940d9fb6",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.758000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "15cd7aec29aa2e433ba5e6ad0c8e08e1",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.794000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "b0cc5d72538845b102cf06c18f0e5e97",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.851000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "3c2f73c7398a2411d3eae909ad0b47a8",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.895000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "a7bf5754fcd88c4c85515e8434e3db0b",
+      "name": "query",
+      "timestamp": "2026-08-21T01:27:52.923000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "a363d1fb5a267955104ed1a51dd16dad",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.705000+00:00",
+      "session_id": "thread-a",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "789dbf934d708e3eb0c31be29cc3e106",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.794000+00:00",
+      "session_id": "thread-b",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "fd29674bd452e8d0d8bbf7555be5d1d4",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.835000+00:00",
+      "session_id": "thread-1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "fbde3dbe3d97af816dace03ed8da53f0",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.859000+00:00",
+      "session_id": "thread-2",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is RLHF?"
+    },
+    {
+      "id": "da3e433b2f09d55b79da7bf591be16dc",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.898000+00:00",
+      "session_id": "thread-c",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "495c2f949d1efd03502cd6f7ff5bf1e1",
+      "name": "LangGraph",
+      "timestamp": "2026-08-21T01:28:32.919000+00:00",
+      "session_id": null,
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": null,
+      "question": null
+    },
+    {
+      "id": "c445b105cf11938c2534cfe8df21ccdd",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:32.935000+00:00",
+      "session_id": "thread-d",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ce332eb7202436a2b135044cf8dab1c8",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:33.874000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "dfc4beaa69435a158af4c62c71ce961f",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:33.915000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "11353ad430569ef631fe0032b22e05ad",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:33.949000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "Compare A and B and C"
+    },
+    {
+      "id": "181892c7ffe97075e18cc5a726d6f92b",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:33.980000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 500,
+        "output_tokens": 140,
+        "thinking_tokens": 0,
+        "llm_calls": 4,
+        "tool_calls": 2,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "many things"
+    },
+    {
+      "id": "fcb60a54b1d47f1b11e069209d669490",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.014000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 1000,
+        "output_tokens": 320,
+        "thinking_tokens": 0,
+        "llm_calls": 7,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "3960a093c0c5d56d1133aaa440d0745b",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.056000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 1,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "What is LoRA?"
+    },
+    {
+      "id": "ec7758b88acf8c9139d1e2baaef59246",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.088000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 4,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "18e1bfcec76d1759d8d8bab105ca1bb2",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.121000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 400,
+        "output_tokens": 120,
+        "thinking_tokens": 0,
+        "llm_calls": 3,
+        "tool_calls": 3,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "big question about transformers"
+    },
+    {
+      "id": "7164f34b0159df5d45ba8dfe2da0ff32",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.175000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "what is attention"
+    },
+    {
+      "id": "e980d994e5ae8917a2280b06a18a0ec3",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.212000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "thinking_tokens": 0,
+        "llm_calls": 1,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "who is the president"
+    },
+    {
+      "id": "96d1afa147371b74272f2e5208d75b8a",
+      "name": "query",
+      "timestamp": "2026-08-21T01:28:34.245000+00:00",
+      "session_id": "t1",
+      "environment": "development",
+      "total_cost": 0.0,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "thinking_tokens": 0,
+        "llm_calls": 0,
+        "tool_calls": 0,
+        "cost_usd_billed": 0,
+        "cost_usd_notional": 0,
+        "missing_usage_metadata": 0
+      },
+      "question": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  ]
+}

@@ -28,19 +28,29 @@ What it checks, in order of how much each one is worth:
 
 Exits non-zero when a check fails, so it can gate a release the way `make check` does.
 
+The live store was reset at the start of Phase 4 to give the eval runs a clean window, so
+the window this finding was derived from is committed as a checksummed fixture at
+``data/traces_d021.json``. `--from-fixture` reconciles against it, and the test suite asserts
+its numbers. A documented finding whose evidence has been deleted is exactly what AUDIT §5
+catalogues in v2.1; this is the same mistake declined.
+
 Usage:
-    python scripts/reconcile_cost.py                 # last 30 days
+    python scripts/reconcile_cost.py                 # live store, last 30 days
     python scripts/reconcile_cost.py --days 7
+    python scripts/reconcile_cost.py --from-fixture   # reproduce D-021 (make reconcile-d021)
+    python scripts/reconcile_cost.py --dump           # capture the live window to a fixture
     python scripts/reconcile_cost.py --json
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -54,6 +64,10 @@ from src.observability.langfuse import get_client
 # to pair two genuinely separate queries.
 DUPLICATE_WINDOW_S = 1.0
 TOLERANCE_USD = 1e-9
+
+# The committed evidence for D-021. Reconciling against this rather than the live store is
+# what lets the finding outlive `make langfuse-reset`.
+FIXTURE = Path(__file__).resolve().parent.parent / "data" / "traces_d021.json"
 
 
 def fetch_traces(days: int) -> list[Any]:
@@ -81,6 +95,102 @@ def fetch_traces(days: int) -> list[Any]:
             break
         page += 1
     return traces
+
+
+def to_fixture_row(trace: Any) -> dict[str, Any]:
+    """Reduce a Langfuse trace to the fields this reconciliation reads.
+
+    Deliberately lossy. Storing whole traces would commit answer text and prompt bodies for
+    no analytical gain; these eight fields are the entire evidential basis of D-021.
+    """
+    metadata = getattr(trace, "metadata", None) or {}
+    usage = metadata.get("usage") if isinstance(metadata, dict) else None
+    trace_input = getattr(trace, "input", None)
+    question = trace_input.get("question") if isinstance(trace_input, dict) else None
+    if isinstance(question, str):
+        # Only used to pair duplicate roots, and the input-length guardrail test contributes
+        # 5,000-character strings that would otherwise be most of the fixture. Two questions
+        # would have to share a 120-character prefix *and* land within a second of each
+        # other to pair wrongly.
+        question = question[:120]
+    return {
+        "id": trace.id,
+        "name": trace.name,
+        "timestamp": trace.timestamp.isoformat(),
+        "session_id": getattr(trace, "session_id", None),
+        "environment": getattr(trace, "environment", None),
+        "total_cost": float(getattr(trace, "total_cost", 0) or 0),
+        "usage": usage if isinstance(usage, dict) else None,
+        "question": question,
+    }
+
+
+def _payload_checksum(rows: list[dict[str, Any]]) -> str:
+    """Checksum the trace rows alone, so the header can carry it without self-reference."""
+    return hashlib.sha256(
+        json.dumps(rows, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def dump_fixture(traces: list[Any], path: Path, days: int) -> dict[str, Any]:
+    """Freeze the trace window to a committed JSON fixture.
+
+    D-021 is a finding about 214 specific traces. Resetting the store to give Phase 4 a
+    clean window would destroy the only evidence for it — leaving a documented result whose
+    backing data no longer exists, which is precisely the failure AUDIT §5 catalogues in
+    v2.1 (a README metric whose dataset was deleted). So the evidence is committed before
+    the store is reset, and the finding stays reproducible from the fixture forever.
+    """
+    rows = sorted((to_fixture_row(t) for t in traces), key=lambda r: (r["timestamp"], r["id"]))
+    fixture = {
+        "schema_version": 1,
+        "generated_by": "scripts/reconcile_cost.py --dump",
+        "generated_at": datetime.now(UTC).isoformat(),
+        "window_days": days,
+        "n_traces": len(rows),
+        "sha256": _payload_checksum(rows),
+        "description": (
+            "Langfuse trace window backing DECISIONS D-021. Captured before "
+            "`make langfuse-reset` cleared the store for Phase 4. Reduced to the fields the "
+            "reconciliation reads; no answer text or prompt bodies."
+        ),
+        "traces": rows,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+    return fixture
+
+
+def load_fixture(path: Path) -> list[Any]:
+    """Rehydrate the fixture into objects with the attribute surface the checks expect.
+
+    The checksum is verified on load: a fixture that has been edited by hand is not
+    evidence, and silently reconciling against a tampered file would be worse than failing.
+    """
+    fixture = json.loads(path.read_text(encoding="utf-8"))
+    rows = fixture["traces"]
+
+    actual = _payload_checksum(rows)
+    if actual != fixture["sha256"]:
+        raise SystemExit(
+            f"{path} failed its checksum: expected {fixture['sha256'][:16]}…, got "
+            f"{actual[:16]}…. The fixture has been modified since it was captured, so it is "
+            f"no longer evidence of anything. Restore it from git."
+        )
+
+    return [
+        SimpleNamespace(
+            id=row["id"],
+            name=row["name"],
+            timestamp=datetime.fromisoformat(row["timestamp"]),
+            session_id=row["session_id"],
+            environment=row["environment"],
+            total_cost=row["total_cost"],
+            metadata={"usage": row["usage"]} if row["usage"] is not None else {},
+            input={"question": row["question"]} if row["question"] else None,
+        )
+        for row in rows
+    ]
 
 
 def _usage(trace: Any) -> dict[str, Any] | None:
@@ -235,10 +345,43 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument("--json", action="store_true", help="Emit machine-readable output")
+    parser.add_argument(
+        "--from-fixture",
+        nargs="?",
+        const=str(FIXTURE),
+        metavar="PATH",
+        help="Reconcile against the committed trace fixture instead of the live store. "
+        "This is what keeps D-021 reproducible after `make langfuse-reset`.",
+    )
+    parser.add_argument(
+        "--dump",
+        nargs="?",
+        const=str(FIXTURE),
+        metavar="PATH",
+        help="Capture the live trace window to a fixture, then reconcile against it.",
+    )
     args = parser.parse_args()
 
     pricing = get_settings().pricing()
-    traces = fetch_traces(args.days)
+
+    if args.from_fixture:
+        path = Path(args.from_fixture)
+        if not path.exists():
+            print(f"No fixture at {path}. Capture one with --dump.", file=sys.stderr)
+            return 2
+        traces = load_fixture(path)
+        source = f"fixture {path}"
+    else:
+        traces = fetch_traces(args.days)
+        source = f"the live store, last {args.days} days"
+        if args.dump:
+            fixture = dump_fixture(traces, Path(args.dump), args.days)
+            print(
+                f"Wrote {args.dump}: {fixture['n_traces']} traces, "
+                f"sha256 {fixture['sha256'][:16]}…\n"
+            )
+            source = f"fixture {args.dump}"
+
     groups = classify(traces, pricing)
     duplicates = find_duplicate_roots(traces)
 
@@ -261,7 +404,7 @@ def main() -> int:
         )
         return 0
 
-    print(f"Reconciling {len(traces)} traces over the last {args.days} days\n")
+    print(f"Reconciling {len(traces)} traces from {source}\n")
     failures = report(groups, duplicates, pricing)
 
     if failures:
@@ -269,6 +412,19 @@ def main() -> int:
         for f in failures:
             print(f"  - {f}")
         return 1
+
+    if not groups["priced"]:
+        # An empty store passes every check above trivially. Saying "reconciled" here would
+        # be a false green of exactly the kind this script exists to catch, so it says what
+        # actually happened instead.
+        print(
+            "\nNothing to reconcile: no priced traces in this window. This is a vacuous "
+            "pass, not a verification.\n"
+            "  The D-021 finding is reproducible from the committed fixture:\n"
+            "    python scripts/reconcile_cost.py --from-fixture"
+        )
+        return 0
+
     print("\nReconciled: stored, recomputed, and Langfuse agree on every priced trace.")
     return 0
 

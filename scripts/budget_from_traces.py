@@ -126,6 +126,17 @@ def summarise(traces: list[Any]) -> dict[str, Any]:
     return dict(rows)
 
 
+def is_test_environment(env: str) -> bool:
+    """Environments that carry test traffic rather than agent spend.
+
+    `tests/test_trace_integration.py` writes genuine traces — that is the point of it — but
+    to `integration-test`, so they can be shown without being counted. Naming the boundary
+    here rather than hardcoding one string keeps a future `eval-test` on the right side of
+    it automatically.
+    """
+    return "test" in env.lower()
+
+
 def check_blended_rate(rows: dict[str, Any]) -> str | None:
     """Assert the blended rate lands between the input and output per-1M rates.
 
@@ -134,8 +145,9 @@ def check_blended_rate(rows: dict[str, Any]) -> str | None:
     which is the exact failure this script shipped before. Returns an error string, or None.
     """
     pricing = get_settings().pricing()
-    tokens = sum(r["input"] + r["output"] for r in rows.values())
-    notional = sum(r["notional"] for r in rows.values())
+    billable = [r for e, r in rows.items() if not is_test_environment(e)]
+    tokens = sum(r["input"] + r["output"] for r in billable)
+    notional = sum(r["notional"] for r in billable)
     if not tokens or not notional:
         return None
     blended = notional / tokens * 1_000_000
@@ -164,16 +176,21 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
             "|---|---:|---:|---:|---:|---:|---:|",
         ]
         for env, row in sorted(rows.items()):
+            label = f"`{env}`" + (" _(test traffic)_" if is_test_environment(env) else "")
             lines.append(
-                f"| `{env}` | {int(row['priced']):,} | "
+                f"| {label} | {int(row['priced']):,} | "
                 f"{int(row['input']):,} | {int(row['output']):,} | {int(row['thinking']):,} | "
                 f"${row['billed']:.5f} | ${row['notional']:.5f} |"
             )
-        total_billed = sum(r["billed"] for r in rows.values())
-        total_notional = sum(r["notional"] for r in rows.values())
-        total_priced = int(sum(r["priced"] for r in rows.values()))
-        total_input = sum(r["input"] for r in rows.values())
-        total_output = sum(r["output"] for r in rows.values())
+        # The total covers agent spend only. `tests/test_trace_integration.py` writes real
+        # traces to its own environment, and folding those into a figure labelled "agent
+        # spend" would be D-021's category error committed a second time, in miniature.
+        billable = {e: r for e, r in rows.items() if not is_test_environment(e)}
+        total_billed = sum(r["billed"] for r in billable.values())
+        total_notional = sum(r["notional"] for r in billable.values())
+        total_priced = int(sum(r["priced"] for r in billable.values()))
+        total_input = sum(r["input"] for r in billable.values())
+        total_output = sum(r["output"] for r in billable.values())
         lines.append(
             f"| **total** | **{total_priced:,}** | **{int(total_input):,}** | "
             f"**{int(total_output):,}** | | **${total_billed:.5f}** | "

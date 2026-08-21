@@ -159,7 +159,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 249, all passing | `make test` |
+| Tests | 270, all passing | `make test` |
 | First-party Python | 38 files, 4,523 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -369,6 +369,33 @@ One test asserts a *wrong* answer on purpose:
 `test_classifier_precision_is_known_to_be_imperfect` pins the section classifier
 mislabelling a methodology chunk as `abstract`, so the limitation lives in the suite rather
 than in a comment.
+
+Two tests are marked `integration` and excluded from `make check`. They write a real trace
+to a local Langfuse and assert it arrives carrying the metadata the cost tooling reads —
+because every tracing bug found in Phase 3 was found by running the thing, and a suite of
+injected recorders faithfully records calls a real backend would have rejected. Run them
+with `make test-integration` after `make langfuse-up`.
+
+### CI reports; it does not block
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs lint, `mypy --strict`, the fast
+suite, and a clean-install job on every push to every branch. **Nothing enforces it.** There
+is no branch protection and no required check, so a red run does not stop a commit reaching
+`main` — this repository is developed by committing to `main` directly, without pull
+requests, and a status check can only block a merge that goes through one.
+
+That is a deliberate trade and it is stated here rather than left to be inferred, because a
+badge and a workflow file together imply an enforcement that does not exist. Making it
+blocking means adopting pull requests and enabling branch protection on both jobs; the
+decision is recorded in [DECISIONS D-023](docs/DECISIONS.md) and revisited when Phase 4's
+regression gate lands, since a gate nobody is required to pass is a weaker claim than it
+looks.
+
+The clean-install job is the one worth explaining. It installs from `pyproject.toml` alone
+into an uncached environment and imports every module from a directory that is not the repo
+root — so a dependency that is present in a developer's virtualenv but missing from the
+manifest fails there instead of on someone else's first clone
+([D-022](docs/DECISIONS.md)).
 
 ---
 

@@ -688,3 +688,38 @@ install from scratch can.
 than surfacing at deploy. That is the trade being bought deliberately.
 
 **Reverse if:** never. This one is close to free.
+
+---
+
+## D-023 — CI reports rather than blocks, and the README says so
+
+**Decided:** `.github/workflows/ci.yml` runs on every push to every branch and gates
+nothing. No branch protection, no required status check. The README states this in plain
+words under "CI reports; it does not block".
+
+**Why:** this repository is developed by committing to `main` directly — pull requests are
+never opened (§2 of the working agreement). A required status check can only block a merge
+that goes through a pull request, so adopting branch protection would mean adopting pull
+requests, changing how the project is worked on in order to enforce a check.
+
+That trade was not worth making mid-Phase-4, but the *silence* about it was the real
+problem. A workflow file and a green run together imply enforcement. A reader who sees CI
+in a repository reasonably assumes a red build stops a merge, and nothing here would have
+corrected them. The rule this project runs on is that a reader must not have to discover a
+limitation by reading the source, and an unstated non-enforcement is exactly that.
+
+**This is the same defect twice already.** The first push of the workflow triggered zero
+runs, because `push: [main] + pull_request` cannot fire on a branch in a repository that has
+no pull requests. Once it did run, it revealed `test_docs` had been invoking
+`.venv/bin/python` — absent on any runner — and `pytest.skip`ping its own failure, so the
+README test-count guard had never executed in CI at all. A gate that cannot fire, a check
+that skips its own failure, and a workflow nothing requires are three versions of one
+mistake: *running is not blocking*.
+
+**Cost:** an unreviewed red commit can reach `main`. Accepted because the author is the sole
+committer and runs `make check` locally, but it is a real weakness and is named as one.
+
+**Reverse when:** Phase 4's regression gate lands. A gate nobody is required to pass is a
+much weaker claim than a gate that blocks, and the eval gate is the first check where the
+difference genuinely matters — a silent regression is exactly what it exists to stop.
+Revisit then, with pull requests and branch protection on both jobs.
