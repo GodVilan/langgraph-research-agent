@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -10,8 +11,14 @@ from pydantic import SecretStr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.config import BudgetLimits, GraphLimits, RetrievalSettings, Settings
-from src.observability.config import ObservabilitySettings
+from src.config import BudgetLimits, GraphLimits, RetrievalSettings, Settings, get_settings
+from src.observability.config import ObservabilitySettings, get_observability_settings
+
+# Captured at import, before any fixture replaces these names. `_isolate_settings_cache`
+# swaps `src.config.get_settings` for a plain lambda, and a lambda has no `cache_clear` —
+# so looking the accessor up later finds the stand-in and silently skips the real cache,
+# leaving whatever it held in place. These references are the only reliable handle on it.
+_REAL_ACCESSORS = (get_settings, get_observability_settings)
 
 
 @pytest.fixture
@@ -67,8 +74,14 @@ def _isolate_settings_cache(monkeypatch: pytest.MonkeyPatch, settings: Settings)
         monkeypatch.setattr(f"{module}.get_settings", lambda: settings, raising=False)
 
 
+def _clear_settings_caches() -> None:
+    """Drop every cached settings object built from the real environment."""
+    for accessor in _REAL_ACCESSORS:
+        accessor.cache_clear()
+
+
 @pytest.fixture(autouse=True)
-def _sever_settings_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+def _sever_settings_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Stop *every* settings class reading the developer's real `.env`.
 
     This runs first and underpins the two fixtures below. They patch ``get_settings`` and
@@ -89,6 +102,14 @@ def _sever_settings_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> Non
 
     import src
 
+    # Both accessors are `lru_cache`d, so one call through an *unpatched* reference — a
+    # script imported by a test, say — caches a Settings built from the real `.env` and
+    # every later test sees it. Clearing on both sides of the fixture means no cached
+    # real-environment object can enter a test or leak out of one. This was not
+    # hypothetical: `scripts/corpus_diversity.py` calls `get_settings()` directly, and the
+    # developer's actual API key reached an assertion three test files away.
+    _clear_settings_caches()
+
     for module_info in pkgutil.walk_packages(src.__path__, prefix="src."):
         module = importlib.import_module(module_info.name)
         for obj in vars(module).values():
@@ -101,6 +122,12 @@ def _sever_settings_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> Non
                 monkeypatch.setitem(obj.model_config, "env_file", None)
                 for field in obj.model_fields:
                     monkeypatch.delenv(field.upper(), raising=False)
+
+    yield
+
+    # Clear again on the way out: a test that called an unpatched accessor leaves a real
+    # Settings in the cache, and the next test's fixture runs *after* its own imports.
+    _clear_settings_caches()
 
 
 @pytest.fixture(autouse=True)

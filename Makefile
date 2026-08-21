@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -51,6 +51,9 @@ verify-corpus:  ## check data/ against CORPUS.sha256
 
 corpus-info:  ## print reproducible corpus statistics
 	$(PY) -m src.cli corpus-info
+
+corpus-diversity:  ## can the corpus honestly fill the four eval strata?
+	$(PY) scripts/corpus_diversity.py
 
 readme-stats:  ## regenerate the README statistics block from the repo
 	$(PY) scripts/readme_stats.py
