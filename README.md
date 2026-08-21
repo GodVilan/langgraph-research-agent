@@ -159,8 +159,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 230, all passing | `make test` |
-| First-party Python | 38 files, 4,482 lines under `src/` | `make readme-stats` |
+| Tests | 249, all passing | `make test` |
+| First-party Python | 38 files, 4,523 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -318,12 +318,26 @@ injected one never reached the model.
 
 ![Langfuse home dashboard](docs/img/langfuse-dashboard.png)
 
-The project dashboard across 70 traces: volume by trace name, cost by model
-(`gemini-3.5-flash-lite`, 72.05K tokens, $0.02776 by Langfuse's own rate card), and traces
-and cost over time. Note that Langfuse's `$0.02776` is *its* estimate at *its* rate card —
-`make budget` reports `$0.00000` billed and `$0.01248` notional from our own instrumentation,
-which is the figure this project stands behind. That discrepancy is exactly why the two are
-never merged into one number.
+The project dashboard at the time of capture: volume by trace name, cost by model, and both
+over time. Langfuse's `$0.02776` here is *its* estimate at *its* rate card, over every trace
+in the window; `make budget` reports `$0.00000` billed and `$0.01248` notional from our own
+instrumentation. The two are never merged into one number.
+
+**The gap between them is fully accounted for**, and the accounting found two real bugs. Of
+Langfuse's total, `$0.01528` sits on five duplicate root traces of runs already counted —
+residue of a since-fixed double-trace bug. The rest, `$0.01248`, agrees with our figure
+*exactly*, and agrees again when recomputed from those traces' own tokens at the verified
+`$0.30`/`$2.50` rates: three derivations, one number.
+
+The second bug was ours. The trace count on this dashboard is mostly **synthetic** — the
+test suite was writing to the same Langfuse project, so 187 of 214 traces were fake runs
+carrying real-looking token counts and no cost. The spend table summed tokens over all of
+them and cost over the 6 real ones, yielding a blended rate *below* the input-only price,
+which no token mix can produce. `make reconcile-cost` reproduces the whole diagnosis, and
+`make budget` now refuses to write a table whose blended rate falls outside the rate card.
+
+Restated on the 6 priced traces alone — a deliberately thin base, widened by Phase 4's eval
+runs — the blend is `$0.4056` per 1M, where a mostly-input workload belongs.
 
 Full detail, including two Langfuse setup traps that fail with errors that do not name their
 cause, is in [OBSERVABILITY.md](docs/OBSERVABILITY.md).

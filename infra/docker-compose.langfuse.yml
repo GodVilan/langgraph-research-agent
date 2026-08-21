@@ -9,9 +9,25 @@
 # heavier than a single container, which is the honest reason `docs/OBSERVABILITY.md`
 # documents Langfuse Cloud as the alternative for anyone who only wants to look at a trace.
 #
-# The credentials below are development values, deliberately committed. This stack binds to
-# 127.0.0.1 only and is not intended to be reachable from anywhere else. Do not reuse any of
-# them for a deployed instance — generate fresh ones with `openssl rand -hex 32`.
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# EVERY CREDENTIAL IN THIS FILE IS A FIXTURE, NOT A SECRET.
+#
+# The `pk-lf-…` / `sk-lf-…` pair, the `dev@example.com` login, and the SALT /
+# ENCRYPTION_KEY / NEXTAUTH_SECRET values are committed on purpose. They are non-secret by
+# construction: the stack binds to 127.0.0.1 only, the values are byte-identical for every
+# clone of this repo, and they grant access to nothing but a local container holding traces
+# of public arXiv text. Committing them is what lets `make langfuse-up` produce a working
+# instance on a fresh clone with no signup step.
+#
+# If you are skimming this file and a committed key pair made you stop — that was the right
+# instinct. This is the exception, and it is documented in docs/OBSERVABILITY.md.
+#
+# THIS FILE IS A DEVELOPMENT TOOL AND IS NOT A DEPLOYMENT ARTIFACT. A deployed instance
+# points LANGFUSE_HOST at Langfuse Cloud and reads its key pair from the environment. Never
+# reuse anything below for one — generate fresh values with `openssl rand -hex 32`. This is
+# enforced, not trusted: pointing the seeded pair at a non-localhost LANGFUSE_HOST raises
+# (src/observability/config.py, check_not_deployed_with_seeded_keys).
+# ─────────────────────────────────────────────────────────────────────────────────────────
 #
 # ENCRYPTION_KEY, SALT, and NEXTAUTH_SECRET are quoted because YAML will otherwise parse an
 # all-digit hex string as an integer, and Langfuse then rejects it as too short.

@@ -38,6 +38,22 @@ make trace-check          # confirms reachability without making a model call
 The UI at <http://localhost:3000> signs in with `dev@example.com` / `localdev1234`, also
 seeded from the compose file. Everything binds to `127.0.0.1`.
 
+> **These are fixture values, not secrets.** The `pk-lf-…` / `sk-lf-…` pair, the login, and
+> the `SALT` / `ENCRYPTION_KEY` / `NEXTAUTH_SECRET` in
+> `infra/docker-compose.langfuse.yml` are committed deliberately. They provision a
+> throwaway localhost-only stack, they are byte-identical for every clone, and they grant
+> access to nothing but a local container holding traces of public arXiv text. They are in
+> version control so that `make langfuse-up` works on a fresh clone with no signup step.
+>
+> A deployed instance uses **Langfuse Cloud keys read from the environment** and never
+> these. The compose file is a development tool and is not a deployment artifact.
+>
+> That reasoning holds only while the host is local, so it is enforced rather than trusted:
+> `ObservabilitySettings.check_not_deployed_with_seeded_keys()` refuses the seeded pair
+> against any non-localhost `LANGFUSE_HOST`, and `get_client()` raises instead of quietly
+> tracing somewhere it should not. It is the one tracing failure that is not degraded to a
+> no-op — a misrouted credential is a configuration bug, not a backend outage.
+
 ```bash
 make langfuse-down        # stop, keep data
 make langfuse-reset       # stop, discard all traces
@@ -120,14 +136,61 @@ and never reached the model.
 
 ![Langfuse home dashboard](img/langfuse-dashboard.png)
 
-70 traces: volume by name, cost by model, and both over time.
+70 traces at the time of capture: volume by name, cost by model, and both over time.
 
-**Langfuse's cost figure is not ours.** The dashboard shows `$0.02776` from Langfuse's own
-rate card for `gemini-3.5-flash-lite`. `make budget`, reading our instrumentation, reports
-`$0.00000` billed and `$0.01248` notional. Both are defensible; they answer different
-questions. Merging them is how a free-tier project ends up publishing a spend figure it never
-spent — which is precisely what the first run of `make budget` did before it was fixed
-(D-020).
+Read the trace *count* on this dashboard with the caveat below — most of those 70 were
+synthetic traces emitted by the test suite, which is the contamination the next section
+diagnoses. The cost figure and the trace tree are unaffected; the volume is not a measure of
+real usage.
+
+### Reconciling the two cost figures
+
+The dashboard showed `$0.02776`; `make budget` reported `$0.01248` notional. That was logged
+as "two rate cards answering different questions", which was wrong — a gap is only explained
+if both figures are internally consistent, and ours was not. Over the 72K tokens the
+dashboard was summing, `$0.01248` is a blended **`$0.173` per 1M**, *below* the `$0.30`
+input-only rate. No token mix can produce that.
+
+`make reconcile-cost` closes it, and the answer was not a rate card:
+
+| | |
+|---|---:|
+| Priced agent runs, stored notional | `$0.01248` |
+| The same runs, recomputed from their tokens at `$0.30`/`$2.50` | `$0.01248` |
+| The same runs, per Langfuse's independent calculation | `$0.01248` |
+| Duplicate root traces of five of those same runs | `$0.01528` |
+| **Langfuse dashboard total** | **`$0.02776`** |
+
+Three independent computations agree exactly, so **the notional calculator was never
+wrong**. Two separate contaminations produced the illusion:
+
+1. **The token count was 71% synthetic.** 187 of 214 traces in the window came from the test
+   suite. `run_query` opens a Langfuse span unconditionally, and the observability settings
+   are read by a *different* settings object than the one `tests/conftest.py` isolated — so
+   every test that ran the graph shipped a trace built from `tests/fakes.py` usage: real
+   token counts, zero cost, because the fake priced nothing. The table then summed tokens
+   over all 214 traces and cost over the 6 that had been priced. Two populations, one
+   blended rate, an impossible number. Fixed at the root: `conftest` now disables
+   observability for the whole suite, and `summarise()` only counts tokens from a trace that
+   also contributes cost.
+2. **`$0.01528` of the dashboard total is double-counted.** It sits on five orphan
+   `LangGraph` roots — the residue of the double-trace bug described above, whose `query`
+   twins carry the metadata and none of the cost. Those runs are already counted; the
+   duplicate roots predate the fix and remain in any 30-day window.
+
+Restated on the priced population alone, the blend is **`$0.4056` per 1M**, between the
+`$0.30` input and `$2.50` output rates exactly where a mostly-input workload lands.
+
+Two guards now make this class of error loud rather than plausible. `make budget` computes
+the blended rate and **refuses to write the table** if it falls outside the rate card, and
+`make reconcile-cost` exits non-zero if the stored and recomputed figures ever diverge. The
+underlying rule is D-004's, applied one level up: never divide two numbers that describe
+different populations (D-021).
+
+**Langfuse's own figure still is not ours.** It prices from its rate card; we price from
+`src/config.PRICING` and separate billed from notional. Merging them is how a free-tier
+project publishes a spend figure it never spent — which the first run of `make budget` did
+(D-020). They agree here because both are right, not because either was copied.
 
 ---
 

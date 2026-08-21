@@ -1,0 +1,102 @@
+name: CI
+
+# Phase 4 adds the eval subset and the regression gate to this workflow. What runs today is
+# lint, type check, fast tests, and — the reason this file exists ahead of Phase 4 — an
+# install from a clean environment.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # No key pair, so `langfuse_enabled` is False and every trace call degrades to a no-op.
+  # The suite also disables observability itself (tests/conftest.py), and CI having no
+  # backend to reach is the belt to that fix's braces.
+  LANGFUSE_PUBLIC_KEY: ""
+  LANGFUSE_SECRET_KEY: ""
+
+jobs:
+  check:
+    name: lint · type · tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install with dev extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          ruff check src tests scripts
+          ruff format --check src tests scripts
+
+      - name: Type check
+        run: mypy src
+
+      - name: Tests
+        run: pytest -q -m "not slow and not network"
+
+  clean-install:
+    name: install from a clean environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          # Deliberately uncached. A warm pip cache can satisfy an undeclared import from a
+          # wheel an earlier job happened to download, which is the same false green this
+          # job exists to catch.
+
+      - name: Install from pyproject.toml alone
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+
+      # The check that would have caught four undeclared dependencies (DECISIONS D-022).
+      # `langchain`, `aiosqlite`, `langfuse`, and the OpenTelemetry packages were present in
+      # the developer's venv and absent from the manifest: everything ran locally, every
+      # test passed, and a fresh clone failed at import. A working environment is not
+      # evidence of a working *declared* environment, and only an install from scratch can
+      # tell the two apart.
+      #
+      # Importing from a directory that is not the repo root matters: running this at the
+      # root would import `src/` from the working tree and prove nothing about what pip
+      # actually installed.
+      - name: Import every module from the installed distribution
+        run: |
+          mkdir -p /tmp/not-the-repo && cd /tmp/not-the-repo
+          python - <<'PY'
+          import importlib
+          import pkgutil
+
+          import src
+
+          failed = []
+          for module in pkgutil.walk_packages(src.__path__, prefix="src."):
+              try:
+                  importlib.import_module(module.name)
+              except Exception as exc:
+                  failed.append(f"{module.name}: {type(exc).__name__}: {exc}")
+
+          if failed:
+              print("Modules that do not import from a clean install:")
+              for f in failed:
+                  print(f"  - {f}")
+              raise SystemExit(1)
+          print("Every module imports from the declared dependencies alone.")
+          PY

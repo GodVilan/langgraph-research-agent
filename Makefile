@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget metrics check clean
+.PHONY: help install lint fmt type test test-fast graph index index-verify compare-index verify-corpus corpus-info readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -73,6 +73,9 @@ langfuse-reset:  ## stop Langfuse and discard all trace data
 
 budget:  ## regenerate the spend table in docs/BUDGET.md from Langfuse traces
 	$(PY) scripts/budget_from_traces.py
+
+reconcile-cost:  ## check our notional cost against Langfuse's own figure, trace by trace
+	$(PY) scripts/reconcile_cost.py
 
 metrics:  ## print the current Prometheus exposition
 	$(PY) -m src.cli metrics

@@ -86,6 +86,14 @@ def get_client() -> Any:
         log.debug("Langfuse disabled: no key pair configured")
         return None
 
+    # The committed fixture pair is only non-secret while the host is localhost. Pointing it
+    # at a remote instance is a configuration mistake, not a tracing failure, so it is the
+    # one condition here that refuses rather than degrading to a no-op.
+    misconfigured = settings.check_not_deployed_with_seeded_keys()
+    if misconfigured:
+        log.error("%s", misconfigured)
+        raise RuntimeError(misconfigured)
+
     try:
         from langfuse import Langfuse
 

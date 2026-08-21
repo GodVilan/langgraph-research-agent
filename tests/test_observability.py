@@ -25,7 +25,7 @@ from src.agent.state import (
 )
 from src.observability import langfuse as lf
 from src.observability import metrics as m
-from src.observability.config import ObservabilitySettings
+from src.observability.config import SEEDED_KEYS, ObservabilitySettings
 
 
 def sample_state() -> dict[str, object]:
@@ -256,3 +256,43 @@ class TestMetrics:
         state["usage"] = Usage(llm_calls=1, missing_usage_metadata=2)
         m.record_run(state, elapsed_s=1.0)
         assert "arxiv_agent_missing_usage_metadata_total" in m.exposition()[0].decode()
+
+
+class TestSeededCredentialGuard:
+    """The committed fixture key pair must never reach a remote Langfuse.
+
+    Committing `pk-lf-…` is defensible only because it unlocks a 127.0.0.1-bound container
+    and nothing else. That argument evaporates the moment the host is remote, so the guard
+    turns a documented exception into an enforced one.
+    """
+
+    def _settings(self, host: str, key: str) -> ObservabilitySettings:
+        return ObservabilitySettings(
+            langfuse_public_key=SecretStr(key),
+            langfuse_secret_key=SecretStr("sk-lf-test"),
+            langfuse_host=host,
+        )
+
+    def test_seeded_keys_are_fine_on_localhost(self) -> None:
+        s = self._settings("http://localhost:3000", next(iter(SEEDED_KEYS)))
+        assert s.check_not_deployed_with_seeded_keys() is None
+
+    def test_seeded_keys_against_a_remote_host_are_refused(self) -> None:
+        s = self._settings("https://cloud.langfuse.com", next(iter(SEEDED_KEYS)))
+        error = s.check_not_deployed_with_seeded_keys()
+        assert error is not None and "Refusing" in error
+
+    def test_real_keys_against_a_remote_host_are_fine(self) -> None:
+        s = self._settings("https://cloud.langfuse.com", "pk-lf-a-real-deployed-key")
+        assert s.check_not_deployed_with_seeded_keys() is None
+
+    def test_get_client_raises_rather_than_tracing_to_the_wrong_place(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        s = self._settings("https://cloud.langfuse.com", next(iter(SEEDED_KEYS)))
+        monkeypatch.setattr(lf, "get_observability_settings", lambda: s)
+        monkeypatch.setattr(lf, "_CLIENT", None, raising=False)
+        monkeypatch.setattr(lf, "_CLIENT_TRIED", False, raising=False)
+
+        with pytest.raises(RuntimeError, match="Refusing"):
+            lf.get_client()

@@ -12,6 +12,10 @@ import functools
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# The public keys seeded by infra/docker-compose.langfuse.yml. Listed here so the guard
+# below can recognise them; they are fixtures for a localhost-only stack, not secrets.
+SEEDED_KEYS = frozenset({"pk-lf-1a1a1a1a-2b2b-4c4c-8d8d-3e3e3e3e3e3e"})
+
 
 class ObservabilitySettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
@@ -41,6 +45,35 @@ class ObservabilitySettings(BaseSettings):
             self.langfuse_public_key.get_secret_value()
             and self.langfuse_secret_key.get_secret_value()
         )
+
+    @property
+    def uses_seeded_keys(self) -> bool:
+        """True when the key pair is the fixture committed in the compose file."""
+        return self.langfuse_public_key.get_secret_value() in SEEDED_KEYS
+
+    @property
+    def host_is_local(self) -> bool:
+        host = self.langfuse_host.lower()
+        return any(h in host for h in ("localhost", "127.0.0.1", "::1", "0.0.0.0"))
+
+    def check_not_deployed_with_seeded_keys(self) -> str | None:
+        """Refuse the committed fixture credentials against a non-local host.
+
+        `infra/docker-compose.langfuse.yml` commits a key pair on purpose: it is
+        non-secret by construction, since it only ever unlocks a 127.0.0.1-bound container.
+        That reasoning holds exactly as long as the host stays local. Pointing the seeded
+        pair at a remote Langfuse would turn a documented fixture into a real credential in
+        version control, so it fails loudly instead. Returns an error string, or None.
+        """
+        if self.uses_seeded_keys and not self.host_is_local:
+            return (
+                f"Refusing to use the seeded Langfuse fixture credentials against "
+                f"{self.langfuse_host!r}. Those keys are committed to this repo and are "
+                f"only non-secret while the host is localhost. A deployed instance must "
+                f"set LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY from its own "
+                f"environment — see docs/OBSERVABILITY.md."
+            )
+        return None
 
 
 @functools.lru_cache(maxsize=1)

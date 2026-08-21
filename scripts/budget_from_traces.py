@@ -26,6 +26,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.config import get_settings
 from src.observability.config import get_observability_settings
 from src.observability.langfuse import get_client
 
@@ -67,11 +68,24 @@ def fetch_traces(days: int) -> list[Any]:
 
 
 def summarise(traces: list[Any]) -> dict[str, Any]:
-    """Aggregate per environment, which is how dev and deployed traffic stay separable."""
+    """Aggregate per environment, counting only traces whose tokens *and* cost are both real.
+
+    The table used to sum tokens from every trace carrying usage metadata while summing cost
+    from the subset that had been priced. Those are two different populations, and merging
+    them produced a blended rate of $0.17/1M — below the $0.30 input floor, which no token
+    mix can produce. 187 of 214 traces were synthetic runs from the test suite: real token
+    counts in the metadata, zero cost, because ``tests/fakes.py`` never priced them.
+
+    So a trace contributes to the token columns only if it also contributes to the cost
+    columns. Everything else is counted and reported, never summed in (DECISIONS D-021).
+    ``scripts/reconcile_cost.py`` is the check that this stays true.
+    """
     rows: dict[str, dict[str, float]] = defaultdict(
         lambda: {
             "traces": 0.0,
-            "attributed": 0.0,
+            "priced": 0.0,
+            "unpriced": 0.0,
+            "no_usage": 0.0,
             "input": 0.0,
             "output": 0.0,
             "thinking": 0.0,
@@ -92,15 +106,47 @@ def summarise(traces: list[Any]) -> dict[str, Any]:
             # produced a table showing $0.015 billed on a free tier — and billed above
             # notional, which is impossible. A trace we cannot attribute is counted as
             # unattributed rather than guessed at.
+            row["no_usage"] += 1
             continue
 
-        row["attributed"] += 1
+        notional = float(usage.get("cost_usd_notional") or 0)
+        if notional <= 0:
+            # Tokens with no cost. Either a synthetic trace from the test suite or a real
+            # run against a model with no PRICING entry — both of which would drag the
+            # blended rate below the input floor if their tokens were counted here.
+            row["unpriced"] += 1
+            continue
+
+        row["priced"] += 1
         row["input"] += float(usage.get("input_tokens") or 0)
         row["output"] += float(usage.get("output_tokens") or 0)
         row["thinking"] += float(usage.get("thinking_tokens") or 0)
         row["billed"] += float(usage.get("cost_usd_billed") or 0)
-        row["notional"] += float(usage.get("cost_usd_notional") or 0)
+        row["notional"] += notional
     return dict(rows)
+
+
+def check_blended_rate(rows: dict[str, Any]) -> str | None:
+    """Assert the blended rate lands between the input and output per-1M rates.
+
+    Total cost over total tokens is a weighted average of the two rates, so it cannot fall
+    outside them. When it does, the cost and the tokens are describing different traces —
+    which is the exact failure this script shipped before. Returns an error string, or None.
+    """
+    pricing = get_settings().pricing()
+    tokens = sum(r["input"] + r["output"] for r in rows.values())
+    notional = sum(r["notional"] for r in rows.values())
+    if not tokens or not notional:
+        return None
+    blended = notional / tokens * 1_000_000
+    low, high = pricing.notional_input_usd, pricing.notional_output_usd
+    if low - 1e-6 <= blended <= high + 1e-6:
+        return None
+    return (
+        f"Blended rate ${blended:.4f}/1M sits outside the ${low}-${high}/1M rate card. "
+        f"The cost column and the token columns are summing different traces. "
+        f"Run `make reconcile-cost` before publishing this table."
+    )
 
 
 def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
@@ -113,30 +159,52 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
         )
     else:
         lines = [
-            "| Environment | Traces | Attributed | Input | Output | Thinking | Billed USD |"
+            "| Environment | Priced traces | Input | Output | Thinking | Billed USD |"
             " Notional USD |",
-            "|---|---:|---:|---:|---:|---:|---:|---:|",
+            "|---|---:|---:|---:|---:|---:|---:|",
         ]
         for env, row in sorted(rows.items()):
             lines.append(
-                f"| `{env}` | {int(row['traces']):,} | {int(row['attributed']):,} | "
+                f"| `{env}` | {int(row['priced']):,} | "
                 f"{int(row['input']):,} | {int(row['output']):,} | {int(row['thinking']):,} | "
                 f"${row['billed']:.5f} | ${row['notional']:.5f} |"
             )
         total_billed = sum(r["billed"] for r in rows.values())
         total_notional = sum(r["notional"] for r in rows.values())
-        total_attributed = int(sum(r["attributed"] for r in rows.values()))
+        total_priced = int(sum(r["priced"] for r in rows.values()))
+        total_input = sum(r["input"] for r in rows.values())
+        total_output = sum(r["output"] for r in rows.values())
         lines.append(
-            f"| **total** | **{n_traces:,}** | **{total_attributed:,}** | | | | "
-            f"**${total_billed:.5f}** | **${total_notional:.5f}** |"
+            f"| **total** | **{total_priced:,}** | **{int(total_input):,}** | "
+            f"**{int(total_output):,}** | | **${total_billed:.5f}** | "
+            f"**${total_notional:.5f}** |"
         )
-        unattributed = n_traces - total_attributed
-        if unattributed:
+
+        tokens = total_input + total_output
+        if tokens and total_notional:
+            blended = total_notional / tokens * 1_000_000
+            pricing = get_settings().pricing()
             lines.append("")
             lines.append(
-                f"_{unattributed} of {n_traces} traces carry no usage metadata and are "
-                f"excluded from the cost columns rather than estimated. Those predate the "
-                f"Phase 3 instrumentation._"
+                f"_Blended ${blended:.4f} per 1M tokens, between the "
+                f"${pricing.notional_input_usd} input and ${pricing.notional_output_usd} "
+                f"output rates as a mostly-input workload should be. "
+                f"`make reconcile-cost` checks this._"
+            )
+
+        unpriced = int(sum(r["unpriced"] for r in rows.values()))
+        no_usage = int(sum(r["no_usage"] for r in rows.values()))
+        if unpriced or no_usage:
+            lines.append("")
+            lines.append(
+                f"_Excluded from every column above, not estimated: {unpriced} traces "
+                f"carrying tokens but no cost (synthetic runs from the test suite, which "
+                f"priced nothing), and {no_usage} traces with no usage metadata "
+                f"(pre-instrumentation runs and the duplicate roots of the double-trace "
+                f"bug). {total_priced} of {n_traces} traces in the window are real, priced "
+                f"agent runs. Counting the excluded traces' tokens against the priced "
+                f"traces' cost is what produced an impossible blended rate before "
+                f"(DECISIONS D-021)._"
             )
         body = "\n".join(lines)
 
@@ -160,7 +228,17 @@ def main() -> int:
     args = parser.parse_args()
 
     traces = fetch_traces(args.days)
-    block = render(summarise(traces), args.days, len(traces))
+    rows = summarise(traces)
+
+    # Refuse to write a table that fails the structural check. A wrong rate propagating into
+    # the one document whose purpose is being right about money is worse than no table, and
+    # machine-generated numbers get trusted more than hand-written ones, not less.
+    error = check_blended_rate(rows)
+    if error:
+        print(f"Refusing to write {BUDGET_MD}: {error}", file=sys.stderr)
+        return 1
+
+    block = render(rows, args.days, len(traces))
 
     if args.dry_run:
         print(block)

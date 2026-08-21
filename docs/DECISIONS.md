@@ -596,6 +596,95 @@ question — what a generic rate card says these tokens are worth — and both f
 `docs/OBSERVABILITY.md` with the difference explained. What is not allowed is one number that
 silently means either.
 
+> **Amended by D-021.** "They answer different questions" was too comfortable an
+> explanation, and it let a real error sit unexamined for a phase. The `$0.01528` that this
+> decision correctly refused to call "billed" is not a rate-card difference at all — it is
+> five duplicate root traces of runs already counted. And the notional figure was being
+> divided by a token count drawn from a different set of traces entirely. Both figures are
+> now reconciled exactly; see D-021.
+
 **Cost:** the spend table under-reports whenever instrumentation is missing. That is the
 right direction to be wrong in, and the unattributed count makes the gap visible rather than
 absorbing it into a plausible-looking total.
+
+---
+
+## D-021 — Cost and tokens must come from the same population of traces
+
+**Decided:** a trace contributes to the token columns of the spend table only if it also
+contributes to the cost columns. Traces are classified — priced / tokens-but-no-cost /
+no-usage-metadata — and the classes are reported separately, never summed together.
+`make budget` computes the blended per-1M rate and **refuses to write the table** when it
+falls outside the configured rate card. `make reconcile-cost` checks our figure against
+Langfuse's trace by trace and exits non-zero on any divergence.
+
+**Why:** review caught that `$0.01248` notional over the `72.05K` tokens the dashboard
+reported is a blended **`$0.173` per 1M** — below the `$0.30` input-only rate. A weighted
+average of `$0.30` and `$2.50` cannot land under `$0.30`, so the number was not merely
+suspicious, it was impossible.
+
+Three hypotheses were offered: a stale placeholder rate, unattributed traces holding a
+disproportionate share of tokens, or Langfuse's total inflated by the double-trace bug. The
+diagnostic — print the tokens *our own* instrumentation counted and the rate it implies —
+eliminated the first immediately and showed the real cause was none of them cleanly:
+
+- **The calculator was correct.** For all six priced traces, the stored notional, a
+  recompute from their own tokens at `$0.30`/`$2.50`, and Langfuse's independent figure all
+  equal `$0.01248`. Three derivations, one number.
+- **187 of 214 traces were synthetic.** `run_query` opens a Langfuse span unconditionally,
+  and `ObservabilitySettings` is a *different* settings object from the `Settings` that
+  `tests/conftest.py` isolated. Every test that ran the graph shipped a trace built from
+  `tests/fakes.py` usage — round token counts, zero cost. The token columns summed all 214;
+  the cost column summed the 6 that were priced.
+- **`$0.01528` of the dashboard total is double-counted**, sitting on five orphan
+  `LangGraph` roots from before the double-trace fix, whose `query` twins hold the metadata.
+
+So the reviewer's second and third hypotheses were both real and both secondary; the
+dominant term was test traffic in the production trace store. Restated on the priced
+population, the blend is **`$0.4056` per 1M** — inside the rate card, where a mostly-input
+workload belongs.
+
+**The generalisation is worth more than the fix.** D-004 says never merge billed and
+notional into one number. This is the same rule one level up: **never divide two numbers
+that describe different populations.** A ratio silently asserts that its numerator and
+denominator range over the same things, and nothing in the type system checks that. The
+blended-rate bounds check is cheap precisely because it needs no ground truth — it only
+needs the arithmetic to be possible.
+
+**Root cause fixed, not just the symptom:** `tests/conftest.py` now disables observability
+for the entire suite. Verified by running the 22 graph tests and confirming the trace count
+in Langfuse was unchanged at 214.
+
+**Cost:** the spend table now rests on 6 priced traces rather than an apparent 193, which is
+a much thinner base and honestly labelled as such. Phase 4's eval runs will widen it. The
+contaminated traces are deliberately *not* purged yet — they are the evidence for this
+decision, and `make reconcile-cost` reproduces the finding from them.
+
+**Reverse if:** a future Langfuse version attributes cost to the trace we consider canonical
+rather than to a duplicate root, at which point the duplicate-root detector becomes dead
+code — delete it rather than leave it asserting something no longer true.
+
+---
+
+## D-022 — A working local environment is not evidence of a working declared one
+
+**Decided:** CI installs the project from a clean environment against `pyproject.toml` alone
+and imports every module, on every push. Adding a dependency is not done until it is
+declared.
+
+**Why:** `langchain`, `aiosqlite`, `langfuse`, and the OpenTelemetry packages were all
+installed in the local venv and all missing from `pyproject.toml`. Everything ran, every
+test passed, and a fresh clone would have failed at import. This repo's central claim is
+that every number in it is regenerable by a command in it — a claim that is void if the
+commands only run on the one machine where the venv accumulated the right packages by
+accident.
+
+The failure is structural, not careless: `pip install X` mutates the environment the tests
+run in, so the environment silently diverges from the manifest and every local signal keeps
+saying green. No amount of care detects it, because there is nothing to notice. Only an
+install from scratch can.
+
+**Cost:** a slower CI job, and a real dependency-resolution failure now blocks a push rather
+than surfacing at deploy. That is the trade being bought deliberately.
+
+**Reverse if:** never. This one is close to free.

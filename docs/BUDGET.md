@@ -76,6 +76,8 @@ These are requirements, not suggestions. Each one has a specific failure it prev
 | **Pin the snapshot ID, not the alias** | An alias silently moving to a new snapshot mid-project makes every prior baseline incomparable — the v2.1 failure mode through a different door. | Phase 4 |
 | **`run_eval.py` prints estimated cost before executing, and requires `--confirm-cost` above a threshold** | Discovering a $3 run after it has happened. | Phase 4 |
 | **OpenAI dashboard hard cap $5, soft alert $2** | Everything above failing at once. | Manual, before the first judge call |
+| **Cost and tokens summed over the same traces, checked by a blended-rate bound** | A ratio whose numerator and denominator range over different populations. The spend table divided cost from 6 priced traces by tokens from 214, and reported a rate below the input-only price. `make budget` now refuses to write a table whose blended rate falls outside the rate card. | **Done** — [D-021](./DECISIONS.md), `make reconcile-cost` |
+| **The test suite never writes to the trace store `make budget` reads** | Synthetic runs with fake token counts and no cost polluting a published spend figure. 187 of 214 traces were test traffic. | **Done** — `tests/conftest.py` disables observability suite-wide |
 
 ---
 
@@ -146,12 +148,14 @@ being enforced across a whole thread — three turns accumulated `llm_calls` 3 �
 
 **Agent-side spend, last 30 days** (generated 2026-08-21):
 
-| Environment | Traces | Attributed | Input | Output | Thinking | Billed USD | Notional USD |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `development` | 70 | 57 | 48,787 | 7,297 | 0 | $0.00000 | $0.01248 |
-| **total** | **70** | **57** | | | | **$0.00000** | **$0.01248** |
+| Environment | Priced traces | Input | Output | Thinking | Billed USD | Notional USD |
+|---|---:|---:|---:|---:|---:|---:|
+| `development` | 6 | 29,287 | 1,477 | 0 | $0.00000 | $0.01248 |
+| **total** | **6** | **29,287** | **1,477** | | **$0.00000** | **$0.01248** |
 
-_13 of 70 traces carry no usage metadata and are excluded from the cost columns rather than estimated. Those predate the Phase 3 instrumentation._
+_Blended $0.4056 per 1M tokens, between the $0.3 input and $2.5 output rates as a mostly-input workload should be. `make reconcile-cost` checks this._
+
+_Excluded from every column above, not estimated: 187 traces carrying tokens but no cost (synthetic runs from the test suite, which priced nothing), and 21 traces with no usage metadata (pre-instrumentation runs and the duplicate roots of the double-trace bug). 6 of 214 traces in the window are real, priced agent runs. Counting the excluded traces' tokens against the priced traces' cost is what produced an impossible blended rate before (DECISIONS D-021)._
 
 Billed is what the provider charges — $0 on the Gemini free tier. Notional prices the same
 tokens at paid standard rates (DECISIONS D-004). OpenAI judge spend is tracked separately
@@ -160,6 +164,13 @@ in the allocation table above and is $0.00: no judge call has been made.
 
 Regenerate with `make budget`. Reads Langfuse directly, so this table cannot drift from what
 was actually spent — the same reason `make readme-stats` generates the test count.
+
+Generated is not the same as correct, though, and this table proved it: it was machine-built
+from real trace data and still published an impossible blended rate, because it summed
+tokens and cost over different sets of traces. A generated number inherits the authority of
+the pipeline that made it, so the pipeline needs its own check. `make reconcile-cost` is
+that check — it verifies our figure against Langfuse's trace by trace and exits non-zero on
+any divergence. Run it before quoting a cost per query ([D-021](./DECISIONS.md)).
 
 ---
 
