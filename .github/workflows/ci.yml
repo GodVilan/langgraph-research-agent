@@ -43,11 +43,11 @@ jobs:
 
       - name: Lint
         run: |
-          ruff check src tests scripts
-          ruff format --check src tests scripts
+          ruff check src tests scripts evals
+          ruff format --check src tests scripts evals
 
       - name: Type check
-        run: mypy src
+        run: mypy src evals
 
       # `integration` is excluded rather than left to skip itself: it needs a six-container
       # Langfuse stack, and a job full of silent skips reads as green without testing much.

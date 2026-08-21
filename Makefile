@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity verify-evals readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -11,15 +11,15 @@ install:  ## Create the venv and install the project with dev extras
 	$(PIP) install -q -e ".[dev]"
 
 lint:  ## ruff check + format check
-	$(PY) -m ruff check src tests scripts
-	$(PY) -m ruff format --check src tests scripts
+	$(PY) -m ruff check src tests scripts evals
+	$(PY) -m ruff format --check src tests scripts evals
 
 fmt:  ## ruff format
-	$(PY) -m ruff format src tests scripts
-	$(PY) -m ruff check --fix src tests scripts
+	$(PY) -m ruff format src tests scripts evals
+	$(PY) -m ruff check --fix src tests scripts evals
 
 type:  ## mypy strict
-	$(PY) -m mypy src
+	$(PY) -m mypy src evals
 
 test:  ## full test suite
 	$(PY) -m pytest -q
@@ -54,6 +54,9 @@ corpus-info:  ## print reproducible corpus statistics
 
 corpus-diversity:  ## can the corpus honestly fill the four eval strata?
 	$(PY) scripts/corpus_diversity.py
+
+verify-evals:  ## verify eval items by hand (FILE=evals/datasets/draft.json)
+	$(PY) -m evals.verify_cli $(FILE)
 
 readme-stats:  ## regenerate the README statistics block from the repo
 	$(PY) scripts/readme_stats.py
