@@ -90,6 +90,8 @@ class CullReason(StrEnum):
     """Why a candidate did not survive. Never collapsed into a single rate."""
 
     BANNED_PHRASING = "banned_phrasing"  # invention-inviting construction survived the prompt
+    LEXICAL_OVERLAP = "lexical_overlap"  # copied the gold passage instead of paraphrasing
+    DUPLICATE = "duplicate"  # byte-identical to an earlier draw; n items, fewer questions
     NEITHER_NOR_JOINT = "neither_nor_joint"  # even together the papers cannot answer it
     SINGLE_PAPER = "single_paper"  # one paper answers it alone; not multi-hop
     KEPT = "kept"
@@ -165,13 +167,32 @@ class ConstructionReport:
                 "cannot answer together. This is a prompt bug, not corpus scarcity — do not "
                 "respond by drawing from weaker pairs."
             )
+        dupes = counts.get(CullReason.DUPLICATE.value, 0)
+        if dupes:
+            return (
+                f"{dupes} duplicate draws: the same prompt produced the same question more "
+                f"than once, so the stratum has fewer distinct items than it appears to."
+            )
+        leaky = counts.get(CullReason.LEXICAL_OVERLAP.value, 0)
+        if leaky > len(self.candidates) / 4:
+            return (
+                f"{leaky} culled for lexical overlap: the drafter is copying the gold "
+                f"passage rather than paraphrasing it. Strengthen the paraphrase "
+                f"instruction — do NOT relax the threshold to recover the count, which "
+                f"would admit exactly the leakage the threshold exists to catch."
+            )
         if banned > len(self.candidates) / 4:
             return "Banned constructions surviving the prompt; tighten the wording rules."
-        if neither == 0 and banned == 0:
+        if neither == 0 and banned == 0 and leaky == 0 and dupes == 0:
+            # Distinguish "nothing was culled" from "the only culls were benign". The
+            # single_paper explanation describes a mechanism that does not exist outside
+            # multi-hop, and printing it against a stratum with no pairs and no culls was a
+            # report that said something false about what had happened.
+            if not self.cull_rate:
+                return "Clean: every candidate survived; nothing was culled."
             return (
-                "Healthy: no neither_nor_joint and no banned phrasing. Every cull is "
-                "single_paper, which is ordinary difficulty calibration — those pairs are "
-                "too close to need both papers."
+                "Healthy: the only culls are single_paper, which is ordinary difficulty "
+                "calibration — those pairs are too close to need both papers."
             )
         if neither:
             return (

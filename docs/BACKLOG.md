@@ -22,6 +22,15 @@ v2.1 is [GodVilan/arXiv-Agent](https://github.com/GodVilan/arXiv-Agent).
 | `enrich_with_semantic_scholar` | Unused by the agent; UI-only | A citation-count feature is actually requested |
 | Streamlit UI (`app.py`, 1,946 lines) | v3 ships an HTTP API; a UI is not one of the five capability gaps | After v3.0 ships, if a demo surface is wanted |
 
+## Reserved for the post-mortem (Phase 8)
+
+Findings that are worth more as one principle than as the incidents that produced them.
+Recorded here so they survive to `docs/POSTMORTEM.md` rather than staying scattered.
+
+| Principle | Evidence |
+|---|---|
+| **An instruction is a request; a mechanism is a guarantee.** Where correctness depends on a model complying, the compliance has to be enforced by something that is not the model. | Learned twice, at opposite ends of the system. **Phase 2, defence side:** telling the model that text inside `<passage>` delimiters is data and not instruction did not stop delimiter-escape payloads; structural neutralisation of the retrieved text did. **Phase 4, generation side:** a drafting prompt banning "synthesis", "integrate" and "how can" in explicit hard rules still produced eight research proposals out of eight; a post-generation regex check rejects them. The prompt is still worth writing — it improves the odds — but it is a filter, not a boundary. |
+
 ## Deferred design choices
 
 | Item | Why deferred | Revisit at |

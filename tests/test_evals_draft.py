@@ -15,6 +15,12 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from evals.build_set import (
+    MAX_PHRASE_OVERLAP,
+    MAX_VERBATIM_RUN,
+    longest_verbatim_run,
+    phrase_overlap,
+)
 from evals.draft import (
     BANNED_PATTERNS,
     Candidate,
@@ -130,3 +136,121 @@ class TestCullReportIsNeverPooled:
 
         assert "kept" in rendered and "single_paper" in rendered
         assert "never pool" in rendered
+
+
+class TestPhraseOverlapMeasuresPhrases:
+    """Verbatim phrase reuse, not word reuse — the rule EVALS.md actually states.
+
+    The first implementation measured unigram bag overlap and culled 39 of 55 factual
+    questions. Inspecting them showed the overlap was dominated by *unavoidable* proper
+    nouns: "What is the expense per 1,000 evaluations for Gemini 3.1 Flash-Lite?" scored
+    0.80 while being a correctly paraphrased question, because a model name has no synonym.
+    Against real 380-token chunks the n-gram metric culls none of twelve, with longest
+    verbatim runs of one to four words — so the drafter was never copying phrasing.
+
+    Which raises the same question as every other quiet check (D-023): can it fire?
+    """
+
+    GOLD = (
+        "Table 4 reports the cost per 1,000 evaluations for each model. The top-1 error "
+        "rate achieved by the varied bound variant of LPA on CIFAR-100 is 23.4 percent, "
+        "and we require round-to-nearest rounding mode for the tail value r throughout "
+        "all of the experiments described in this section."
+    )
+
+    def test_a_verbatim_lift_is_caught(self) -> None:
+        """The failure the check exists for: retrieval succeeding on string match."""
+        lifted = "What is the top-1 error rate achieved by the varied bound variant of LPA?"
+
+        assert phrase_overlap(lifted, self.GOLD) > MAX_PHRASE_OVERLAP
+        assert longest_verbatim_run(lifted, self.GOLD) > MAX_VERBATIM_RUN
+
+    def test_a_necessary_entity_name_does_not_trigger_it(self) -> None:
+        """You cannot ask what a paper reports on CIFAR-100 without writing CIFAR-100."""
+        paraphrased = "Which dataset does the reported 23.4 percent figure refer to?"
+
+        assert phrase_overlap(paraphrased, self.GOLD) <= MAX_PHRASE_OVERLAP
+        assert longest_verbatim_run(paraphrased, self.GOLD) <= MAX_VERBATIM_RUN
+
+    def test_a_technical_term_with_no_synonym_does_not_trigger_it(self) -> None:
+        question = "Which rounding approach is required for the tail value?"
+
+        assert phrase_overlap(question, self.GOLD) <= MAX_PHRASE_OVERLAP
+
+    @pytest.mark.parametrize(
+        "question",
+        [
+            "What is the maximum reduction in computational operations achieved by AsymVLM?",
+            "What is the expense per one thousand assessments for Claude Haiku 4.5?",
+            "What iteration budget was utilized for the majority of the training runs?",
+        ],
+    )
+    def test_real_drafted_questions_pass(self, question: str) -> None:
+        """Verbatim from the probe run — these are what the drafter actually produces."""
+        assert phrase_overlap(question, self.GOLD) <= MAX_PHRASE_OVERLAP
+
+    def test_an_empty_question_does_not_divide_by_zero(self) -> None:
+        assert phrase_overlap("", self.GOLD) == 0.0
+
+    def test_the_run_length_is_measured_in_words(self) -> None:
+        assert longest_verbatim_run("the cost per 1,000 evaluations for each model", self.GOLD) >= 7
+        assert longest_verbatim_run("entirely unrelated wording here", self.GOLD) <= 1
+
+
+class TestDuplicateDraws:
+    """N draws from one prompt is not N items.
+
+    Three ambiguous questions per topic, drawn from an identical prompt, produced two
+    byte-identical pairs — the stratum reported n=10 while holding 8 distinct questions.
+    Caught by validating the written set, not by anything in the drafting path, which is
+    why the check now lives in the drafting path.
+    """
+
+    def _report(self, *reasons: CullReason) -> ConstructionReport:
+        return ConstructionReport(
+            candidates=[Candidate(f"q{n}", ["a"], r) for n, r in enumerate(reasons)]
+        )
+
+    def test_duplicates_are_their_own_reason(self) -> None:
+        report = self._report(CullReason.KEPT, CullReason.DUPLICATE)
+
+        assert report.by_reason["duplicate"] == 1
+
+    def test_a_duplicate_draw_is_diagnosed_plainly(self) -> None:
+        """Distinct from every other cull: the prompt is fine, the sampling is not."""
+        diagnosis = self._report(*[CullReason.KEPT] * 8, CullReason.DUPLICATE).diagnosis()
+
+        assert "duplicate draws" in diagnosis
+        assert "fewer distinct items than it appears" in diagnosis
+
+    def test_a_set_with_duplicates_is_not_reported_as_healthy(self) -> None:
+        report = self._report(*[CullReason.KEPT] * 9, CullReason.DUPLICATE)
+
+        assert "Healthy" not in report.diagnosis()
+
+
+class TestDiagnosisDescribesWhatHappened:
+    """A report must not explain a mechanism the stratum does not have.
+
+    The healthy-case message said "the only culls are single_paper — those pairs are too
+    close" and was printed verbatim against strata with no pairs and no culls at all.
+    Correct verdict, false explanation (DECISIONS D-023, the reporting variant).
+    """
+
+    def _report(self, *reasons: CullReason) -> ConstructionReport:
+        return ConstructionReport(
+            candidates=[Candidate(f"q{n}", ["a"], r) for n, r in enumerate(reasons)]
+        )
+
+    def test_zero_culls_is_not_explained_as_single_paper(self) -> None:
+        diagnosis = self._report(*[CullReason.KEPT] * 10).diagnosis()
+
+        assert "Clean" in diagnosis
+        assert "single_paper" not in diagnosis
+        assert "pairs" not in diagnosis
+
+    def test_benign_culls_still_get_the_calibration_explanation(self) -> None:
+        diagnosis = self._report(*[CullReason.KEPT] * 4, CullReason.SINGLE_PAPER).diagnosis()
+
+        assert "Healthy" in diagnosis
+        assert "single_paper" in diagnosis

@@ -731,8 +731,28 @@ mention does *not* trip it. The zero is now a measurement rather than an absence
 (The real reason it is zero: all 150 papers were published on the same afternoon, so no paper
 can cite another's results.)
 
+**A fifth instance, and it extends the family.** `ConstructionReport.diagnosis()` fired
+correctly and reported uninterpretably. Keyed on ratios — it required
+`single_paper >= kept` before calling the drafter healthy — it labelled a pilot of 4 kept,
+1 `single_paper`, 0 `neither_nor_joint` as *"Mixed cull reasons; no single dominant
+cause."* That is the cleanest result the check can produce, reported as though it were
+inconclusive.
+
+The first four instances are checks that could not fire, skipped their own failure, or
+gated nothing. This one detected correctly and then lost the signal on the way to being
+read. **The family therefore covers reporting, not just detection**, and that is the version
+most likely to recur in Phase 4, where every finding reaches a human through a report. A
+metric computed correctly and summarised into "mixed" is indistinguishable from one that was
+never computed.
+
+Fixed by keying the diagnosis on *which* reasons are present rather than on their shares:
+zero `neither_nor_joint` and zero `banned_phrasing` is healthy at any ratio. Both real runs
+— the 7-of-8 failure and the 4-of-5 pilot — are pinned as tests, so the reporting layer has
+regression cases the same way the detectors do.
+
 **The general rule this family points at:** every detector needs a case that makes it fire,
-written at the same time as the detector. A clean run proves nothing on its own.
+written at the same time as the detector — *and* a case that makes its report readable. A
+clean run proves nothing on its own, and neither does a correct number nobody can act on.
 
 **Cost:** an unreviewed red commit can reach `main`. Accepted because the author is the sole
 committer and runs `make check` locally, but it is a real weakness and is named as one.

@@ -58,6 +58,9 @@ corpus-diversity:  ## can the corpus honestly fill the four eval strata?
 select-attributes:  ## deterministic, stratified pick of the 11 absent-attribute anchors
 	$(PY) -m evals.select_attributes
 
+draft-evals:  ## draft the whole eval set (~180 model calls, ~15 min at the free-tier 15 RPM)
+	$(PY) -m evals.build_set
+
 verify-evals:  ## verify eval items by hand (FILE=evals/datasets/draft.json)
 	$(PY) -m evals.verify_cli $(FILE)
 

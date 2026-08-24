@@ -198,7 +198,44 @@ representations on a grid maze environment, and which evaluates…"* — asking 
 report rather than what could be built from them.
 
 `ConstructionReport.by_reason` is a permanent field, never pooled, and
-`ConstructionReport.diagnosis()` names which of the three failure modes dominates.
+`ConstructionReport.diagnosis()` names which failure mode dominates.
+
+### The lexical-leakage check measured the wrong thing
+
+The first full run culled **39 of 55** factual questions. The construction rule forbids
+*"verbatim reuse of distinctive multi-word phrases"*; the implementation measured unigram
+bag overlap, which is a different thing and wrong in a specific direction — it penalises
+questions for naming entities that have no paraphrase:
+
+| overlap | question | verdict |
+|---:|---|---|
+| 0.80 | "What is the expense per 1,000 evaluations for Gemini 3.1 Flash-Lite?" | correctly paraphrased; "expense" for "cost" |
+| 0.60 | "What condition must hold for the tail value r under round-to-nearest rounding?" | technical term, no synonym exists |
+| 0.57 | "…top-1 performance of S-Adam on the ImageNet dataset" | you cannot ask about ImageNet without saying ImageNet |
+
+Replaced with contiguous n-gram overlap plus longest verbatim run. Re-measured against real
+380-token chunks: **0 of 12 culled, median phrase overlap 0.00, longest verbatim runs of one
+to four words.** The drafter was never lifting phrasing. Two-thirds of the stratum would
+have been discarded to fix a problem that did not exist.
+
+The correct instinct here was *not* to relax the threshold. A threshold that culls too much
+and a metric that measures the wrong quantity look identical from the cull rate alone — the
+only way to tell them apart was to read the culled questions.
+
+### Do the checks fire? Both of them, on real output
+
+Same question as everywhere else in the D-023 family. Answered rather than assumed:
+
+* **`banned_phrasing`** — the original prompt (the one that produced eight research
+  proposals) replayed through the detector on 6 real generations fired on **2 of 6**
+  (`how can` + `combine`, and `combine`). Not inert.
+* **phrase overlap** — a verbatim lift from a real chunk is caught; a necessary entity name
+  is not; three real drafted questions pass.
+
+The 2-of-6 is worth reading carefully: the regex catches the *lexical* tell, and the other
+four old-prompt failures were semantic — comparative in wording, unanswerable in substance.
+Those are what the necessity check exists for. **Neither check subsumes the other**, and a
+drafter policed by only one of them would leak in whichever direction it does not look.
 
 ---
 

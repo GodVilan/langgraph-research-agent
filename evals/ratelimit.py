@@ -54,24 +54,64 @@ class RateLimiter:
 _LIMITER = RateLimiter()
 
 
-async def limited[T](call: Callable[[], Awaitable[T]], *, retries: int = 3) -> T:
-    """Run one model call under the shared limiter, retrying on quota exhaustion.
+# Errors that are worth trying again: the request never produced an answer, and the same
+# request may well succeed. Kept as a narrow list rather than a bare `except Exception`,
+# because a schema failure is *not* transient and retrying one three times just turns one
+# broken item into three wasted calls before the same failure.
+QUOTA_MARKERS = ("RESOURCE_EXHAUSTED", "429")
+TRANSIENT_MARKERS = (
+    "ReadError",
+    "ConnectError",
+    "ConnectTimeout",
+    "ReadTimeout",
+    "RemoteProtocolError",
+    "Server disconnected",
+    "503",
+    "502",
+)
 
-    A 429 is retried rather than raised because the provider tells us exactly how long to
-    wait, and failing a two-hour construction run on one throttle would be perverse. Any
-    other error propagates: a quota error is transient, a schema error is not, and treating
-    them alike is how a broken item ends up silently skipped.
+
+def _classify(exc: Exception) -> str | None:
+    """'quota', 'transient', or None for an error that should propagate."""
+    text = f"{type(exc).__name__}: {exc}"
+    if any(marker in text for marker in QUOTA_MARKERS):
+        return "quota"
+    if any(marker in text for marker in TRANSIENT_MARKERS):
+        return "transient"
+    return None
+
+
+async def limited[T](call: Callable[[], Awaitable[T]], *, retries: int = 4) -> T:
+    """Run one model call under the shared limiter, retrying quota and network failures.
+
+    A 429 is retried because the provider tells us exactly how long to wait, and failing a
+    fifteen-minute construction run on one throttle would be perverse. **Transient network
+    errors are retried for the same reason** — an `httpx.ReadError` at call 150 of 180
+    would otherwise discard every call before it. That was not hypothetical: one appeared
+    partway through the first full draft, and only the provider SDK's own internal retry
+    saved the run.
+
+    Everything else propagates. A quota error is transient and a schema error is not;
+    treating them alike is how a broken item ends up silently skipped after three
+    identical failures.
     """
     for attempt in range(1, retries + 1):
         await _LIMITER.acquire()
         try:
             return await call()
         except Exception as exc:
-            if "RESOURCE_EXHAUSTED" not in str(exc) and "429" not in str(exc):
+            kind = _classify(exc)
+            if kind is None or attempt == retries:
                 raise
-            if attempt == retries:
-                raise
-            backoff = 60.0 * attempt
-            log.warning("quota exhausted (attempt %d/%d); waiting %.0fs", attempt, retries, backoff)
+            # Quota needs a full window; a dropped connection needs a moment.
+            backoff = 60.0 * attempt if kind == "quota" else 5.0 * attempt
+            log.warning(
+                "%s failure (attempt %d/%d); waiting %.0fs: %s",
+                kind,
+                attempt,
+                retries,
+                backoff,
+                str(exc)[:120],
+            )
             await asyncio.sleep(backoff)
     raise RuntimeError("unreachable")
