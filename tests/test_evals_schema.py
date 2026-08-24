@@ -252,3 +252,60 @@ class TestDisclosureOrder:
         assert report["single_paper_factual"] == {"ruled": 1, "agree": 1, "disagree": 0}
         assert report["multi_hop"] == {"ruled": 1, "agree": 0, "disagree": 1}
         assert evalset.disagreements() == [("m1", "multi_hop", ["multi_hop_necessity"])]
+
+
+class TestCrossStratumIndependence:
+    """One paper feeding several strata makes those metrics correlated.
+
+    A quirk in that paper — an unusual results table, odd phrasing — then surfaces as
+    several apparently independent findings. Disjointness is achievable at 150 papers
+    (5,598 of 6,456 multi-hop pairs avoid the attribute anchors), so it is enforced rather
+    than accepted; `shared_papers` exists to record any overlap that becomes unavoidable.
+    """
+
+    def _set(self, *items: EvalItem) -> EvalSet:
+        return EvalSet(name="t", corpus_sha256="abc", items=list(items))
+
+    def _attr(self, paper: str) -> EvalItem:
+        return item(
+            item_id=f"a-{paper}",
+            stratum=Stratum.UNANSWERABLE_ATTRIBUTE,
+            gold_chunk_ids=[],
+            absent_term="gsm8k",
+            anchor_paper_id=paper,
+            anchor_class=AnchorClass.STRONG,
+            absence_shape=AbsenceShape.BENCHMARK,
+            provenance=Provenance(generator_model="g", source_paper_ids=[paper]),
+        )
+
+    def _hop(self, a: str, b: str) -> EvalItem:
+        return item(
+            item_id=f"m-{a}-{b}",
+            stratum=Stratum.MULTI_HOP,
+            provenance=Provenance(generator_model="g", source_paper_ids=[a, b]),
+        )
+
+    def test_disjoint_strata_report_no_overlap(self) -> None:
+        evalset = self._set(self._attr("p1"), self._hop("p2", "p3"))
+
+        assert evalset.cross_stratum_overlap() == {}
+
+    def test_a_shared_paper_is_detected_and_named(self) -> None:
+        evalset = self._set(self._attr("p1"), self._hop("p1", "p2"))
+
+        overlap = evalset.cross_stratum_overlap()
+
+        assert overlap == {("multi_hop", "unanswerable_attribute"): {"p1"}}
+
+    def test_papers_by_stratum_counts_anchors_and_sources(self) -> None:
+        evalset = self._set(self._attr("p1"), self._hop("p2", "p3"))
+
+        assert evalset.papers_by_stratum() == {
+            "unanswerable_attribute": {"p1"},
+            "multi_hop": {"p2", "p3"},
+        }
+
+    def test_shared_papers_defaults_empty_and_is_recordable(self) -> None:
+        """Enforced disjointness today; recordable if 150 papers ever stop allowing it."""
+        assert item().shared_papers == []
+        assert item(shared_papers=["p1"]).shared_papers == ["p1"]

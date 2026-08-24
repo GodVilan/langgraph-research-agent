@@ -177,12 +177,60 @@ they share is legible because the rejection reason distinguishes `neither-nor-jo
 `single-paper`. A cull rate reported without that breakdown would have looked like corpus
 scarcity and prompted the wrong fix — padding the stratum from weaker pairs.
 
-The real cull rate, against a prompt drafting from full papers and forbidding speculative
-integration, is measured before the set is frozen and reported alongside the final counts.
+**The fixed prompt, piloted on 5 pairs before committing to the set:**
+
+| | first pass | after the fix |
+|---|---:|---:|
+| Drafted | 8 | 5 |
+| Cull rate | **87.5%** | **20%** |
+| `neither_nor_joint` | 7 | **0** |
+| `single_paper` | 0 | 1 |
+| `banned_phrasing` | n/a | 0 |
+
+The shift from `neither_nor_joint` to `single_paper` is the signal that the prompt is
+fixed. Zero unanswerable questions; the one cull is a pair too closely related to need both
+papers, which is ordinary difficulty calibration rather than a construction fault. Piloting
+five cost about five minutes at 15 RPM instead of forty on a full run.
+
+The kept questions have the right shape — *"What number of communication rounds do the two
+papers report for evaluating their models on CIFAR…"*, *"Which of the two evaluates model
+representations on a grid maze environment, and which evaluates…"* — asking what the papers
+report rather than what could be built from them.
+
+`ConstructionReport.by_reason` is a permanent field, never pooled, and
+`ConstructionReport.diagnosis()` names which of the three failure modes dominates.
 
 ---
 
-## Hazard 3 — one item measured eleven times
+## Hazard 3 — one paper measured several times
+
+If a paper anchors an `unanswerable_attribute` item *and* sources a `multi_hop` item, those
+two measurements are correlated. A quirk in that paper — an unusually formatted results
+table, idiosyncratic phrasing, a section the chunker split badly — then surfaces as two
+findings that look independent and are not. With five strata over 150 papers it is easy to
+let this happen without noticing.
+
+**It is avoidable here, so it is enforced rather than accepted:**
+
+| | |
+|---|---:|
+| Multi-hop candidate pairs | 6,456 |
+| Pairs containing no attribute anchor | **5,598** |
+| Distinct papers in the 60 cleanest pairs | 66 |
+| Of those, overlapping the 11 attribute anchors | **0** |
+| Factual-eligible papers after excluding both | 71 |
+
+The budget is 55 factual + ~40 multi-hop papers + 11 anchors = 106 paper-slots across 150
+papers, so disjoint strata fit with room to spare.
+
+`EvalSet.cross_stratum_overlap()` reports any paper shared between two strata, and
+`EvalItem.shared_papers` records it per item. Both exist for the case where disjointness
+stops being achievable — a smaller corpus, or more strata — so the overlap would be
+*recorded* rather than engineered around or silently absorbed.
+
+---
+
+## Hazard 4 — one item measured eleven times
 
 Eleven `unanswerable_attribute` items all shaped "what did X report on benchmark Y" is a
 single item with eleven anchors. It would produce a confident-looking n=11 that varies in

@@ -175,6 +175,13 @@ class EvalItem(BaseModel):
     anchor_paper_id: str = ""
     anchor_class: AnchorClass | None = None
     absent_term: str = ""
+    # Papers this item shares with items in *other* strata. Empty when the strata are
+    # disjoint, which they are here — one paper feeding several metrics means a quirk in
+    # that paper (odd phrasing, an unusual results table) surfaces as several apparently
+    # independent findings. Disjointness is achievable at 150 papers, so it is enforced;
+    # the field exists so that if it ever stops being achievable, the overlap is recorded
+    # per item rather than engineered around or silently accepted.
+    shared_papers: list[str] = Field(default_factory=list)
     provenance: Provenance
     verification: Verification = Field(default_factory=Verification)
 
@@ -278,6 +285,33 @@ class EvalSet(BaseModel):
             for item in self.items
             if item.verification.agrees is False
         ]
+
+    def papers_by_stratum(self) -> dict[str, set[str]]:
+        """Every paper each stratum draws on, anchors and sources alike."""
+        used: dict[str, set[str]] = {}
+        for item in self.items:
+            papers = set(item.provenance.source_paper_ids)
+            if item.anchor_paper_id:
+                papers.add(item.anchor_paper_id)
+            used.setdefault(item.stratum.value, set()).update(papers)
+        return used
+
+    def cross_stratum_overlap(self) -> dict[tuple[str, str], set[str]]:
+        """Papers shared between two strata, which is what breaks metric independence.
+
+        A paper anchoring an attribute item *and* sourcing a multi-hop item makes those two
+        measurements correlated: an unusual results table or odd phrasing in it shows up as
+        two findings that look independent and are not.
+        """
+        used = self.papers_by_stratum()
+        overlaps: dict[tuple[str, str], set[str]] = {}
+        names = sorted(used)
+        for i, first in enumerate(names):
+            for second in names[i + 1 :]:
+                shared = used[first] & used[second]
+                if shared:
+                    overlaps[(first, second)] = shared
+        return overlaps
 
     def anchor_class_counts(self) -> dict[str, int]:
         counts: dict[str, int] = {}
