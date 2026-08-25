@@ -47,17 +47,41 @@ log = logging.getLogger(__name__)
 GENERATOR = "gemini-3.5-flash-lite"
 PROMPT_VERSION = "draft-v2"
 
-# Verbatim phrase reuse, not word reuse. The construction rule forbids "verbatim reuse of
-# distinctive multi-word phrases", and the first implementation measured unigram bag overlap
-# instead — a different thing, and wrong in a specific direction. It culled 39 of 55 factual
-# questions, and inspecting them showed the overlap was dominated by *unavoidable* proper
-# nouns: you cannot ask what a paper reports on ImageNet without writing "ImageNet", and
-# "What is the expense per 1,000 evaluations for Gemini 3.1 Flash-Lite?" scored 0.80 while
-# being a properly paraphrased question. Contiguous n-grams catch copied phrasing and ignore
-# named entities, which is what the rule actually asks for.
+# ── Lexical leakage: the metric, and where its thresholds come from ──────────────────────
+#
+# WHY N-GRAMS. `docs/EVALS.md` specifies "verbatim reuse of distinctive multi-word phrases".
+# The first implementation measured unigram bag overlap, which is a different quantity. That
+# is a misimplementation of a written rule, and the rule is the justification — *not* the
+# examples it happened to reject. Choosing an acceptance criterion by looking at what it
+# rejects is how an eval set gets quietly tuned to flatter the system it grades.
+#
+# WHERE THE THRESHOLDS COME FROM. Set above the coincidence floor, measured rather than
+# guessed. Each drafted question was compared against 25 random *unrelated* chunks; whatever
+# overlap those show is chance, since they share no content:
+#
+#   longest verbatim run   null: max 4, p99 2, median 1   |  gold: max 4, p99 4, median 2
+#   4-gram phrase overlap  null: max 0.08, p99 0.00       |  gold: max 0.11, p99 0.11
+#
+# The thresholds sit just above the null ceiling: a 5-word run or 15% 4-gram overlap cannot
+# plausibly be coincidence against a specific 380-token passage.
+#
+# WHAT THIS COSTS, STATED PLAINLY. The corrected rule is far weaker in effect than the buggy
+# one: 0 culls against 39 of 55. It is weaker for a second reason too — it covers the
+# "multi-word phrases" half of the construction rule and *not* the "model names and dataset
+# names where a paraphrase exists" half, because deciding whether a paraphrase exists is a
+# judgement call and not automatable. That half is routed to human verification, and is a
+# real gap rather than a solved problem.
 PHRASE_N = 4
-MAX_PHRASE_OVERLAP = 0.25
-MAX_VERBATIM_RUN = 8
+NULL_MAX_RUN = 4  # measured, see above
+NULL_MAX_OVERLAP = 0.08  # measured, see above
+MAX_PHRASE_OVERLAP = 0.15
+MAX_VERBATIM_RUN = 5
+
+# The overlap *ratio* is unstable when the denominator is small: a 9-word question has only
+# six 4-grams, so one incidental match scores 0.167 and trips a threshold calibrated on
+# 12-18 word questions (whose gold p99 is 0.11). Below this many n-grams the ratio is not
+# meaningful and the run-length check carries the decision on its own.
+MIN_NGRAMS_FOR_RATIO = 8
 
 # The four terms that survive full-corpus screening (`make corpus-diversity`). Hard-capped:
 # this is the honest supply, not a target.
@@ -209,6 +233,20 @@ def longest_verbatim_run(question: str, gold_text: str) -> int:
     return min(len(q), 30)
 
 
+def leaks(question: str, gold_text: str) -> bool:
+    """Whether a question reproduces distinctive phrasing from its gold passage.
+
+    The run-length check always applies. The overlap ratio applies only when the question
+    is long enough for the ratio to mean anything — see ``MIN_NGRAMS_FOR_RATIO``.
+    """
+    if longest_verbatim_run(question, gold_text) > MAX_VERBATIM_RUN:
+        return True
+    n_grams = len(ngrams(word_sequence(question), PHRASE_N))
+    if n_grams < MIN_NGRAMS_FOR_RATIO:
+        return False
+    return phrase_overlap(question, gold_text) > MAX_PHRASE_OVERLAP
+
+
 def lexical_overlap(question: str, gold_text: str) -> float:
     """Kept as the recorded figure: the phrase-overlap score."""
     return phrase_overlap(question, gold_text)
@@ -280,9 +318,9 @@ async def build_factual(
         )
         overlap = phrase_overlap(drafted.question, str(gold["text"]))
         run = longest_verbatim_run(drafted.question, str(gold["text"]))
-        if overlap > MAX_PHRASE_OVERLAP or run > MAX_VERBATIM_RUN:
+        if leaks(drafted.question, str(gold["text"])):
             report.candidates.append(
-                _culled(
+                Candidate(
                     drafted.question,
                     [paper_id],
                     CullReason.LEXICAL_OVERLAP,
@@ -315,15 +353,11 @@ def _kept(question: str, papers: list[str]) -> Candidate:
     return Candidate(question, papers, CullReason.KEPT)
 
 
-def _culled(question: str, papers: list[str], reason: CullReason, detail: str) -> Candidate:
-    """The reason is a parameter, not a default.
-
-    It was hardcoded to BANNED_PHRASING, so 39 lexical-overlap rejections were reported
-    under the wrong name and `diagnosis()` recommended tightening the wording rules — the
-    wrong remedy for the actual failure. The fifth D-023 instance, repeated within a day of
-    being written down: a check that fires correctly and reports uninterpretably.
-    """
-    return Candidate(question, papers, reason, detail)
+# `_culled` used to exist here with the reason hardcoded to BANNED_PHRASING, so 39
+# lexical-overlap rejections were reported under a check that had never fired once. It is
+# gone rather than fixed: a helper that can be called from three sites with a default reason
+# will eventually be called with the wrong one. Every cull below constructs its own
+# Candidate at the point the decision is made, where the reason is not in question.
 
 
 async def build_attribute(
@@ -384,7 +418,7 @@ def build_topic() -> tuple[ConstructionReport, list[EvalItem]]:
         outcome = verify_topic_absent(term)
         if not outcome.absent:
             report.candidates.append(
-                _culled(phrasing[term], [], CullReason.BANNED_PHRASING, outcome.reason)
+                Candidate(phrasing[term], [], CullReason.TOPIC_NOT_ABSENT, outcome.reason)
             )
             continue
         report.candidates.append(_kept(phrasing[term], []))
@@ -440,7 +474,7 @@ async def build_ambiguous(
             normalised = " ".join(drafted.question.lower().split())
             if normalised in seen:
                 report.candidates.append(
-                    _culled(
+                    Candidate(
                         drafted.question,
                         matching[:3],
                         CullReason.DUPLICATE,
@@ -487,9 +521,83 @@ def ranked_pairs(exclude: set[str]) -> list[tuple[str, str]]:
     return [pair for pair, _ in shared.most_common() if not ({pair[0], pair[1]} & exclude)]
 
 
+CHECKPOINT_DIR = Path("evals/datasets/.checkpoints")
+
+
+def checkpoint_path(stratum: str) -> Path:
+    return CHECKPOINT_DIR / f"{stratum}.json"
+
+
+def load_checkpoint(stratum: str) -> tuple[ConstructionReport, list[EvalItem]] | None:
+    """A completed stratum from a previous run, if one exists.
+
+    Writing only at the end meant every failure discarded the whole run — an interrupted
+    draft cost 60 model calls, roughly five minutes of a fifteen-minute job, for nothing.
+    Each stratum is now persisted the moment it completes, so a resume pays only for what
+    is missing.
+    """
+    path = checkpoint_path(stratum)
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    report = ConstructionReport(
+        candidates=[
+            Candidate(c["question"], c["paper_ids"], CullReason(c["reason"]), c["detail"])
+            for c in data["candidates"]
+        ]
+    )
+    return report, [EvalItem.model_validate(i) for i in data["items"]]
+
+
+def save_checkpoint(stratum: str, report: ConstructionReport, items: list[EvalItem]) -> None:
+    CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+    checkpoint_path(stratum).write_text(
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "question": c.question,
+                        "paper_ids": c.paper_ids,
+                        "reason": c.reason.value,
+                        "detail": c.detail,
+                    }
+                    for c in report.candidates
+                ],
+                "items": [i.model_dump(mode="json") for i in items],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+async def run_stratum(
+    name: str, builder: object, *, resume: bool
+) -> tuple[ConstructionReport, list[EvalItem]]:
+    """Build one stratum, or reuse a checkpoint from an earlier run."""
+    if resume:
+        cached = load_checkpoint(name)
+        if cached is not None:
+            print(f"{name}: resumed from checkpoint ({len(cached[1])} items)")
+            return cached
+    report, items = await builder() if asyncio.iscoroutinefunction(builder) else builder()  # type: ignore[operator]
+    save_checkpoint(name, report, items)
+    return report, items
+
+
+async def _hop_builder(pairs: list[tuple[str, str]]) -> tuple[ConstructionReport, list[EvalItem]]:
+    """Multi-hop items are assembled from the report's kept candidates, so the checkpoint
+    stores the report and the items are rebuilt from it."""
+    return await draft_multi_hop(pairs), []
+
+
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("evals/datasets/draft.json"))
+    parser.add_argument(
+        "--fresh", action="store_true", help="Ignore checkpoints and rebuild every stratum"
+    )
     parser.add_argument("--factual", type=int, default=55)
     parser.add_argument("--multihop", type=int, default=20)
     parser.add_argument("--ambiguous", type=int, default=10)
@@ -502,19 +610,22 @@ async def main() -> int:
 
     # Attribute anchors first: every other stratum avoids these papers, so that a quirk in
     # one paper cannot surface as several apparently independent findings.
-    attr_report, attr_items = await build_attribute(index)
+    resume = not args.fresh
+    attr_report, attr_items = await run_stratum(
+        "unanswerable_attribute", partial(build_attribute, index), resume=resume
+    )
     build.reports["unanswerable_attribute"] = attr_report
     build.items += attr_items
     used = {i.anchor_paper_id for i in attr_items}
     print(f"attribute: {len(attr_items)} items, anchors excluded from every other stratum")
 
-    topic_report, topic_items = build_topic()
+    topic_report, topic_items = await run_stratum("unanswerable_topic", build_topic, resume=resume)
     build.reports["unanswerable_topic"] = topic_report
     build.items += topic_items
     print(f"topic: {len(topic_items)} items")
 
     pairs = ranked_pairs(used)[: args.pairs]
-    hop_report = await draft_multi_hop(pairs)
+    hop_report, _ = await run_stratum("multi_hop", partial(_hop_builder, pairs), resume=resume)
     build.reports["multi_hop"] = hop_report
     for n, candidate in enumerate(hop_report.kept[: args.multihop], start=1):
         gold = [best_chunk_for(candidate.question, pid, index) for pid in candidate.paper_ids]
@@ -533,7 +644,9 @@ async def main() -> int:
         used.update(candidate.paper_ids)
     print(f"multi_hop: {len(hop_report.kept)} kept of {len(hop_report.candidates)}")
 
-    amb_report, amb_items = await build_ambiguous(args.ambiguous, index, used)
+    amb_report, amb_items = await run_stratum(
+        "ambiguous", partial(build_ambiguous, args.ambiguous, index, used), resume=resume
+    )
     build.reports["ambiguous"] = amb_report
     build.items += amb_items
     used.update(p for i in amb_items for p in i.provenance.source_paper_ids)
@@ -546,7 +659,11 @@ async def main() -> int:
         if pid not in used
         and len(numeric.findall(" ".join(str(c["text"]) for c in index[pid]))) >= 20
     ]
-    fact_report, fact_items = await build_factual(args.factual, eligible, index)
+    fact_report, fact_items = await run_stratum(
+        "single_paper_factual",
+        partial(build_factual, args.factual, eligible, index),
+        resume=resume,
+    )
     build.reports["single_paper_factual"] = fact_report
     build.items += fact_items
     print(f"single_paper_factual: {len(fact_items)} items from {len(eligible)} eligible papers")

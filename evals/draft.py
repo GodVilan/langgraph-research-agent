@@ -92,6 +92,7 @@ class CullReason(StrEnum):
     BANNED_PHRASING = "banned_phrasing"  # invention-inviting construction survived the prompt
     LEXICAL_OVERLAP = "lexical_overlap"  # copied the gold passage instead of paraphrasing
     DUPLICATE = "duplicate"  # byte-identical to an earlier draw; n items, fewer questions
+    TOPIC_NOT_ABSENT = "topic_not_absent"  # the term is discussed in the corpus after all
     NEITHER_NOR_JOINT = "neither_nor_joint"  # even together the papers cannot answer it
     SINGLE_PAPER = "single_paper"  # one paper answers it alone; not multi-hop
     KEPT = "kept"
@@ -124,6 +125,19 @@ class ConstructionReport:
 
     @property
     def by_reason(self) -> dict[str, int]:
+        """Counts by reason, with the reasons checked against the enum they group by.
+
+        `banned_phrasing: 39` once appeared here for 39 lexical-overlap rejections, which
+        read as a check firing constantly while it had in fact never fired — retiring the
+        very question the live probe exists to answer. A mislabelled reason is worse than a
+        missing one, so an unknown reason fails loudly instead of being tallied.
+        """
+        for candidate in self.candidates:
+            if not isinstance(candidate.reason, CullReason):
+                raise TypeError(
+                    f"{candidate.reason!r} is not a CullReason; the report groups by that "
+                    f"enum and would silently miscount it"
+                )
         return dict(Counter(c.reason.value for c in self.candidates))
 
     @property

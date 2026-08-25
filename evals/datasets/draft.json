@@ -2,12 +2,12 @@
   "schema_version": 1,
   "name": "phase4-draft",
   "corpus_sha256": "e1be96d1abb6ba3ecc1a7e20ef15ead9674c739b135388936af41a36d4152110",
-  "generated_at": "2026-08-24T21:59:58.236277+00:00",
+  "generated_at": "2026-08-25T04:42:17.020763+00:00",
   "items": [
     {
       "item_id": "ua-001",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact learning rate warmup schedule utilized during the training of the optimization policies in OptSkills: Learning Generalizable Optimization Skills from Problem Archetypes via Cluster-Based Distillation?",
+      "question": "What is the exact learning rate warmup schedule specified in the OptSkills: Learning Generalizable Optimization Skills from Problem Archetypes via Cluster-Based Distillation paper?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "hyperparameter",
@@ -19,7 +19,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:04:39.783514+00:00",
+        "generated_at": "2026-08-25T04:18:56.506376+00:00",
         "source_paper_ids": [
           "2605.29829"
         ]
@@ -40,7 +40,7 @@
     {
       "item_id": "ua-002",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact size of the laion dataset used for the benchmarks reported in MoSSP: A Momentum-Based Single-Loop Stochastic Penalty Method for Nonconvex Constrained DC-Regularized Optimization?",
+      "question": "What is the exact size of the laion dataset used for training the models evaluated in the paper \"MoSSP: A Momentum-Based Single-Loop Stochastic Penalty Method for Nonconvex Constrained DC-Regularized Optimization\"?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "dataset",
@@ -52,7 +52,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:04:44.656378+00:00",
+        "generated_at": "2026-08-25T04:19:01.059101+00:00",
         "source_paper_ids": [
           "2605.29635"
         ]
@@ -73,7 +73,7 @@
     {
       "item_id": "ua-003",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact number of FLOPs achieved per GPU during the training of large-scale models as reported in AMDP: Asynchronous Multi-Directional Pipeline Parallelism for Large-Scale Models Training?",
+      "question": "What is the exact number of FLOPS achieved per GPU during the training run reported in AMDP: Asynchronous Multi-Directional Pipeline Parallelism for Large-Scale Models Training?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "compute",
@@ -85,7 +85,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:04:49.561307+00:00",
+        "generated_at": "2026-08-25T04:19:06.368357+00:00",
         "source_paper_ids": [
           "2605.29664"
         ]
@@ -106,7 +106,7 @@
     {
       "item_id": "ua-004",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact MMLU benchmark score achieved by the model presented in EVL-ECG: Efficient ECG Interpretation With Multi-Aspect Heterogeneous Knowledge Distillation?",
+      "question": "What is the exact MMLU benchmark score achieved by the model proposed in EVL-ECG: Efficient ECG Interpretation With Multi-Aspect Heterogeneous Knowledge Distillation?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "benchmark",
@@ -118,7 +118,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:04:54.547625+00:00",
+        "generated_at": "2026-08-25T04:19:10.990585+00:00",
         "source_paper_ids": [
           "2605.29977"
         ]
@@ -139,7 +139,7 @@
     {
       "item_id": "ua-005",
       "stratum": "unanswerable_attribute",
-      "question": "What specific configurations of pruning thresholds are evaluated in the ablation study of the paper AsymVLM: Asymmetric Token Pruning for Efficient Vision-Language Model Inference?",
+      "question": "What specific configurations and results are presented in the ablation study of the AsymVLM: Asymetric Token Pruning for Efficient Vision-Language Model Inference paper?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "ablation",
@@ -151,7 +151,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:04:59.505893+00:00",
+        "generated_at": "2026-08-25T04:19:16.247685+00:00",
         "source_paper_ids": [
           "2605.29535"
         ]
@@ -172,7 +172,7 @@
     {
       "item_id": "ua-006",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact numerical score achieved by the zero-shot baseline in the evaluation presented in MarginGate: Sparse Margin-Triggered Verification for Batch-Invariant LLM Inference?",
+      "question": "What is the exact numerical performance of the zero-shot baseline reported in MarginGate: Sparse Margin-Triggered Verification for Batch-Invariant LLM Inference?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "baseline",
@@ -184,7 +184,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:04.545649+00:00",
+        "generated_at": "2026-08-25T04:19:21.382717+00:00",
         "source_paper_ids": [
           "2605.30218"
         ]
@@ -205,7 +205,7 @@
     {
       "item_id": "ua-007",
       "stratum": "unanswerable_attribute",
-      "question": "What exact batch size was used during the training of the graph neural network model in GRASP: Plan-Guided Graph Retrieval with Adaptive Fusion and Reranking on Semi-Structured Knowledge Bases?",
+      "question": "What specific batch size was used during the training of the graph neural network model in GRASP: Plan-Guided Graph Retrieval with Adaptive Fusion and Reranking on Semi-Structured Knowledge Bases?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "hyperparameter",
@@ -217,7 +217,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:09.778767+00:00",
+        "generated_at": "2026-08-25T04:19:26.037395+00:00",
         "source_paper_ids": [
           "2605.30237"
         ]
@@ -250,7 +250,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:14.551496+00:00",
+        "generated_at": "2026-08-25T04:19:30.980652+00:00",
         "source_paper_ids": [
           "2605.29951"
         ]
@@ -271,7 +271,7 @@
     {
       "item_id": "ua-009",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact number of FLOPs required to execute a single inference pass in the FHRFormer framework?",
+      "question": "What is the exact number of FLOPs required during the training phase of the FHRFormer model as reported in FHRFormer: A Self-Supervised Masked Transformer Framework for Fetal Heart Rate Time-Series Inpainting and Forecasting?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "compute",
@@ -283,7 +283,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:19.532517+00:00",
+        "generated_at": "2026-08-25T04:19:36.066721+00:00",
         "source_paper_ids": [
           "2605.29695"
         ]
@@ -304,7 +304,7 @@
     {
       "item_id": "ua-010",
       "stratum": "unanswerable_attribute",
-      "question": "What is the exact percentage of data contamination that LaRA detects on the gsm8k benchmark?",
+      "question": "What is the exact accuracy figure reported on the gsm8k benchmark in LaRA: Layer-wise Representation Analysis for Detecting Data Contamination in RL Post-Training?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "benchmark",
@@ -316,7 +316,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:24.494161+00:00",
+        "generated_at": "2026-08-25T04:19:41.036680+00:00",
         "source_paper_ids": [
           "2605.29888"
         ]
@@ -337,7 +337,7 @@
     {
       "item_id": "ua-011",
       "stratum": "unanswerable_attribute",
-      "question": "What specific ablation study results for different federated aggregation strategies does the paper FPLIER: Federated Pathway-Level Information Extractor report?",
+      "question": "What specific ablation study results are reported for the FPLIER: Federated Pathway-Level Information Extractor framework?",
       "gold_chunk_ids": [],
       "gold_answer": "",
       "absence_shape": "ablation",
@@ -349,7 +349,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:29.459592+00:00",
+        "generated_at": "2026-08-25T04:19:46.055024+00:00",
         "source_paper_ids": [
           "2605.29587"
         ]
@@ -382,7 +382,7 @@
         "generator_model": "hand",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:29.618770+00:00",
+        "generated_at": "2026-08-25T04:19:46.209533+00:00",
         "source_paper_ids": []
       },
       "verification": {
@@ -413,7 +413,7 @@
         "generator_model": "hand",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:29.757196+00:00",
+        "generated_at": "2026-08-25T04:19:46.355149+00:00",
         "source_paper_ids": []
       },
       "verification": {
@@ -444,7 +444,7 @@
         "generator_model": "hand",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:29.895532+00:00",
+        "generated_at": "2026-08-25T04:19:46.499517+00:00",
         "source_paper_ids": []
       },
       "verification": {
@@ -475,7 +475,7 @@
         "generator_model": "hand",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:05:30.034637+00:00",
+        "generated_at": "2026-08-25T04:19:46.644045+00:00",
         "source_paper_ids": []
       },
       "verification": {
@@ -494,10 +494,10 @@
     {
       "item_id": "mh-001",
       "stratum": "multi_hop",
-      "question": "Which of the two papers evaluates its resource allocation framework using a terahertz band channel setup with a uniform linear array, and which paper reports using a millimeter-wave band system featuring a uniform planar array?",
+      "question": "Which of the two papers evaluates its resource allocation framework using a terahertz band channel setup with gesture recognition, and which one employs a millimeter-wave system configuration focused on human pose prediction?",
       "gold_chunk_ids": [
         "2605.29913_0000",
-        "2605.29939_0002"
+        "2605.29939_0000"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -509,7 +509,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.617467+00:00",
+        "generated_at": "2026-08-25T04:29:06.431036+00:00",
         "source_paper_ids": [
           "2605.29913",
           "2605.29939"
@@ -531,46 +531,9 @@
     {
       "item_id": "mh-002",
       "stratum": "multi_hop",
-      "question": "Which of the two papers evaluates multiple architectures and reports that Gemma-family models do not genuinely refuse hazardous prompts, and what different model architecture does the other paper use to test prompt-injection classifiers?",
+      "question": "Which of the two studies utilizes a grid-based maze environment to train its models, and which one employs reasoning and classification benchmarks such as ARC-Challenge and Winogrande?",
       "gold_chunk_ids": [
-        "2605.30162_0001",
-        "2605.30189_0052"
-      ],
-      "gold_answer": "",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.626831+00:00",
-        "source_paper_ids": [
-          "2605.30162",
-          "2605.30189"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "mh-003",
-      "stratum": "multi_hop",
-      "question": "While both papers study parameter-efficient models adapted with low-rank matrices, how do they differ regarding whether their primary analysis focuses on uncertainty estimation in reasoning benchmarks or functional welfare generalization in a maze environment?",
-      "gold_chunk_ids": [
-        "2605.29580_0000",
+        "2605.29580_0009",
         "2605.30232_0000"
       ],
       "gold_answer": "",
@@ -583,7 +546,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.638733+00:00",
+        "generated_at": "2026-08-25T04:29:06.441971+00:00",
         "source_paper_ids": [
           "2605.29580",
           "2605.30232"
@@ -603,12 +566,12 @@
       }
     },
     {
-      "item_id": "mh-004",
+      "item_id": "mh-003",
       "stratum": "multi_hop",
-      "question": "Which of the two works analyzes quantum-aware aggregation to address client drift and hardware bias in a distributed setting, and what decentralized method does the other employ to secure federated updates across wireless channels?",
+      "question": "What number of communication rounds do the two papers report for evaluating their respective approaches on the CIFAR-10 dataset?",
       "gold_chunk_ids": [
-        "2605.30075_0028",
-        "2605.30123_0000"
+        "2605.30075_0049",
+        "2605.30336_0005"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -620,7 +583,44 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.643753+00:00",
+        "generated_at": "2026-08-25T04:29:06.445029+00:00",
+        "source_paper_ids": [
+          "2605.30075",
+          "2605.30336"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "mh-004",
+      "stratum": "multi_hop",
+      "question": "Which of the two works analyzes federated learning with parameterized quantum circuits and noisy hardware bias, and what does the other work examine instead?",
+      "gold_chunk_ids": [
+        "2605.30075_0028",
+        "2605.30123_0017"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.447919+00:00",
         "source_paper_ids": [
           "2605.30075",
           "2605.30123"
@@ -642,10 +642,10 @@
     {
       "item_id": "mh-005",
       "stratum": "multi_hop",
-      "question": "Which of the two papers studies sample complexity bounds for contextual bandits with sparse rewards, and which of the two studies a hierarchical structural causal bandit model with off-policy PAC-Bayesian guarantees?",
+      "question": "Which of the two papers evaluates policies through a DEC framework with an exploration-by-optimization algorithm for sparse contextual bandits, and what alternative hierarchical structural causal model and PAC-Bayes risk certificate does the other paper report instead?",
       "gold_chunk_ids": [
-        "2605.29645_0000",
-        "2605.29788_0003"
+        "2605.29645_0005",
+        "2605.29788_0000"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -657,7 +657,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.648490+00:00",
+        "generated_at": "2026-08-25T04:29:06.452123+00:00",
         "source_paper_ids": [
           "2605.29645",
           "2605.29788"
@@ -679,10 +679,10 @@
     {
       "item_id": "mh-006",
       "stratum": "multi_hop",
-      "question": "Which of the two models is evaluated on predicting pancreatic cancer risk across multiple years using electronic health records, and which evaluates hematological diagnosis by aligning single-cell morphology with genetic profiles?",
+      "question": "What differing number of primary diseases or malignancy types do these two studies address in their respective cohorts?",
       "gold_chunk_ids": [
         "2605.29980_0000",
-        "2605.30275_0016"
+        "2605.30275_0017"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -694,7 +694,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.651233+00:00",
+        "generated_at": "2026-08-25T04:29:06.454819+00:00",
         "source_paper_ids": [
           "2605.29980",
           "2605.30275"
@@ -716,10 +716,10 @@
     {
       "item_id": "mh-007",
       "stratum": "multi_hop",
-      "question": "Which of the two studies evaluates latency performance on thousands of tokens using encoder-based models, and which studies internal activation consistency across architectures using a divergence score?",
+      "question": "Which of the two studies investigates the sample complexity of contextual bandits with structured observations, and what type of bandit problem involving continuous domains and Lipschitz continuity does the other study analyze instead?",
       "gold_chunk_ids": [
-        "2605.29659_0000",
-        "2605.30162_0000"
+        "2605.29645_0000",
+        "2605.29748_0014"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -731,10 +731,10 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.654067+00:00",
+        "generated_at": "2026-08-25T04:29:06.458065+00:00",
         "source_paper_ids": [
-          "2605.29659",
-          "2605.30162"
+          "2605.29645",
+          "2605.29748"
         ]
       },
       "verification": {
@@ -753,10 +753,10 @@
     {
       "item_id": "mh-008",
       "stratum": "multi_hop",
-      "question": "What total number of datasets is used for empirical evaluation in the clustering benchmark versus the tabular embedding study?",
+      "question": "Which of the two papers evaluates its proposed method on the MS MARCO benchmark, and what other benchmark is used for evaluation in the other paper instead?",
       "gold_chunk_ids": [
-        "2605.29933_0014",
-        "2605.30289_0002"
+        "2605.29628_0021",
+        "2605.30120_0029"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -768,7 +768,44 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.659007+00:00",
+        "generated_at": "2026-08-25T04:29:06.461457+00:00",
+        "source_paper_ids": [
+          "2605.29628",
+          "2605.30120"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "mh-009",
+      "stratum": "multi_hop",
+      "question": "While both benchmarks evaluate algorithms across multiple datasets, how do they differ regarding their primary data format focus, with the first covering tabular, text, and image data versus the second concentrating exclusively on numeric tabular datasets?",
+      "gold_chunk_ids": [
+        "2605.29933_0011",
+        "2605.30289_0001"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.465318+00:00",
         "source_paper_ids": [
           "2605.29933",
           "2605.30289"
@@ -788,86 +825,12 @@
       }
     },
     {
-      "item_id": "mh-009",
-      "stratum": "multi_hop",
-      "question": "While the first paper evaluates a federated learning training protocol that exchanges scalar-quantized logits over a public probe set to estimate discrete conditional distributions, what specific cryptographic scheme and parameter setup do the authors of the second paper employ to protect model updates during federated learning over wireless channels?",
-      "gold_chunk_ids": [
-        "2605.29642_0001",
-        "2605.30123_0003"
-      ],
-      "gold_answer": "",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.661241+00:00",
-        "source_paper_ids": [
-          "2605.29642",
-          "2605.30123"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
       "item_id": "mh-010",
       "stratum": "multi_hop",
-      "question": "Which of the two papers uses the MNIST dataset for its numerical evaluation, and what other dataset does the other paper report results on?",
-      "gold_chunk_ids": [
-        "2605.30123_0002",
-        "2605.30336_0003"
-      ],
-      "gold_answer": "",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.662943+00:00",
-        "source_paper_ids": [
-          "2605.30123",
-          "2605.30336"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "mh-011",
-      "stratum": "multi_hop",
-      "question": "How do the experimental evaluations in both studies differ regarding the temporal duration of their forecasting setups?",
+      "question": "Which of the two studies reports using a multi-weight optimization pipeline to prioritize biologically critical anatomical areas, and what specific physical system and mesh strategy does the other study analyze instead?",
       "gold_chunk_ids": [
         "2605.29932_0000",
-        "2605.29952_0000"
+        "2605.29952_0001"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -879,7 +842,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.664801+00:00",
+        "generated_at": "2026-08-25T04:29:06.467057+00:00",
         "source_paper_ids": [
           "2605.29932",
           "2605.29952"
@@ -899,9 +862,9 @@
       }
     },
     {
-      "item_id": "mh-012",
+      "item_id": "mh-011",
       "stratum": "multi_hop",
-      "question": "Which of the two papers evaluates its method on the GSM8K dataset, and what other mathematical reasoning benchmark does it use alongside GSM8K instead of the MATH500 dataset?",
+      "question": "Which of the two papers evaluates its proposed method on the MATH500 dataset, and what alternative set of six specialized datasets does the other paper use instead?",
       "gold_chunk_ids": [
         "2605.30085_0028",
         "2605.30327_0035"
@@ -916,7 +879,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.668439+00:00",
+        "generated_at": "2026-08-25T04:29:06.470996+00:00",
         "source_paper_ids": [
           "2605.30085",
           "2605.30327"
@@ -936,12 +899,12 @@
       }
     },
     {
-      "item_id": "mh-013",
+      "item_id": "mh-012",
       "stratum": "multi_hop",
-      "question": "What is the specific maximum prediction lead time reported by the first paper for forecasting disease states, and how does it compare to the multi-year prediction lead times reported by the second paper for cancer risk estimation?",
+      "question": "While the first paper forecasts neurodegenerative progression using DaTscan imaging and treatment dosages over a 12-month period, what specific longitudinal healthcare data types do the second paper utilize to predict cancer risk over a multi-year horizon?",
       "gold_chunk_ids": [
         "2605.29932_0002",
-        "2605.30275_0016"
+        "2605.30275_0014"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -953,7 +916,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.670632+00:00",
+        "generated_at": "2026-08-25T04:29:06.473076+00:00",
         "source_paper_ids": [
           "2605.29932",
           "2605.30275"
@@ -973,12 +936,12 @@
       }
     },
     {
-      "item_id": "mh-014",
+      "item_id": "mh-013",
       "stratum": "multi_hop",
-      "question": "What distinct network application domains and performance evaluation metrics do the two papers report?",
+      "question": "Which of the two frameworks utilizes influence-function purification during its data engine processing phase, and which one employs a functional test suite to track response fidelity?",
       "gold_chunk_ids": [
-        "2605.29941_0023",
-        "2605.30123_0000"
+        "2605.29801_0004",
+        "2605.29963_0013"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -990,10 +953,47 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.673481+00:00",
+        "generated_at": "2026-08-25T04:29:06.479204+00:00",
         "source_paper_ids": [
-          "2605.29941",
-          "2605.30123"
+          "2605.29801",
+          "2605.29963"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "mh-014",
+      "stratum": "multi_hop",
+      "question": "How do these two frameworks differ in their architectural choices for handling spatial interpolation or reconstruction from sparse observations, specifically regarding the use of anisotropic space-time precision matrices versus partial convolutions?",
+      "gold_chunk_ids": [
+        "2605.29731_0000",
+        "2605.30167_0020"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.486107+00:00",
+        "source_paper_ids": [
+          "2605.29731",
+          "2605.30167"
         ]
       },
       "verification": {
@@ -1012,10 +1012,10 @@
     {
       "item_id": "mh-015",
       "stratum": "multi_hop",
-      "question": "What specific reinforcement learning tasks are evaluated in the simulation experiments of the first paper, whereas the second paper evaluates its visual representations on the MetaWorld, RLBench, and LIBERO simulation benchmarks?",
+      "question": "Which of the two studies evaluates its policy learning performance on MetaWorld simulation tasks, and which one reports results on MuJoCo locomotion tasks?",
       "gold_chunk_ids": [
-        "2605.30056_0000",
-        "2605.30350_0008"
+        "2605.30056_0013",
+        "2605.30350_0012"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -1027,7 +1027,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.676743+00:00",
+        "generated_at": "2026-08-25T04:29:06.490236+00:00",
         "source_paper_ids": [
           "2605.30056",
           "2605.30350"
@@ -1049,10 +1049,10 @@
     {
       "item_id": "mh-016",
       "stratum": "multi_hop",
-      "question": "Which of the two methods uses a low-rank Jacobian factorization via Outer Product Span to compute a Fisher-preserving update, and which one instead integrates critic guidance directly into the diffusion denoising process to steer action generation toward high-value regions?",
+      "question": "Which study evaluates transformer hidden states through Plücker sign entropy and edge-grid intervention assays across Llama checkpoints, and which study investigates biosecurity refusal depth across five architectures using sparse autoencoder divergence scores?",
       "gold_chunk_ids": [
-        "2605.29937_0000",
-        "2605.30056_0000"
+        "2605.29634_0000",
+        "2605.30162_0000"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -1064,7 +1064,44 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.679625+00:00",
+        "generated_at": "2026-08-25T04:29:06.493121+00:00",
+        "source_paper_ids": [
+          "2605.29634",
+          "2605.30162"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "mh-017",
+      "stratum": "multi_hop",
+      "question": "Which of the two papers evaluates its diffusion policy framework on MuJoCo locomotion tasks, and what alternative set of environments including Maze2D and PushT does the other paper use instead?",
+      "gold_chunk_ids": [
+        "2605.29937_0017",
+        "2605.30056_0002"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.495962+00:00",
         "source_paper_ids": [
           "2605.29937",
           "2605.30056"
@@ -1084,12 +1121,12 @@
       }
     },
     {
-      "item_id": "mh-017",
+      "item_id": "mh-018",
       "stratum": "multi_hop",
-      "question": "While the first source evaluates how well risk calibration can certify contiguous prefixes of language model reasoning traces, how do the authors of the second source evaluate large language models?",
+      "question": "While the first paper utilizes an 80GB NVIDIA A100 GPU for its experiments, which hardware accelerator does the second paper report using for training its model?",
       "gold_chunk_ids": [
-        "2605.30085_0022",
-        "2605.30329_0007"
+        "2605.29932_0007",
+        "2605.29980_0004"
       ],
       "gold_answer": "",
       "absence_shape": null,
@@ -1101,10 +1138,10 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:30:31.683289+00:00",
+        "generated_at": "2026-08-25T04:29:06.497139+00:00",
         "source_paper_ids": [
-          "2605.30085",
-          "2605.30329"
+          "2605.29932",
+          "2605.29980"
         ]
       },
       "verification": {
@@ -1121,9 +1158,473 @@
       }
     },
     {
+      "item_id": "mh-019",
+      "stratum": "multi_hop",
+      "question": "How do the experimental evaluations differ between the first paper, which tests compiler-backed packet codec reconstruction fidelity, and the second paper, which evaluates encrypted zero-order federated learning convergence under channel fading?",
+      "gold_chunk_ids": [
+        "2605.29941_0021",
+        "2605.30123_0004"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.499981+00:00",
+        "source_paper_ids": [
+          "2605.29941",
+          "2605.30123"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "mh-020",
+      "stratum": "multi_hop",
+      "question": "Which of the two studies evaluates its approach on natural language generation datasets like MATH500 and HumanEval, and which of the two applies its framework to computational imaging problems?",
+      "gold_chunk_ids": [
+        "2605.30327_0035",
+        "2605.30330_0000"
+      ],
+      "gold_answer": "",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:06.503620+00:00",
+        "source_paper_ids": [
+          "2605.30327",
+          "2605.30330"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": true,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-001",
+      "stratum": "ambiguous",
+      "question": "What is the specific evaluation setup used to measure the performance of the proposed method?",
+      "gold_chunk_ids": [
+        "2605.30323_0016",
+        "2605.30290_0001",
+        "2605.30220_0027"
+      ],
+      "gold_answer": "ambiguous: The corpus contains multiple papers on reinforcement learning, each proposing a different method and potentially utilizing distinct evaluation setups or benchmarks.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:11.284462+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30290",
+          "2605.30220"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-002",
+      "stratum": "ambiguous",
+      "question": "What specific limitation of the proposed method does the evaluation highlight regarding sample inefficiency in sparse reward environments?",
+      "gold_chunk_ids": [
+        "2605.30323_0002",
+        "2605.30290_0014",
+        "2605.30220_0027"
+      ],
+      "gold_answer": "ambiguous: There are multiple papers in the corpus discussing reinforcement learning that propose new methods and evaluate their limitations regarding sample inefficiency in sparse reward environments, making 'the proposed method' genuinely ambiguous.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:16.506780+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30290",
+          "2605.30220"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-003",
+      "stratum": "ambiguous",
+      "question": "What is the baseline compared against in the proposed method?",
+      "gold_chunk_ids": [
+        "2605.30323_0002",
+        "2605.30290_0015",
+        "2605.30220_0012"
+      ],
+      "gold_answer": "ambiguous: The corpus contains multiple reinforcement learning papers, each proposing a different method with its own unique baseline, making the referent of 'the proposed method' and its baseline ambiguous.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:21.244061+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30290",
+          "2605.30220"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-004",
+      "stratum": "ambiguous",
+      "question": "What is the primary evaluation setup used in this benchmark to measure the performance of the proposed method?",
+      "gold_chunk_ids": [
+        "2605.30323_0016",
+        "2605.30290_0007",
+        "2605.30220_0027"
+      ],
+      "gold_answer": "ambiguous: The corpus contains 17 papers on reinforcement learning, each potentially defining its own evaluation setup and benchmark, making 'this benchmark' and 'the proposed method' ambiguous without specifying a paper.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:26.284753+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30290",
+          "2605.30220"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-005",
+      "stratum": "ambiguous",
+      "question": "What is the baseline compared against in the safety evaluation?",
+      "gold_chunk_ids": [
+        "2605.30323_0000",
+        "2605.30322_0014",
+        "2605.30166_0011"
+      ],
+      "gold_answer": "ambiguous: Because there are multiple papers in the corpus on alignment and safety, each evaluating different methods against distinct baselines.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:31.217493+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30322",
+          "2605.30166"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-006",
+      "stratum": "ambiguous",
+      "question": "What specific evaluation setup and benchmark were used to measure the safety and alignment performance of the proposed model?",
+      "gold_chunk_ids": [
+        "2605.30323_0001",
+        "2605.30322_0018",
+        "2605.30166_0021"
+      ],
+      "gold_answer": "ambiguous: Because the corpus contains multiple papers on alignment and safety, 'the proposed model' and 'the evaluation setup and benchmark' could refer to any of several different studies.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:36.529440+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30322",
+          "2605.30166"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-007",
+      "stratum": "ambiguous",
+      "question": "What specific limitation does the proposed method exhibit when applied to out-of-distribution adversarial prompts?",
+      "gold_chunk_ids": [
+        "2605.30323_0002",
+        "2605.30322_0002",
+        "2605.30166_0000"
+      ],
+      "gold_answer": "ambiguous: The corpus contains multiple papers proposing distinct alignment and safety methods, each discussing its own stated limitation regarding adversarial prompts, making 'the proposed method' ambiguous.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:41.365536+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30322",
+          "2605.30166"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-008",
+      "stratum": "ambiguous",
+      "question": "What baseline was used to evaluate the proposed method?",
+      "gold_chunk_ids": [
+        "2605.30323_0001",
+        "2605.30322_0018",
+        "2605.30166_0010"
+      ],
+      "gold_answer": "ambiguous: There are multiple papers in the corpus on alignment and safety, each proposing different methods and comparing against different baselines.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:46.324803+00:00",
+        "source_paper_ids": [
+          "2605.30323",
+          "2605.30322",
+          "2605.30166"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-009",
+      "stratum": "ambiguous",
+      "question": "What is the primary failure case identified for the proposed method when handling high-resolution image generation?",
+      "gold_chunk_ids": [
+        "2605.30190_0110",
+        "2605.30153_0000",
+        "2605.30116_0016"
+      ],
+      "gold_answer": "ambiguous: Because the corpus contains multiple papers on diffusion models, 'the proposed method' could refer to any of several different architectures, making the stated limitation ambiguous without specifying the paper.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:51.345254+00:00",
+        "source_paper_ids": [
+          "2605.30190",
+          "2605.30153",
+          "2605.30116"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "am-010",
+      "stratum": "ambiguous",
+      "question": "What is the primary baseline compared against in the evaluation of the proposed diffusion model?",
+      "gold_chunk_ids": [
+        "2605.30190_0027",
+        "2605.30153_0013",
+        "2605.30116_0011"
+      ],
+      "gold_answer": "ambiguous: Because the corpus contains multiple papers about diffusion models, 'the proposed diffusion model' could refer to any of several different models, each of which compares against a different baseline.",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:29:56.278636+00:00",
+        "source_paper_ids": [
+          "2605.30190",
+          "2605.30153",
+          "2605.30116"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": -1.0,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
       "item_id": "sp-001",
       "stratum": "single_paper_factual",
-      "question": "What is the error rate of LPA (mean + varied bound) utilizing a ResNet-110 architecture on the CIFAR-100 dataset?",
+      "question": "What is the error rate of the LPA approach utilizing the mean alongside a varied bound on the ResNet-110 architecture for the CIFAR-100 dataset?",
       "gold_chunk_ids": [
         "2605.29525_0010"
       ],
@@ -1137,7 +1638,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:26.350501+00:00",
+        "generated_at": "2026-08-25T04:30:01.259292+00:00",
         "source_paper_ids": [
           "2605.29525"
         ]
@@ -1150,7 +1651,7 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.06666666666666667,
+        "lexical_overlap_with_gold": 0.0,
         "human_verified": false,
         "human_notes": ""
       }
@@ -1158,11 +1659,11 @@
     {
       "item_id": "sp-002",
       "stratum": "single_paper_factual",
-      "question": "What is the duration required for motif matching using only the time interval variable on the Trace dataset?",
+      "question": "What is the duration for processing the Trace category when incorporating both k and delta t?",
       "gold_chunk_ids": [
         "2605.29526_0014"
       ],
-      "gold_answer": "3,005.07",
+      "gold_answer": "349.05",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1172,7 +1673,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:31.365051+00:00",
+        "generated_at": "2026-08-25T04:30:06.208942+00:00",
         "source_paper_ids": [
           "2605.29526"
         ]
@@ -1193,11 +1694,11 @@
     {
       "item_id": "sp-003",
       "stratum": "single_paper_factual",
-      "question": "What is the median overall time error for the evaluated segments?",
+      "question": "What proportion of estimated timestamps are contained inside a quarter of a second?",
       "gold_chunk_ids": [
         "2605.29531_0007"
       ],
-      "gold_answer": "0.052 s",
+      "gold_answer": "96.6%",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1207,7 +1708,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:36.309749+00:00",
+        "generated_at": "2026-08-25T04:30:11.217086+00:00",
         "source_paper_ids": [
           "2605.29531"
         ]
@@ -1228,11 +1729,11 @@
     {
       "item_id": "sp-004",
       "stratum": "single_paper_factual",
-      "question": "What is the accuracy achieved by DICL at 4-shot?",
+      "question": "What is the intent accuracy achieved by the proposed approach in Table 8?",
       "gold_chunk_ids": [
         "2605.29543_0035"
       ],
-      "gold_answer": "85.00%",
+      "gold_answer": "95.22%",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1242,7 +1743,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:41.319906+00:00",
+        "generated_at": "2026-08-25T04:30:16.446487+00:00",
         "source_paper_ids": [
           "2605.29543"
         ]
@@ -1263,11 +1764,11 @@
     {
       "item_id": "sp-005",
       "stratum": "single_paper_factual",
-      "question": "What percentage of top-1 accuracy does the k equals two configuration achieve on the ImageNet task?",
+      "question": "What is the accuracy of the k equals two configuration on the Imagewoof dataset?",
       "gold_chunk_ids": [
         "2605.29547_0012"
       ],
-      "gold_answer": "10.97%",
+      "gold_answer": "35.57%",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1277,7 +1778,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:46.396017+00:00",
+        "generated_at": "2026-08-25T04:30:21.250654+00:00",
         "source_paper_ids": [
           "2605.29547"
         ]
@@ -1312,7 +1813,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:51.318902+00:00",
+        "generated_at": "2026-08-25T04:30:26.165229+00:00",
         "source_paper_ids": [
           "2605.29548"
         ]
@@ -1333,7 +1834,7 @@
     {
       "item_id": "sp-007",
       "stratum": "single_paper_factual",
-      "question": "What is the average score achieved by the Gemini-3-Flash model?",
+      "question": "What is the average performance score of the Gemini-3-Flash model?",
       "gold_chunk_ids": [
         "2605.29582_0012"
       ],
@@ -1347,7 +1848,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:31:56.274279+00:00",
+        "generated_at": "2026-08-25T04:30:31.286783+00:00",
         "source_paper_ids": [
           "2605.29582"
         ]
@@ -1368,11 +1869,11 @@
     {
       "item_id": "sp-008",
       "stratum": "single_paper_factual",
-      "question": "What is the expense per 1,000 evaluations for Gemini 3.1 Flash-Lite?",
+      "question": "What is the expense per one thousand assessments for Claude Haiku 4.5?",
       "gold_chunk_ids": [
         "2605.29601_0047"
       ],
-      "gold_answer": "$4.157",
+      "gold_answer": "19.746",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1382,7 +1883,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:32:01.309733+00:00",
+        "generated_at": "2026-08-25T04:30:36.309432+00:00",
         "source_paper_ids": [
           "2605.29601"
         ]
@@ -1395,7 +1896,7 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.1111111111111111,
+        "lexical_overlap_with_gold": 0.0,
         "human_verified": false,
         "human_notes": ""
       }
@@ -1403,11 +1904,11 @@
     {
       "item_id": "sp-009",
       "stratum": "single_paper_factual",
-      "question": "What is the speedup value for CLAD on the MBPP benchmark using the first architecture listed in Table 8?",
+      "question": "What is the baseline speedup value for vanilla generation across all benchmarks?",
       "gold_chunk_ids": [
         "2605.29607_0020"
       ],
-      "gold_answer": "8.47×",
+      "gold_answer": "1.00×",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1417,7 +1918,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:32.815435+00:00",
+        "generated_at": "2026-08-25T04:30:41.180589+00:00",
         "source_paper_ids": [
           "2605.29607"
         ]
@@ -1438,11 +1939,11 @@
     {
       "item_id": "sp-010",
       "stratum": "single_paper_factual",
-      "question": "Which conference published the research by Kim and colleagues in 2024 related to CooK?",
+      "question": "What is the identifier of the workshop where the study by Yoon and colleagues was presented in 2023?",
       "gold_chunk_ids": [
         "2605.29610_0008"
       ],
-      "gold_answer": "ICML’24",
+      "gold_answer": "AAAI’23",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1452,7 +1953,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:37.747963+00:00",
+        "generated_at": "2026-08-25T04:30:46.541351+00:00",
         "source_paper_ids": [
           "2605.29610"
         ]
@@ -1473,11 +1974,11 @@
     {
       "item_id": "sp-011",
       "stratum": "single_paper_factual",
-      "question": "What initial computation does the system execute to acquire molecular orbitals?",
+      "question": "What is the initial computational step performed by M¯oLe-Λ to generate molecular orbitals?",
       "gold_chunk_ids": [
         "2605.29622_0007"
       ],
-      "gold_answer": "a fast HF calculation",
+      "gold_answer": "It executes a rapid Hartree-Fock calculation.",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1487,7 +1988,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:42.680992+00:00",
+        "generated_at": "2026-08-25T04:30:51.563602+00:00",
         "source_paper_ids": [
           "2605.29622"
         ]
@@ -1508,11 +2009,11 @@
     {
       "item_id": "sp-012",
       "stratum": "single_paper_factual",
-      "question": "What is the specific head size used for the projection values described in the text?",
+      "question": "What is the bandwidth-axis rate for the single-round dithered method established by Theorem 4.2?",
       "gold_chunk_ids": [
-        "2605.29628_0020"
+        "2605.29642_0005"
       ],
-      "gold_answer": "100",
+      "gold_answer": "Θ(K−1 · 2−2B/V )",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1522,9 +2023,9 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:47.717652+00:00",
+        "generated_at": "2026-08-25T04:30:56.341866+00:00",
         "source_paper_ids": [
-          "2605.29628"
+          "2605.29642"
         ]
       },
       "verification": {
@@ -1543,11 +2044,11 @@
     {
       "item_id": "sp-013",
       "stratum": "single_paper_factual",
-      "question": "What is the edge-dose coupled AUC score for the 405B model?",
+      "question": "How many leaf labels are included in the complete taxonomy?",
       "gold_chunk_ids": [
-        "2605.29634_0020"
+        "2605.29659_0026"
       ],
-      "gold_answer": "0.181",
+      "gold_answer": "854",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1557,9 +2058,9 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:52.669517+00:00",
+        "generated_at": "2026-08-25T04:31:01.288259+00:00",
         "source_paper_ids": [
-          "2605.29634"
+          "2605.29659"
         ]
       },
       "verification": {
@@ -1578,11 +2079,11 @@
     {
       "item_id": "sp-014",
       "stratum": "single_paper_factual",
-      "question": "What is the specific parameter value for dimension d mentioned in the text alongside n = 10000 and N = 512?",
+      "question": "What is the column dimension size specified for the data matrices in the plots of Figure 9?",
       "gold_chunk_ids": [
         "2605.29669_0040"
       ],
-      "gold_answer": "3072",
+      "gold_answer": "10000",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1592,7 +2093,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:54:57.760182+00:00",
+        "generated_at": "2026-08-25T04:31:06.410068+00:00",
         "source_paper_ids": [
           "2605.29669"
         ]
@@ -1613,11 +2114,11 @@
     {
       "item_id": "sp-015",
       "stratum": "single_paper_factual",
-      "question": "What is the effective rank value for the baseline configuration that has not undergone geometric shaping?",
+      "question": "What is the numerical effectiveness score for the starting baseline in the evaluation summary?",
       "gold_chunk_ids": [
         "2605.29673_0034"
       ],
-      "gold_answer": "55.011",
+      "gold_answer": "0.867",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1627,7 +2128,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:02.677599+00:00",
+        "generated_at": "2026-08-25T04:31:11.251813+00:00",
         "source_paper_ids": [
           "2605.29673"
         ]
@@ -1648,7 +2149,7 @@
     {
       "item_id": "sp-016",
       "stratum": "single_paper_factual",
-      "question": "What learning rate was utilized for the simulations involving Langevin Monte Carlo?",
+      "question": "What is the specific value of the learning rate utilized during the posterior sampling across the simulations?",
       "gold_chunk_ids": [
         "2605.29684_0093"
       ],
@@ -1662,7 +2163,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:07.951433+00:00",
+        "generated_at": "2026-08-25T04:31:16.444039+00:00",
         "source_paper_ids": [
           "2605.29684"
         ]
@@ -1683,11 +2184,11 @@
     {
       "item_id": "sp-017",
       "stratum": "single_paper_factual",
-      "question": "What is the maximum duration required for any of the network architectures to finish their training process?",
+      "question": "What is the maximum duration required for any of the network architectures to complete their training phase?",
       "gold_chunk_ids": [
         "2605.29688_0020"
       ],
-      "gold_answer": "within 2 seconds",
+      "gold_answer": "2 seconds",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1697,7 +2198,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:12.797775+00:00",
+        "generated_at": "2026-08-25T04:31:21.361530+00:00",
         "source_paper_ids": [
           "2605.29688"
         ]
@@ -1718,11 +2219,11 @@
     {
       "item_id": "sp-018",
       "stratum": "single_paper_factual",
-      "question": "What is the average travel duration for the momentum-based reward approach mentioned in the text?",
+      "question": "What is the average travel duration for the proposed technique under the initial test conditions?",
       "gold_chunk_ids": [
         "2605.29693_0007"
       ],
-      "gold_answer": "41.9 s",
+      "gold_answer": "41.9 ± 1.2 s",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1732,7 +2233,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:17.641156+00:00",
+        "generated_at": "2026-08-25T04:31:26.208792+00:00",
         "source_paper_ids": [
           "2605.29693"
         ]
@@ -1753,11 +2254,11 @@
     {
       "item_id": "sp-019",
       "stratum": "single_paper_factual",
-      "question": "What is the recorded performance metric for the Random partition type using the baseline architecture on the flash point property?",
+      "question": "What is the numerical result for the first column under the random partition for the baseline setup in the initial table?",
       "gold_chunk_ids": [
         "2605.29698_0029"
       ],
-      "gold_answer": "14. ± 0.78",
+      "gold_answer": "0.71 ± 0.0064",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1767,7 +2268,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:22.727467+00:00",
+        "generated_at": "2026-08-25T04:31:31.497152+00:00",
         "source_paper_ids": [
           "2605.29698"
         ]
@@ -1788,7 +2289,7 @@
     {
       "item_id": "sp-020",
       "stratum": "single_paper_factual",
-      "question": "What is the title of subsection 2.3?",
+      "question": "What is the subject of section 2.3?",
       "gold_chunk_ids": [
         "2605.29713_0003"
       ],
@@ -1802,7 +2303,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:27.548676+00:00",
+        "generated_at": "2026-08-25T04:31:36.410481+00:00",
         "source_paper_ids": [
           "2605.29713"
         ]
@@ -1823,11 +2324,11 @@
     {
       "item_id": "sp-021",
       "stratum": "single_paper_factual",
-      "question": "What is the accuracy of WebFace4M?",
+      "question": "What is the accuracy of WebFace42M according to the provided data?",
       "gold_chunk_ids": [
         "2605.29720_0011"
       ],
-      "gold_answer": "90.36",
+      "gold_answer": "96.26",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1837,7 +2338,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:32.665506+00:00",
+        "generated_at": "2026-08-25T04:31:41.283548+00:00",
         "source_paper_ids": [
           "2605.29720"
         ]
@@ -1858,11 +2359,11 @@
     {
       "item_id": "sp-022",
       "stratum": "single_paper_factual",
-      "question": "What number of queries were tested on the MATH500 dataset for path score validation?",
+      "question": "What is the segment size utilized for Llama during the path score validation tests?",
       "gold_chunk_ids": [
         "2605.29727_0028"
       ],
-      "gold_answer": "20 prompts",
+      "gold_answer": "10",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1872,7 +2373,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:37.783053+00:00",
+        "generated_at": "2026-08-25T04:31:46.287832+00:00",
         "source_paper_ids": [
           "2605.29727"
         ]
@@ -1893,7 +2394,7 @@
     {
       "item_id": "sp-023",
       "stratum": "single_paper_factual",
-      "question": "Which specific prompt variant tends to produce the highest amount of deceptive behavior?",
+      "question": "Which specific prompt variant exhibits the highest tendency to provoke strategic deception?",
       "gold_chunk_ids": [
         "2605.29729_0010"
       ],
@@ -1907,7 +2408,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:42.700425+00:00",
+        "generated_at": "2026-08-25T04:31:51.257595+00:00",
         "source_paper_ids": [
           "2605.29729"
         ]
@@ -1928,46 +2429,11 @@
     {
       "item_id": "sp-024",
       "stratum": "single_paper_factual",
-      "question": "What is the average signal-to-noise ratio in decibels for the second dataset at a 4x factor?",
-      "gold_chunk_ids": [
-        "2605.29731_0025"
-      ],
-      "gold_answer": "5.59",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:47.661974+00:00",
-        "source_paper_ids": [
-          "2605.29731"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "sp-025",
-      "stratum": "single_paper_factual",
-      "question": "Which language model secured the highest performance metrics when paired with fixed specialist components?",
+      "question": "What is the age of the patient described in the case study?",
       "gold_chunk_ids": [
         "2605.29744_0016"
       ],
-      "gold_answer": "GPT-4o",
+      "gold_answer": "75",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -1977,7 +2443,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:52.690995+00:00",
+        "generated_at": "2026-08-25T04:31:56.225154+00:00",
         "source_paper_ids": [
           "2605.29744"
         ]
@@ -1996,9 +2462,9 @@
       }
     },
     {
-      "item_id": "sp-026",
+      "item_id": "sp-025",
       "stratum": "single_paper_factual",
-      "question": "What is the duration of the stratified subsample used for the ablation tests?",
+      "question": "What is the duration of the stratified subsample used to test encoders?",
       "gold_chunk_ids": [
         "2605.29765_0011"
       ],
@@ -2012,7 +2478,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:55:57.576719+00:00",
+        "generated_at": "2026-08-25T04:32:01.400435+00:00",
         "source_paper_ids": [
           "2605.29765"
         ]
@@ -2031,13 +2497,13 @@
       }
     },
     {
-      "item_id": "sp-027",
+      "item_id": "sp-026",
       "stratum": "single_paper_factual",
-      "question": "What is the average score for the 1.5B DAPO configuration before integration with Hista?",
+      "question": "What is the average performance score for the 0.5B configuration using the specified baseline approach when combined with the designated enhancement?",
       "gold_chunk_ids": [
         "2605.29782_0014"
       ],
-      "gold_answer": "37.3",
+      "gold_answer": "21.2",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2047,7 +2513,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:02.668892+00:00",
+        "generated_at": "2026-08-25T04:32:06.325277+00:00",
         "source_paper_ids": [
           "2605.29782"
         ]
@@ -2066,13 +2532,13 @@
       }
     },
     {
-      "item_id": "sp-028",
+      "item_id": "sp-027",
       "stratum": "single_paper_factual",
-      "question": "What is the average search count value linked to the Qwen2.5-3B-Instruct direct inference approach?",
+      "question": "What is the recorded accuracy percentage for the Direct Inference approach utilizing the smaller model variant on the first benchmark listed?",
       "gold_chunk_ids": [
         "2605.29796_0010"
       ],
-      "gold_answer": "14.4",
+      "gold_answer": "44.9",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2082,7 +2548,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:07.626829+00:00",
+        "generated_at": "2026-08-25T04:32:11.241907+00:00",
         "source_paper_ids": [
           "2605.29796"
         ]
@@ -2101,48 +2567,13 @@
       }
     },
     {
-      "item_id": "sp-029",
+      "item_id": "sp-028",
       "stratum": "single_paper_factual",
-      "question": "What is the F1-score of the Gemini-3.1-Pro model on the R-Judge evaluation?",
-      "gold_chunk_ids": [
-        "2605.29801_0023"
-      ],
-      "gold_answer": "97.4",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:12.681386+00:00",
-        "source_paper_ids": [
-          "2605.29801"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "sp-030",
-      "stratum": "single_paper_factual",
-      "question": "Which approach achieves the highest score on the Cora benchmark?",
+      "question": "Which specific approach achieves the highest performance metric on the Citeseer benchmark according to Table 3?",
       "gold_chunk_ids": [
         "2605.29803_0010"
       ],
-      "gold_answer": "Temp_gated",
+      "gold_answer": "Gated_temp",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2152,7 +2583,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:18.026827+00:00",
+        "generated_at": "2026-08-25T04:32:16.319205+00:00",
         "source_paper_ids": [
           "2605.29803"
         ]
@@ -2171,9 +2602,9 @@
       }
     },
     {
-      "item_id": "sp-031",
+      "item_id": "sp-029",
       "stratum": "single_paper_factual",
-      "question": "What primary performance measure was utilized for assessment?",
+      "question": "What primary performance measure was utilized to assess the models?",
       "gold_chunk_ids": [
         "2605.29807_0007"
       ],
@@ -2187,7 +2618,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:22.636095+00:00",
+        "generated_at": "2026-08-25T04:32:21.386502+00:00",
         "source_paper_ids": [
           "2605.29807"
         ]
@@ -2206,7 +2637,7 @@
       }
     },
     {
-      "item_id": "sp-032",
+      "item_id": "sp-030",
       "stratum": "single_paper_factual",
       "question": "What is the Fréchet Inception Distance score for the unmodified baseline?",
       "gold_chunk_ids": [
@@ -2222,7 +2653,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:27.757965+00:00",
+        "generated_at": "2026-08-25T04:32:26.250656+00:00",
         "source_paper_ids": [
           "2605.29809"
         ]
@@ -2241,13 +2672,13 @@
       }
     },
     {
-      "item_id": "sp-033",
+      "item_id": "sp-031",
       "stratum": "single_paper_factual",
-      "question": "What is the maximum value for the γ-OIG dimension of the hypothesis classes built in Theorem 3.8?",
+      "question": "What is the maximum value for the γ-OIG-dimension of the hypothesis classes formed in Theorem 3.8?",
       "gold_chunk_ids": [
         "2605.29819_0008"
       ],
-      "gold_answer": "At most 3.",
+      "gold_answer": "3",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2257,7 +2688,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:32.668969+00:00",
+        "generated_at": "2026-08-25T04:32:31.345799+00:00",
         "source_paper_ids": [
           "2605.29819"
         ]
@@ -2276,13 +2707,13 @@
       }
     },
     {
-      "item_id": "sp-034",
+      "item_id": "sp-032",
       "stratum": "single_paper_factual",
-      "question": "What happens to the operator-norm discrepancy when the vertex count expands?",
+      "question": "What happens to the discrepancy between a graph and its graphon when the network scale grows?",
       "gold_chunk_ids": [
         "2605.29828_0007"
       ],
-      "gold_answer": "Larger networks yield step-graphons that are provably closer to the underlying graphon in operator norm.",
+      "gold_answer": "Larger graphs induce step-graphons that are provably closer to the underlying graphon in operator norm.",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2292,7 +2723,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:37.756751+00:00",
+        "generated_at": "2026-08-25T04:32:36.444400+00:00",
         "source_paper_ids": [
           "2605.29828"
         ]
@@ -2311,13 +2742,13 @@
       }
     },
     {
-      "item_id": "sp-035",
+      "item_id": "sp-033",
       "stratum": "single_paper_factual",
-      "question": "What is the mean rank score for recall achieved by the Minas technique?",
+      "question": "Which system achieved the highest average rank in terms of recall according to the provided table?",
       "gold_chunk_ids": [
         "2605.29834_0014"
       ],
-      "gold_answer": "4.913",
+      "gold_answer": "Minas",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2327,7 +2758,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:42.704726+00:00",
+        "generated_at": "2026-08-25T04:32:41.567973+00:00",
         "source_paper_ids": [
           "2605.29834"
         ]
@@ -2346,13 +2777,13 @@
       }
     },
     {
-      "item_id": "sp-036",
+      "item_id": "sp-034",
       "stratum": "single_paper_factual",
-      "question": "What number of random initializations was used to calculate the mean and standard deviation for the reported numerical outcomes?",
+      "question": "How many random seeds were utilized to compute the mean and standard deviation for the reported numerical outcomes?",
       "gold_chunk_ids": [
         "2605.29836_0012"
       ],
-      "gold_answer": "five seeds",
+      "gold_answer": "five",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2362,7 +2793,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:47.709673+00:00",
+        "generated_at": "2026-08-25T04:32:46.378886+00:00",
         "source_paper_ids": [
           "2605.29836"
         ]
@@ -2381,9 +2812,9 @@
       }
     },
     {
-      "item_id": "sp-037",
+      "item_id": "sp-035",
       "stratum": "single_paper_factual",
-      "question": "What sequence length is applied for the Llama 3.2 evaluations?",
+      "question": "What sequence length is applied for the evaluations of the 3B variant?",
       "gold_chunk_ids": [
         "2605.29843_0012"
       ],
@@ -2397,7 +2828,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:52.741035+00:00",
+        "generated_at": "2026-08-25T04:32:51.362284+00:00",
         "source_paper_ids": [
           "2605.29843"
         ]
@@ -2416,9 +2847,9 @@
       }
     },
     {
-      "item_id": "sp-038",
+      "item_id": "sp-036",
       "stratum": "single_paper_factual",
-      "question": "What is the total count of structures processed in the demonstration?",
+      "question": "What is the total number of structure simulations run for the specific demonstration described?",
       "gold_chunk_ids": [
         "2605.29849_0011"
       ],
@@ -2432,7 +2863,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:56:57.728359+00:00",
+        "generated_at": "2026-08-25T04:32:56.518248+00:00",
         "source_paper_ids": [
           "2605.29849"
         ]
@@ -2451,13 +2882,13 @@
       }
     },
     {
-      "item_id": "sp-039",
+      "item_id": "sp-037",
       "stratum": "single_paper_factual",
-      "question": "What is the total number of models included in the top-performing MIRAGE group for the final entry?",
+      "question": "What is the size of the combined group comprising the top-performing system for the ultimate entry?",
       "gold_chunk_ids": [
         "2605.29850_0028"
       ],
-      "gold_answer": "15",
+      "gold_answer": "15-member ensemble",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2467,7 +2898,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:02.872409+00:00",
+        "generated_at": "2026-08-25T04:33:01.434968+00:00",
         "source_paper_ids": [
           "2605.29850"
         ]
@@ -2486,13 +2917,13 @@
       }
     },
     {
-      "item_id": "sp-040",
+      "item_id": "sp-038",
       "stratum": "single_paper_factual",
-      "question": "What numeric penalty value produces the optimal overall accuracy according to the ablation studies?",
+      "question": "Which visual encoder achieves the highest accuracy for steatosis and inflammation on the authors' data collection?",
       "gold_chunk_ids": [
         "2605.29852_0007"
       ],
-      "gold_answer": "0.1",
+      "gold_answer": "Swin-Tiny",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2502,7 +2933,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:08.100931+00:00",
+        "generated_at": "2026-08-25T04:33:06.460645+00:00",
         "source_paper_ids": [
           "2605.29852"
         ]
@@ -2521,9 +2952,9 @@
       }
     },
     {
-      "item_id": "sp-041",
+      "item_id": "sp-039",
       "stratum": "single_paper_factual",
-      "question": "What proportion is used for splitting datasets into train, validation, and test sets?",
+      "question": "What is the training, validation, and test split ratio used across all datasets?",
       "gold_chunk_ids": [
         "2605.29857_0009"
       ],
@@ -2537,7 +2968,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:12.753392+00:00",
+        "generated_at": "2026-08-25T04:33:11.470857+00:00",
         "source_paper_ids": [
           "2605.29857"
         ]
@@ -2556,13 +2987,13 @@
       }
     },
     {
-      "item_id": "sp-042",
+      "item_id": "sp-040",
       "stratum": "single_paper_factual",
-      "question": "What percentage points separate the performance of Variant A and Variant B in the ablation study?",
+      "question": "What is the average accuracy achieved by ESPO across all three benchmarks at the 7B size?",
       "gold_chunk_ids": [
         "2605.29860_0008"
       ],
-      "gold_answer": "2.1 points",
+      "gold_answer": "73.17%",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2572,7 +3003,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:17.729438+00:00",
+        "generated_at": "2026-08-25T04:33:16.368301+00:00",
         "source_paper_ids": [
           "2605.29860"
         ]
@@ -2585,15 +3016,15 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.0,
+        "lexical_overlap_with_gold": 0.07692307692307693,
         "human_verified": false,
         "human_notes": ""
       }
     },
     {
-      "item_id": "sp-043",
+      "item_id": "sp-041",
       "stratum": "single_paper_factual",
-      "question": "At what epoch does the variant without the shuffle mechanism reach early convergence?",
+      "question": "At what epoch does the weakened variant without shuffling stop its training progress early?",
       "gold_chunk_ids": [
         "2605.29863_0012"
       ],
@@ -2607,7 +3038,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:22.747723+00:00",
+        "generated_at": "2026-08-25T04:33:21.301801+00:00",
         "source_paper_ids": [
           "2605.29863"
         ]
@@ -2626,9 +3057,9 @@
       }
     },
     {
-      "item_id": "sp-044",
+      "item_id": "sp-042",
       "stratum": "single_paper_factual",
-      "question": "What is the score achieved by the Ours approach using the T modality in Table 6?",
+      "question": "What is the score achieved by the Ours approach using the T feature for sentiment classification?",
       "gold_chunk_ids": [
         "2605.29900_0023"
       ],
@@ -2642,7 +3073,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:28.070287+00:00",
+        "generated_at": "2026-08-25T04:33:26.325399+00:00",
         "source_paper_ids": [
           "2605.29900"
         ]
@@ -2661,9 +3092,9 @@
       }
     },
     {
-      "item_id": "sp-045",
+      "item_id": "sp-043",
       "stratum": "single_paper_factual",
-      "question": "What is the true positive accuracy percentage when the eleventh layer is removed?",
+      "question": "What percentage was the true positive accuracy reduced to when the eleventh layer was eliminated?",
       "gold_chunk_ids": [
         "2605.29901_0013"
       ],
@@ -2677,7 +3108,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:32.679057+00:00",
+        "generated_at": "2026-08-25T04:33:31.562819+00:00",
         "source_paper_ids": [
           "2605.29901"
         ]
@@ -2696,13 +3127,13 @@
       }
     },
     {
-      "item_id": "sp-046",
+      "item_id": "sp-044",
       "stratum": "single_paper_factual",
-      "question": "How many processing units and how much main memory were utilized for the hardware setup during experimentation?",
+      "question": "What is the duration for offline BFM policy-latent extraction on the KIT-ML dataset?",
       "gold_chunk_ids": [
         "2605.29906_0015"
       ],
-      "gold_answer": "A single NVIDIA A100 80GB GPU with 32 CPU cores and 256GB system RAM.",
+      "gold_answer": "1 hour",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2712,7 +3143,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:37.798974+00:00",
+        "generated_at": "2026-08-25T04:33:36.455846+00:00",
         "source_paper_ids": [
           "2605.29906"
         ]
@@ -2725,15 +3156,15 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.0,
+        "lexical_overlap_with_gold": 0.1,
         "human_verified": false,
         "human_notes": ""
       }
     },
     {
-      "item_id": "sp-047",
+      "item_id": "sp-045",
       "stratum": "single_paper_factual",
-      "question": "What is the average number of runs used to calculate the results in the provided tables?",
+      "question": "What is the average number of runs executed for the trials mentioned in the data tables?",
       "gold_chunk_ids": [
         "2605.29908_0057"
       ],
@@ -2747,7 +3178,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:42.815238+00:00",
+        "generated_at": "2026-08-25T04:33:41.498515+00:00",
         "source_paper_ids": [
           "2605.29908"
         ]
@@ -2766,13 +3197,13 @@
       }
     },
     {
-      "item_id": "sp-048",
+      "item_id": "sp-046",
       "stratum": "single_paper_factual",
-      "question": "What was the final count of actual operational points after restricting the injection angle to three options?",
+      "question": "What was the total quantity of reference operating conditions prior to restricting the injection angle?",
       "gold_chunk_ids": [
         "2605.29911_0013"
       ],
-      "gold_answer": "240",
+      "gold_answer": "480",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2782,7 +3213,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:47.691942+00:00",
+        "generated_at": "2026-08-25T04:33:46.285450+00:00",
         "source_paper_ids": [
           "2605.29911"
         ]
@@ -2801,9 +3232,9 @@
       }
     },
     {
-      "item_id": "sp-049",
+      "item_id": "sp-047",
       "stratum": "single_paper_factual",
-      "question": "What metric score does the proposed framework attain in the baseline evaluation for single-step synthesis?",
+      "question": "What is the quality score achieved by the proposed approach among techniques lacking a supervisory mentor signal?",
       "gold_chunk_ids": [
         "2605.29920_0012"
       ],
@@ -2817,7 +3248,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:52.665949+00:00",
+        "generated_at": "2026-08-25T04:33:51.237034+00:00",
         "source_paper_ids": [
           "2605.29920"
         ]
@@ -2836,9 +3267,9 @@
       }
     },
     {
-      "item_id": "sp-050",
+      "item_id": "sp-048",
       "stratum": "single_paper_factual",
-      "question": "By what percentage does TriMod-DTI improve the AUPR over the runner-up approach on the Human benchmark?",
+      "question": "By what percentage does TriMod-DTI improve the AUPR over the second-best approach on the Human benchmark?",
       "gold_chunk_ids": [
         "2605.29926_0006"
       ],
@@ -2852,7 +3283,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:57:57.693507+00:00",
+        "generated_at": "2026-08-25T04:33:56.449658+00:00",
         "source_paper_ids": [
           "2605.29926"
         ]
@@ -2871,13 +3302,13 @@
       }
     },
     {
-      "item_id": "sp-051",
+      "item_id": "sp-049",
       "stratum": "single_paper_factual",
-      "question": "How many resamples were used to calculate the bootstrap 95% confidence intervals on the difficult subset?",
+      "question": "How many times were resamples performed for the bootstrap confidence intervals on the difficult subset?",
       "gold_chunk_ids": [
         "2605.29927_0012"
       ],
-      "gold_answer": "1,000 resamples",
+      "gold_answer": "1,000",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2887,7 +3318,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:59:38.168751+00:00",
+        "generated_at": "2026-08-25T04:41:47.214652+00:00",
         "source_paper_ids": [
           "2605.29927"
         ]
@@ -2900,19 +3331,19 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.07692307692307693,
+        "lexical_overlap_with_gold": 0.0,
         "human_verified": false,
         "human_notes": ""
       }
     },
     {
-      "item_id": "sp-052",
+      "item_id": "sp-050",
       "stratum": "single_paper_factual",
-      "question": "Which specific approach displayed dataset-dependent fluctuations for the second metric?",
+      "question": "Which specific approach reached stable points earliest during the optimization process?",
       "gold_chunk_ids": [
         "2605.29943_0014"
       ],
-      "gold_answer": "MOPSO",
+      "gold_answer": "MOPSO converged considerably earlier",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2922,7 +3353,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:59:43.083227+00:00",
+        "generated_at": "2026-08-25T04:41:52.024177+00:00",
         "source_paper_ids": [
           "2605.29943"
         ]
@@ -2941,48 +3372,13 @@
       }
     },
     {
-      "item_id": "sp-053",
+      "item_id": "sp-051",
       "stratum": "single_paper_factual",
-      "question": "What is the financial benefit metric for the Qwen system when paired with Claude Code using the Careful strategy?",
-      "gold_chunk_ids": [
-        "2605.29963_0023"
-      ],
-      "gold_answer": "4.8",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:59:48.438476+00:00",
-        "source_paper_ids": [
-          "2605.29963"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": 0.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "sp-054",
-      "stratum": "single_paper_factual",
-      "question": "At what bootstrap fraction does a visible decrease in amplitude first appear in the recovered oscillatory component?",
+      "question": "At what bootstrap fraction does a noticeable decline in amplitude occur for the recovered oscillatory component?",
       "gold_chunk_ids": [
         "2605.29975_0013"
       ],
-      "gold_answer": "5% bootstrapped",
+      "gold_answer": "5%",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -2992,7 +3388,7 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:59:53.209996+00:00",
+        "generated_at": "2026-08-25T04:41:57.130061+00:00",
         "source_paper_ids": [
           "2605.29975"
         ]
@@ -3011,9 +3407,9 @@
       }
     },
     {
-      "item_id": "sp-055",
+      "item_id": "sp-052",
       "stratum": "single_paper_factual",
-      "question": "What is the approximate average accuracy for the component that stays most resilient under randomized generation?",
+      "question": "What is the approximate average accuracy for the inference engine across different models and temperatures during stochastic operation?",
       "gold_chunk_ids": [
         "2605.29979_0009"
       ],
@@ -3027,9 +3423,44 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T21:59:58.234653+00:00",
+        "generated_at": "2026-08-25T04:42:02.260345+00:00",
         "source_paper_ids": [
           "2605.29979"
+        ]
+      },
+      "verification": {
+        "human_accepted": null,
+        "machine_checks": [],
+        "disclosure_order": "human_first",
+        "absence_verified_against_corpus": false,
+        "absence_chunks_scanned": 0,
+        "single_paper_sufficiency_checked": false,
+        "answerable_by_one_paper": false,
+        "lexical_overlap_with_gold": 0.06666666666666667,
+        "human_verified": false,
+        "human_notes": ""
+      }
+    },
+    {
+      "item_id": "sp-053",
+      "stratum": "single_paper_factual",
+      "question": "How many samples per setup were utilized when conducting the two-sample t-tests?",
+      "gold_chunk_ids": [
+        "2605.29983_0047"
+      ],
+      "gold_answer": "500",
+      "absence_shape": null,
+      "anchor_paper_id": "",
+      "anchor_class": null,
+      "absent_term": "",
+      "shared_papers": [],
+      "provenance": {
+        "generator_model": "gemini-3.5-flash-lite",
+        "generator_snapshot": "",
+        "prompt_version": "draft-v2",
+        "generated_at": "2026-08-25T04:42:07.235453+00:00",
+        "source_paper_ids": [
+          "2605.29983"
         ]
       },
       "verification": {
@@ -3046,14 +3477,13 @@
       }
     },
     {
-      "item_id": "mh-018",
-      "stratum": "multi_hop",
-      "question": "Which of the two describes an approach that eliminates the need for K-means clustering to improve indexing speed, and what mechanism does the other paper introduce instead to manage varying computational budgets?",
+      "item_id": "sp-054",
+      "stratum": "single_paper_factual",
+      "question": "Which table displays metrics regarding in-domain corpora evaluated with specific embedding frameworks?",
       "gold_chunk_ids": [
-        "2605.30120_0001",
-        "2605.30126_0003"
+        "2605.29987_0004"
       ],
-      "gold_answer": "",
+      "gold_answer": "Table 1.",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -3063,123 +3493,9 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:10:39.889469+00:00",
+        "generated_at": "2026-08-25T04:42:12.326851+00:00",
         "source_paper_ids": [
-          "2605.30120",
-          "2605.30126"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "mh-019",
-      "stratum": "multi_hop",
-      "question": "Which of the two algorithms evaluates clustering configurations using average silhouette width, and which relies on a physics-inspired optimization of spring-like and electrostatic forces?",
-      "gold_chunk_ids": [
-        "2605.30175_0008",
-        "2605.30225_0002"
-      ],
-      "gold_answer": "",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:10:39.895198+00:00",
-        "source_paper_ids": [
-          "2605.30175",
-          "2605.30225"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "mh-020",
-      "stratum": "multi_hop",
-      "question": "How do these two studies differ in their target optimization or estimation goals regarding continuous action spaces versus panel data matrices?",
-      "gold_chunk_ids": [
-        "2605.29748_0000",
-        "2605.30319_0009"
-      ],
-      "gold_answer": "",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:10:39.899265+00:00",
-        "source_paper_ids": [
-          "2605.29748",
-          "2605.30319"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": true,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-001",
-      "stratum": "ambiguous",
-      "question": "What benchmark was used for the evaluation of the proposed method?",
-      "gold_chunk_ids": [
-        "2605.30323_0001",
-        "2605.30290_0001",
-        "2605.30220_0027"
-      ],
-      "gold_answer": "ambiguous: The phrase 'the proposed method' can refer to the core technique in any of the 11 papers in the corpus, each of which uses a different evaluation setup or benchmark.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:06.226253+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30290",
-          "2605.30220"
+          "2605.29987"
         ]
       },
       "verification": {
@@ -3190,21 +3506,19 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
+        "lexical_overlap_with_gold": 0.0,
         "human_verified": false,
         "human_notes": ""
       }
     },
     {
-      "item_id": "am-002",
-      "stratum": "ambiguous",
-      "question": "What is the stated limitation of the proposed method regarding sample inefficiency?",
+      "item_id": "sp-055",
+      "stratum": "single_paper_factual",
+      "question": "What is the maximum equality value reached by the efficiency optimization in the Gathering task across all four runs?",
       "gold_chunk_ids": [
-        "2605.30323_0014",
-        "2605.30290_0015",
-        "2605.30220_0027"
+        "2605.30003_0013"
       ],
-      "gold_answer": "ambiguous: Multiple papers in the corpus discuss sample inefficiency as a core limitation of their respective reinforcement learning algorithms, making it unclear which specific model or approach the question refers to.",
+      "gold_answer": "0.98",
       "absence_shape": null,
       "anchor_paper_id": "",
       "anchor_class": null,
@@ -3214,11 +3528,9 @@
         "generator_model": "gemini-3.5-flash-lite",
         "generator_snapshot": "",
         "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:10.938453+00:00",
+        "generated_at": "2026-08-25T04:42:17.014980+00:00",
         "source_paper_ids": [
-          "2605.30323",
-          "2605.30290",
-          "2605.30220"
+          "2605.30003"
         ]
       },
       "verification": {
@@ -3229,323 +3541,11 @@
         "absence_chunks_scanned": 0,
         "single_paper_sufficiency_checked": false,
         "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-003",
-      "stratum": "ambiguous",
-      "question": "What is the baseline compared against in the proposed method?",
-      "gold_chunk_ids": [
-        "2605.30323_0002",
-        "2605.30290_0015",
-        "2605.30220_0012"
-      ],
-      "gold_answer": "ambiguous: The corpus contains multiple papers on reinforcement learning, each introducing a different method with its own specific baseline, making the referent of 'the proposed method' and its corresponding baseline entirely ambiguous.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:15.953329+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30290",
-          "2605.30220"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-004",
-      "stratum": "ambiguous",
-      "question": "What is the specific evaluation setup used in this benchmark to measure the sample efficiency of the proposed method?",
-      "gold_chunk_ids": [
-        "2605.30323_0001",
-        "2605.30290_0007",
-        "2605.30220_0027"
-      ],
-      "gold_answer": "ambiguous: The phrase 'this benchmark' and 'the proposed method' are generic and could refer to any of the multiple papers in the reinforcement learning corpus.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:21.028385+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30290",
-          "2605.30220"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-005",
-      "stratum": "ambiguous",
-      "question": "What baseline was compared against in the evaluation of the proposed safety alignment method?",
-      "gold_chunk_ids": [
-        "2605.30323_0002",
-        "2605.30322_0014",
-        "2605.30166_0006"
-      ],
-      "gold_answer": "ambiguous: Because the corpus contains multiple papers discussing alignment and safety, each evaluating different proposed methods against various distinct baselines.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:26.016283+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30322",
-          "2605.30166"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-006",
-      "stratum": "ambiguous",
-      "question": "What specific evaluation setup and benchmark were used to measure the success rate of the alignment method?",
-      "gold_chunk_ids": [
-        "2605.30323_0001",
-        "2605.30322_0002",
-        "2605.30166_0010"
-      ],
-      "gold_answer": "ambiguous: The corpus contains 9 papers on alignment and safety, each potentially using a different evaluation setup or benchmark, making the referent of 'the alignment method' and 'the evaluation setup' unclear without specifying the paper.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:31.051680+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30322",
-          "2605.30166"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-007",
-      "stratum": "ambiguous",
-      "question": "What is the primary stated limitation of the proposed alignment method when applied to out-of-distribution prompts?",
-      "gold_chunk_ids": [
-        "2605.30323_0002",
-        "2605.30322_0002",
-        "2605.30166_0008"
-      ],
-      "gold_answer": "ambiguous: Because the corpus contains multiple papers proposing different alignment methods, \"the proposed method\" lacks a specific referent, and several papers discuss distinct out-of-distribution limitations.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:36.068163+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30322",
-          "2605.30166"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-008",
-      "stratum": "ambiguous",
-      "question": "What baseline is compared against in the evaluation of the proposed method?",
-      "gold_chunk_ids": [
-        "2605.30323_0002",
-        "2605.30322_0014",
-        "2605.30166_0011"
-      ],
-      "gold_answer": "ambiguous: Because the corpus contains multiple papers on alignment and safety, each proposing different methods and comparing them against various baselines, 'the proposed method' does not refer to a single paper.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:41.017231+00:00",
-        "source_paper_ids": [
-          "2605.30323",
-          "2605.30322",
-          "2605.30166"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-009",
-      "stratum": "ambiguous",
-      "question": "What is the primary stated limitation of the proposed model when handling high-resolution image generation?",
-      "gold_chunk_ids": [
-        "2605.30330_0000",
-        "2605.30190_0110",
-        "2605.30153_0000"
-      ],
-      "gold_answer": "ambiguous: The phrase 'the proposed model' refers to different specific diffusion model architectures across the multiple papers in the corpus.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:45.936694+00:00",
-        "source_paper_ids": [
-          "2605.30330",
-          "2605.30190",
-          "2605.30153"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
-        "human_verified": false,
-        "human_notes": ""
-      }
-    },
-    {
-      "item_id": "am-010",
-      "stratum": "ambiguous",
-      "question": "What standard baseline does the proposed method compare against?",
-      "gold_chunk_ids": [
-        "2605.30330_0001",
-        "2605.30190_0010",
-        "2605.30153_0011"
-      ],
-      "gold_answer": "ambiguous: Because there are multiple papers in the corpus about diffusion models, each evaluating their approach against a different baseline, making 'the proposed method' referentially ambiguous.",
-      "absence_shape": null,
-      "anchor_paper_id": "",
-      "anchor_class": null,
-      "absent_term": "",
-      "shared_papers": [],
-      "provenance": {
-        "generator_model": "gemini-3.5-flash-lite",
-        "generator_snapshot": "",
-        "prompt_version": "draft-v2",
-        "generated_at": "2026-08-24T22:12:50.932820+00:00",
-        "source_paper_ids": [
-          "2605.30330",
-          "2605.30190",
-          "2605.30153"
-        ]
-      },
-      "verification": {
-        "human_accepted": null,
-        "machine_checks": [],
-        "disclosure_order": "human_first",
-        "absence_verified_against_corpus": false,
-        "absence_chunks_scanned": 0,
-        "single_paper_sufficiency_checked": false,
-        "answerable_by_one_paper": false,
-        "lexical_overlap_with_gold": -1.0,
+        "lexical_overlap_with_gold": 0.0,
         "human_verified": false,
         "human_notes": ""
       }
     }
   ],
-  "sha256": "9f5bf62ef7be3c4ba840c55d3f98d0afd4bb4bcfb67741691365059bce7de61d"
+  "sha256": "f428cfbc9cb5c5d3028551375460d190a7d7e872420f656601dafc5c5117013a"
 }

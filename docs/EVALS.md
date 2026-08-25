@@ -227,8 +227,12 @@ only way to tell them apart was to read the culled questions.
 Same question as everywhere else in the D-023 family. Answered rather than assumed:
 
 * **`banned_phrasing`** — the original prompt (the one that produced eight research
-  proposals) replayed through the detector on 6 real generations fired on **2 of 6**
-  (`how can` + `combine`, and `combine`). Not inert.
+  proposals) replayed through the detector fired on **2 of 6** real generations in the first
+  probe and **1 of 6** in a second, independent probe after the reporting fix
+  (`integrate` + `how can`). Not inert — and worth probing precisely because the
+  construction report had once shown `banned_phrasing: 39` for culls that were nothing of
+  the kind, which is a number that stops anyone from asking whether the check works
+  (DECISIONS D-023, sixth instance).
 * **phrase overlap** — a verbatim lift from a real chunk is caught; a necessary entity name
   is not; three real drafted questions pass.
 

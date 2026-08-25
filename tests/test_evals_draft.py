@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from evals.build_set import (
     MAX_PHRASE_OVERLAP,
     MAX_VERBATIM_RUN,
+    leaks,
     longest_verbatim_run,
     phrase_overlap,
 )
@@ -162,20 +163,24 @@ class TestPhraseOverlapMeasuresPhrases:
         """The failure the check exists for: retrieval succeeding on string match."""
         lifted = "What is the top-1 error rate achieved by the varied bound variant of LPA?"
 
-        assert phrase_overlap(lifted, self.GOLD) > MAX_PHRASE_OVERLAP
+        assert leaks(lifted, self.GOLD)
         assert longest_verbatim_run(lifted, self.GOLD) > MAX_VERBATIM_RUN
 
     def test_a_necessary_entity_name_does_not_trigger_it(self) -> None:
         """You cannot ask what a paper reports on CIFAR-100 without writing CIFAR-100."""
         paraphrased = "Which dataset does the reported 23.4 percent figure refer to?"
 
-        assert phrase_overlap(paraphrased, self.GOLD) <= MAX_PHRASE_OVERLAP
+        assert not leaks(paraphrased, self.GOLD)
         assert longest_verbatim_run(paraphrased, self.GOLD) <= MAX_VERBATIM_RUN
 
     def test_a_technical_term_with_no_synonym_does_not_trigger_it(self) -> None:
+        """Nine words is six 4-grams, so one incidental match scores 0.167 against a
+        threshold calibrated on 12-18 word questions. `leaks` declines to apply the ratio
+        below `MIN_NGRAMS_FOR_RATIO` and lets the run-length check decide."""
         question = "Which rounding approach is required for the tail value?"
 
-        assert phrase_overlap(question, self.GOLD) <= MAX_PHRASE_OVERLAP
+        assert not leaks(question, self.GOLD)
+        assert phrase_overlap(question, self.GOLD) > MAX_PHRASE_OVERLAP  # the raw ratio does
 
     @pytest.mark.parametrize(
         "question",
@@ -187,7 +192,14 @@ class TestPhraseOverlapMeasuresPhrases:
     )
     def test_real_drafted_questions_pass(self, question: str) -> None:
         """Verbatim from the probe run — these are what the drafter actually produces."""
-        assert phrase_overlap(question, self.GOLD) <= MAX_PHRASE_OVERLAP
+        assert not leaks(question, self.GOLD)
+
+    def test_a_short_question_is_judged_on_run_length_alone(self) -> None:
+        """Guards the guard: a short question that *does* lift must still be caught."""
+        lifted_short = "the cost per 1,000 evaluations for each model?"
+
+        assert not leaks("Which dataset is used?", self.GOLD)
+        assert leaks(lifted_short, self.GOLD)
 
     def test_an_empty_question_does_not_divide_by_zero(self) -> None:
         assert phrase_overlap("", self.GOLD) == 0.0
@@ -254,3 +266,34 @@ class TestDiagnosisDescribesWhatHappened:
 
         assert "Healthy" in diagnosis
         assert "single_paper" in diagnosis
+
+
+class TestCullReasonsAreGroupedSafely:
+    """A mislabelled reason is worse than a missing one.
+
+    `banned_phrasing: 39` appeared in a construction report for 39 lexical-overlap
+    rejections. It read as a check firing constantly while that check had never fired once,
+    which retires the exact question the live probe exists to answer (DECISIONS D-023).
+    """
+
+    def test_an_unknown_reason_fails_loudly_rather_than_being_tallied(self) -> None:
+        report = ConstructionReport(candidates=[Candidate("q", ["a"], "made_up")])  # type: ignore[arg-type]
+
+        with pytest.raises(TypeError, match="not a CullReason"):
+            _ = report.by_reason
+
+    def test_every_reason_the_builder_emits_is_a_member(self) -> None:
+        """Guards against a new cull site inventing a string the report cannot group."""
+        import evals.build_set as builder
+
+        emitted = {
+            name
+            for name in dir(CullReason)
+            if not name.startswith("_") and isinstance(getattr(CullReason, name), CullReason)
+        }
+        assert {"KEPT", "LEXICAL_OVERLAP", "DUPLICATE", "TOPIC_NOT_ABSENT"} <= emitted
+        assert builder.CullReason is CullReason
+
+    def test_topic_and_phrasing_culls_are_distinct_reasons(self) -> None:
+        """A topic that turns out to be present is not a banned construction."""
+        assert CullReason.TOPIC_NOT_ABSENT is not CullReason.BANNED_PHRASING

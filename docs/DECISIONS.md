@@ -750,9 +750,30 @@ zero `neither_nor_joint` and zero `banned_phrasing` is healthy at any ratio. Bot
 — the 7-of-8 failure and the 4-of-5 pilot — are pinned as tests, so the reporting layer has
 regression cases the same way the detectors do.
 
+**A sixth instance, and the worst of them.** The construction report printed
+`banned_phrasing: 39`. Those 39 were lexical-overlap rejections: a helper hardcoded the
+reason, so every cull site that used it reported under the wrong name.
+
+The damage is not that a label was wrong. It is that **a check which had never fired once
+appeared to be firing 39 times** — and the whole point of the live probe is to answer
+"has this ever fired on real output?". A mislabel does not merely misinform; it *retires the
+question*. Nobody probes a detector reporting 39 hits. This is the second instance in the
+reporting layer and the first where the report actively suppressed the investigation that
+would have caught it.
+
+Fixed structurally, not by correcting the argument. The helper is **deleted** rather than
+repaired: one callable from three sites with a default reason will eventually be called with
+the wrong one. Every cull now constructs its record at the site that made the decision,
+where the reason is not in question. `by_reason` raises rather than tallying any reason that
+is not a member of the enum it groups by, and a `TOPIC_NOT_ABSENT` reason now exists because
+"the term turned out to be present" had been borrowing `BANNED_PHRASING` as well — the same
+bug twice in one function.
+
 **The general rule this family points at:** every detector needs a case that makes it fire,
 written at the same time as the detector — *and* a case that makes its report readable. A
-clean run proves nothing on its own, and neither does a correct number nobody can act on.
+clean run proves nothing on its own; neither does a correct number nobody can act on; and a
+number attributed to the wrong check is worse than no number, because it answers a question
+that was never asked and buries the one that was.
 
 **Cost:** an unreviewed red commit can reach `main`. Accepted because the author is the sole
 committer and runs `make check` locally, but it is a real weakness and is named as one.
