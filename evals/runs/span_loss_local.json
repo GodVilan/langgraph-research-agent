@@ -1,0 +1,17 @@
+{
+ "mode": "local",
+ "stop": "SIGTERM immediately after the response (uvicorn graceful shutdown)",
+ "shutdown_s": 15.7,
+ "trace_id": "c9f8199571727786b59e822bc7d59235",
+ "trace": {
+  "observations": 32,
+  "roots": 1,
+  "root_name": "query",
+  "root_has_answer": true,
+  "complete": true,
+  "seconds_until_first_seen": 0.1,
+  "seconds_until_complete": 15.5
+ },
+ "complete": true,
+ "probed_utc": "2026-09-24T20:50:18+00:00"
+}

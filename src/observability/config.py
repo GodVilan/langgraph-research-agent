@@ -14,7 +14,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # The public keys seeded by infra/docker-compose.langfuse.yml. Listed here so the guard
 # below can recognise them; they are fixtures for a localhost-only stack, not secrets.
-SEEDED_KEYS = frozenset({"pk-lf-1a1a1a1a-2b2b-4c4c-8d8d-3e3e3e3e3e3e"})
+SEEDED_KEYS = frozenset(
+    {
+        "pk-lf-1a1a1a1a-2b2b-4c4c-8d8d-3e3e3e3e3e3e",
+        "sk-lf-4f4f4f4f-5a5a-4b6b-8c7c-6d6d6d6d6d6d",
+    }
+)
+LOCAL_HOSTNAMES = frozenset({"localhost", "127.0.0.1", "::1", "0.0.0.0"})
 
 
 class ObservabilitySettings(BaseSettings):
@@ -30,6 +36,11 @@ class ObservabilitySettings(BaseSettings):
     langfuse_environment: str = "development"
     # Stamped on every trace so a metric change can be attributed to a code version.
     release: str = "0.1.0"
+    # Head sampling: the fraction of requests traced, decided before the run starts. 1.0
+    # traces everything, which is the default and what the deployed instance ships with —
+    # the arithmetic for why is in docs/OBSERVABILITY.md "Sampling". A sampled-out request
+    # reports trace_id "" rather than an id pointing at a trace that was never exported.
+    langfuse_sample_rate: float = 1.0
 
     # ── OpenTelemetry ──────────────────────────────────────────────────────────
     # Retrieval and embedding spans. When Langfuse is enabled these nest inside the
@@ -48,13 +59,23 @@ class ObservabilitySettings(BaseSettings):
 
     @property
     def uses_seeded_keys(self) -> bool:
-        """True when the key pair is the fixture committed in the compose file."""
-        return self.langfuse_public_key.get_secret_value() in SEEDED_KEYS
+        """True when either half of the key pair is the fixture committed in the compose file."""
+        return (
+            self.langfuse_public_key.get_secret_value() in SEEDED_KEYS
+            or self.langfuse_secret_key.get_secret_value() in SEEDED_KEYS
+        )
 
     @property
     def host_is_local(self) -> bool:
-        host = self.langfuse_host.lower()
-        return any(h in host for h in ("localhost", "127.0.0.1", "::1", "0.0.0.0"))
+        """The parsed hostname is a loopback name — not merely a substring of the URL.
+
+        A substring test (the Phase 3 version) called ``https://localhost.example.com`` and
+        ``https://example.com/localhost`` local, which is the exact hole this guard exists
+        to close.
+        """
+        from urllib.parse import urlsplit
+
+        return (urlsplit(self.langfuse_host).hostname or "").lower() in LOCAL_HOSTNAMES
 
     def check_not_deployed_with_seeded_keys(self) -> str | None:
         """Refuse the committed fixture credentials against a non-local host.

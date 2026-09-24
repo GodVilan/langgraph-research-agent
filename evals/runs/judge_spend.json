@@ -1,0 +1,175 @@
+{
+ "batches": 27,
+ "priced": 27,
+ "unavailable": 0,
+ "requests": 939,
+ "prompt_tokens": 1359403,
+ "completion_tokens": 51711,
+ "usd_at_batch_rates": 0.167,
+ "ceiling_usd": 5.0,
+ "measured_utc": "2026-09-24",
+ "batches_detail": [
+  {
+   "receipt": "batch_luna-low_q1.a058e6565f1d.json",
+   "status": "completed",
+   "requests": 25,
+   "usd": 0.001506
+  },
+  {
+   "receipt": "batch_luna-low_q1.json",
+   "status": "completed",
+   "requests": 2,
+   "usd": 0.000142
+  },
+  {
+   "receipt": "batch_luna-low_q1_all.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005151
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_dense_only.d9562877eb85.json",
+   "status": "expired",
+   "requests": 67,
+   "usd": 0.005102
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_dense_only.json",
+   "status": "completed",
+   "requests": 2,
+   "usd": 0.000155
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_pinned.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005262
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_pinned_r2.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005191
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_pinned_r3.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005272
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_r2.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005176
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_r3.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.00535
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_section_filter.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.004824
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_traced.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.00522
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_v21.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.00548
+  },
+  {
+   "receipt": "batch_luna-low_q3.json",
+   "status": "completed",
+   "requests": 3,
+   "usd": 0.001327
+  },
+  {
+   "receipt": "batch_luna-low_q3_all.json",
+   "status": "completed",
+   "requests": 20,
+   "usd": 0.010417
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_dense_only.json",
+   "status": "completed",
+   "requests": 20,
+   "usd": 0.010816
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_pinned.json",
+   "status": "completed",
+   "requests": 19,
+   "usd": 0.010178
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_pinned_r2.json",
+   "status": "completed",
+   "requests": 19,
+   "usd": 0.009802
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_pinned_r3.json",
+   "status": "completed",
+   "requests": 21,
+   "usd": 0.011706
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_r2.json",
+   "status": "completed",
+   "requests": 20,
+   "usd": 0.010192
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_r3.json",
+   "status": "completed",
+   "requests": 22,
+   "usd": 0.011946
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_section_filter.json",
+   "status": "completed",
+   "requests": 9,
+   "usd": 0.004604
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_traced.json",
+   "status": "completed",
+   "requests": 22,
+   "usd": 0.011968
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_v21.json",
+   "status": "completed",
+   "requests": 17,
+   "usd": 0.017083
+  },
+  {
+   "receipt": "batch_luna-medium_q1.e3314ba97186.json",
+   "status": "completed",
+   "requests": 25,
+   "usd": 0.001536
+  },
+  {
+   "receipt": "batch_luna-medium_q1.json",
+   "status": "completed",
+   "requests": 2,
+   "usd": 0.00018
+  },
+  {
+   "receipt": "batch_luna-medium_q3.json",
+   "status": "completed",
+   "requests": 3,
+   "usd": 0.001381
+  }
+ ]
+}

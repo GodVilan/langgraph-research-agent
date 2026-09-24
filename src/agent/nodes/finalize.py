@@ -20,7 +20,41 @@ log = logging.getLogger(__name__)
 
 NODE = "finalize"
 
-CHUNK_CITE_RE = re.compile(r"\[([0-9]{4}\.[0-9]{4,5}(?:v\d+)?_\d{4})\]")
+# A citation bracket, and a chunk id inside one. The generator writes three forms: one full id
+# per bracket `[2605.30179_0006]`; several in one bracket `[2605.30179_0006, 2605.29580_0003]`
+# — 134 of 645 completed eval answers, which the old single-id pattern missed entirely; and,
+# rarely, the id with its `2605.` prefix dropped `[30179_0006]` (found by `make smoke-live`,
+# 2026-09-24). The old pattern saw only the first, so for a fifth of answers no citation was
+# recognised: sources were not ordered by citation and invented ids went unreported.
+CITE_BRACKET_RE = re.compile(r"\[([^\[\]]+)\]")
+# The prefix takes any digits, not exactly four: a fourth form, a corrupted id with a stray
+# leading digit (`[32605.30179_0006]`, also found by `make smoke-live`), must be *seen* — and
+# reported unresolved — not skipped as if it were not a citation at all.
+CHUNK_ID_RE = re.compile(r"(?<![\d.])(?:(\d+)\.)?(\d{4,5}(?:v\d+)?_\d{4})(?!\d)")
+
+
+def cited_chunk_ids(answer: str, known_ids: set[str]) -> tuple[set[str], set[str]]:
+    """``(resolved, unresolved)`` chunk ids cited in ``answer``.
+
+    A full id resolves if it was retrieved. An abbreviated id resolves only when exactly one
+    retrieved chunk ends with it — ambiguous or unmatched, it is reported unresolved rather
+    than guessed.
+    """
+    resolved: set[str] = set()
+    unresolved: set[str] = set()
+    for bracket in CITE_BRACKET_RE.findall(answer):
+        for prefix, rest in CHUNK_ID_RE.findall(bracket):
+            if prefix:
+                full = f"{prefix}.{rest}"
+                (resolved if full in known_ids else unresolved).add(full)
+                continue
+            matches = [k for k in known_ids if k.endswith(f".{rest}")]
+            if len(matches) == 1:
+                resolved.add(matches[0])
+            else:
+                unresolved.add(rest)
+    return resolved, unresolved
+
 
 TRUNCATION_NOTE = (
     "\n\n---\n*This answer is partial: the request hit a budget ceiling "
@@ -73,12 +107,10 @@ async def finalize(state: AgentState) -> dict[str, object]:
 
     answer = state.get("draft_answer") or ""
     chunks = state.get("retrieved") or []
-    cited_ids = set(CHUNK_CITE_RE.findall(answer))
-
+    known_ids = {c.chunk_id for c in chunks}
     # Citations the model invented. Reported rather than silently dropped, because a
     # fabricated id is a groundedness signal Phase 4 will want to measure.
-    known_ids = {c.chunk_id for c in chunks}
-    hallucinated = cited_ids - known_ids
+    cited_ids, hallucinated = cited_chunk_ids(answer, known_ids)
     if hallucinated:
         log.warning("Answer cites %d unknown chunk id(s)", len(hallucinated))
 
@@ -91,7 +123,7 @@ async def finalize(state: AgentState) -> dict[str, object]:
 
     updates: dict[str, object] = {
         "answer": answer,
-        "sources": project_sources(chunks, cited_ids & known_ids),
+        "sources": project_sources(chunks, cited_ids),
         "truncated": truncated,
         "truncation_reason": verdict.reason,
     }

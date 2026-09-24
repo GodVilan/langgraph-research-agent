@@ -100,20 +100,26 @@ jobs:
       # copy of it must fail. The second is what makes the first mean anything.
       - name: Regression gate — baseline passes
         run: |
-          if [ ! -f evals/baseline_metrics.json ]; then
+          if [ ! -f evals/baseline_metrics_pinned.json ]; then
             echo "no baseline committed; the gate refuses to run on an underived tolerance"
             exit 0
           fi
+          # The shipped configuration: scope classifier pinned (D-035, D-044). Its baseline
+          # is the mean of three pinned draws with their own max-min spread, derived by
+          # evals/gate.py (the rule that also regenerates the Phase 4 baseline, which stays
+          # committed beside it). The interim stricter-of-both gate is retired now that the
+          # three-draw baseline has landed; `--baseline A --baseline B` still supports it.
           python -m evals.gate \
-            --run evals/runs/v3_de699d68.json \
-            --sheet evals/runs/scores_luna-low_de699d68_all.json
+            --run evals/runs/v3_de699d68_pinned.json \
+            --sheet evals/runs/scores_luna-low_de699d68_all_pinned.json \
+            --baseline evals/baseline_metrics_pinned.json
 
       - name: Regression gate — an injected regression must fail it
         run: |
-          if [ ! -f evals/baseline_metrics.json ]; then exit 0; fi
+          if [ ! -f evals/baseline_metrics_pinned.json ]; then exit 0; fi
           python - <<'PY'
           import json, pathlib
-          run = json.loads(pathlib.Path("evals/runs/v3_de699d68.json").read_text())
+          run = json.loads(pathlib.Path("evals/runs/v3_de699d68_pinned.json").read_text())
           # The injected regression: every retrieved chunk dropped. Recall@5 and MRR go to
           # zero; nothing else about the artifact changes.
           for item in run["items"].values():
@@ -121,7 +127,8 @@ jobs:
           pathlib.Path("/tmp/regressed.json").write_text(json.dumps(run))
           PY
           if python -m evals.gate --run /tmp/regressed.json \
-               --sheet evals/runs/scores_luna-low_de699d68_all.json; then
+               --sheet evals/runs/scores_luna-low_de699d68_all_pinned.json \
+               --baseline evals/baseline_metrics_pinned.json; then
             echo "::error::the gate PASSED an injected regression — it does not gate anything"
             exit 1
           fi

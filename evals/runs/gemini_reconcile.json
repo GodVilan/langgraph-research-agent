@@ -1,0 +1,218 @@
+{
+ "billed": {
+  "input_incl_cached": 27277355,
+  "cached": 4703996,
+  "output": 274770,
+  "gemini-2.5-flash-lite": {
+   "input": 10710,
+   "output": 3194
+  }
+ },
+ "sources": [
+  {
+   "source": "run artifact v3_de699d68.json",
+   "activity": "eval runs",
+   "calls": 236,
+   "input": 664810,
+   "output": 13175,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_dense_only.json",
+   "activity": "eval runs",
+   "calls": 233,
+   "input": 648342,
+   "output": 13593,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_embedding_small.json",
+   "activity": "eval runs",
+   "calls": 236,
+   "input": 620817,
+   "output": 12729,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_pinned.json",
+   "activity": "eval runs",
+   "calls": 236,
+   "input": 665716,
+   "output": 13393,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_pinned_r2.json",
+   "activity": "eval runs",
+   "calls": 236,
+   "input": 663607,
+   "output": 13516,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_pinned_r3.json",
+   "activity": "eval runs",
+   "calls": 238,
+   "input": 675375,
+   "output": 13792,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_r2.json",
+   "activity": "eval runs",
+   "calls": 242,
+   "input": 686350,
+   "output": 13502,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_r3.json",
+   "activity": "eval runs",
+   "calls": 239,
+   "input": 670628,
+   "output": 13881,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_section_filter.json",
+   "activity": "eval runs",
+   "calls": 256,
+   "input": 246313,
+   "output": 15627,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_traced.json",
+   "activity": "eval runs",
+   "calls": 239,
+   "input": 673872,
+   "output": 13537,
+   "tokens_recorded": true
+  },
+  {
+   "source": "run artifact v3_de699d68_v21.json",
+   "activity": "eval runs",
+   "calls": 489,
+   "input": 0,
+   "output": 0,
+   "tokens_recorded": false
+  },
+  {
+   "source": "local Langfuse, environment 'development' (276 traces)",
+   "activity": "development",
+   "calls": 949,
+   "input": 2678570,
+   "output": 54238,
+   "tokens_recorded": true,
+   "duplicate_of_run_artifacts": true
+  },
+  {
+   "source": "local Langfuse, environment 'span-loss-probe' (4 traces)",
+   "activity": "probes",
+   "calls": 6,
+   "input": 15172,
+   "output": 934,
+   "tokens_recorded": true,
+   "duplicate_of_run_artifacts": false
+  },
+  {
+   "source": "local Langfuse, environment 'integration-test' (74 traces)",
+   "activity": "tests (make test-integration)",
+   "calls": 111,
+   "input": 72335,
+   "output": 11544,
+   "tokens_recorded": true,
+   "duplicate_of_run_artifacts": false
+  },
+  {
+   "source": "D-021 fixture, the 11 priced (real) traces of 214; the rest are the test suite's synthetic runs, which never reached Gemini",
+   "activity": "CLI/dev (Phase 3)",
+   "calls": 20,
+   "input": 29287,
+   "output": 1477,
+   "tokens_recorded": true,
+   "may_overlap": "CLI checkpoint store (at most this row's size)"
+  },
+  {
+   "source": "judge arm flash-lite-self receipt (spend_flash-lite-self.json)",
+   "activity": "judge experiment (Gemini arm)",
+   "calls": null,
+   "input": 23429,
+   "output": 1336,
+   "tokens_recorded": true
+  },
+  {
+   "source": "CLI checkpoint store .checkpoints/threads.sqlite (17 turns)",
+   "activity": "CLI/dev (Phase 1)",
+   "calls": 52,
+   "input": 174140,
+   "output": 6112,
+   "tokens_recorded": true
+  }
+ ],
+ "measured_by_activity": {
+  "eval runs": {
+   "input": 6215830,
+   "output": 136745
+  },
+  "probes": {
+   "input": 15172,
+   "output": 934
+  },
+  "tests (make test-integration)": {
+   "input": 72335,
+   "output": 11544
+  },
+  "CLI/dev (Phase 3)": {
+   "input": 29287,
+   "output": 1477
+  },
+  "judge experiment (Gemini arm)": {
+   "input": 23429,
+   "output": 1336
+  },
+  "CLI/dev (Phase 1)": {
+   "input": 174140,
+   "output": 6112
+  }
+ },
+ "measured": {
+  "input": 6530193,
+  "output": 158148
+ },
+ "gap": {
+  "input": 20747162,
+  "output": 116622
+ },
+ "sized_unrecorded": [
+  {
+   "activity": "eval-set construction (drafting + necessity/presupposition checks)",
+   "unit": "one multi-hop candidate, ~8 full-text calls",
+   "tokens_per_unit": 98877,
+   "units_recorded": null,
+   "why_unrecorded": "evals/build_set.py, draft.py, multihop.py discard the Usage call_structured returns"
+  },
+  {
+   "activity": "multi-hop necessity fixtures (make test-necessity / test-all)",
+   "unit": "one suite run: 3 cases x 3 repeats of the same full-text checks",
+   "tokens_per_unit": 503512,
+   "units_recorded": null,
+   "why_unrecorded": "tests do not record usage"
+  },
+  {
+   "activity": "v2.1 baseline run (69 items, same key)",
+   "unit": "the whole run, 489 calls recorded; tokens not exposed by v2.1",
+   "tokens_per_unit": 771154,
+   "units_recorded": 1,
+   "why_unrecorded": "v2.1's agent exposes step counts, not token usage; figure is a floor (retrieved text sent once per item)"
+  },
+  {
+   "activity": "probes without artifacts (guardrail 280 calls, generator 20, D-014, injection-live, local container smoke queries)",
+   "unit": "all of them",
+   "tokens_per_unit": null,
+   "units_recorded": null,
+   "why_unrecorded": "probe scripts store verdicts, not usage"
+  }
+ ],
+ "possible_overlap_tokens": 29287
+}

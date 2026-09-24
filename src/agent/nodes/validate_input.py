@@ -17,7 +17,7 @@ import unicodedata
 from langchain_core.messages import AIMessage, HumanMessage
 from pydantic import BaseModel, Field
 
-from src.agent.llm import StructuredOutputError, call_structured
+from src.agent.llm import StructuredOutputError, call_structured, get_chat_model
 from src.agent.prompts import load_prompt
 from src.agent.state import AgentState, GuardrailEvent, Usage
 from src.config import get_settings
@@ -168,12 +168,15 @@ async def validate_input(state: AgentState) -> dict[str, object]:
         }
 
     version = state["request"].prompt_version
+    settings = get_settings()
     try:
         verdict, usage = await call_structured(
             ScopeVerdict,
             system=load_prompt("scope", version),
             user=f"Question: {question}",
-            max_attempts=get_settings().graph.max_structured_output_attempts,
+            max_attempts=settings.graph.max_structured_output_attempts,
+            # Pinned sampling (D-035): the same question gets the same decision.
+            model=get_chat_model(pinned=True) if settings.pin_scope_classifier else None,
         )
     except StructuredOutputError as exc:
         # Fail closed. A guard that cannot run must not wave the request through.
@@ -192,6 +195,15 @@ async def validate_input(state: AgentState) -> dict[str, object]:
         result["usage"] = usage
         return result
 
+    # Recorded on a pass as well as a refusal. The classifier is nondeterministic — the same
+    # question is refused on some draws and not others (`make guardrail-variance`) — so a
+    # pass it decided is a different fact from a pass the keyword list decided, and the API
+    # reports which one happened (src/guardrails/decision.py).
+    events.append(
+        GuardrailEvent(
+            kind="scope_classifier_pass", severity="info", node=NODE, detail=verdict.reason
+        )
+    )
     return {
         "refused": False,
         "guardrail_events": events,

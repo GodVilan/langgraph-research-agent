@@ -8,7 +8,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -42,7 +42,7 @@ def query(
 
 async def _query(question: str, thread: str | None, arxiv: bool, top_k: int, stream: bool) -> None:
     from src.agent.graph import build_graph, sqlite_checkpointer
-    from src.agent.runner import new_thread_id, run_query, stream_events
+    from src.agent.runner import new_thread_id, run_query
     from src.agent.state import RequestOptions
     from src.retrieval.service import RetrievalService
 
@@ -54,15 +54,17 @@ async def _query(question: str, thread: str | None, arxiv: bool, top_k: int, str
     async with sqlite_checkpointer() as saver:
         graph = build_graph(service, checkpointer=saver)
 
-        if stream:
-            async for event in stream_events(graph, question, thread_id, options):
-                if event["event"] == "on_chain_start":
-                    typer.secho(f"  -> {event['node']}", fg=typer.colors.BRIGHT_BLACK)
-                elif event["event"] == "token":
-                    typer.echo(event["text"], nl=False)
-            typer.echo()
+        async def show(event: dict[str, Any]) -> None:
+            if event["event"] == "node":
+                typer.secho(f"  -> {event['node']} done", fg=typer.colors.BRIGHT_BLACK)
+            elif event["event"] == "token":
+                typer.echo(event["text"], nl=False)
 
-        state = await run_query(graph, question, thread_id, options)
+        # One run either way. `--stream` used to run the graph a second time after streaming
+        # it, which doubled the cost of every streamed question.
+        state = await run_query(
+            graph, question, thread_id, options, on_event=show if stream else None
+        )
 
     typer.echo()
     typer.secho(state.get("answer") or "(no answer)", fg=typer.colors.WHITE)

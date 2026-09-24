@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics guardrail-variance guardrail-probe generator-determinism gemini-reconcile corpus-licenses trace-units smoke-live serve docker-build docker-run deploy-space space-secrets load-check load-report check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -119,13 +119,13 @@ metrics-spread:  ## the three-draw outcome spread, and each arm measured against
 	$(PY) -m evals.metrics --spread dense_only,section_filter,v21
 
 judge-spend:  ## total OpenAI judge spend, summed from the batches themselves
-	$(PY) scripts/judge_spend.py
+	$(PY) scripts/judge_spend.py --write
 
 push-scores:  ## attach judge scores to the traces of the judged run (RUN=... SHEET=... [REPLACE=1])
 	$(PY) scripts/push_scores.py --run $(RUN) --sheet $(SHEET) $(if $(REPLACE),--replace,)
 
-gate:  ## the regression gate against evals/baseline_metrics.json (RUN=path [SHEET=path])
-	$(PY) -m evals.gate --run $(RUN) $(if $(SHEET),--sheet $(SHEET),)
+gate:  ## the regression gate (RUN=path [SHEET=path] [BASELINE=path; default: the shipped, pinned one])
+	$(PY) -m evals.gate --run $(RUN) $(if $(SHEET),--sheet $(SHEET),) --baseline $(or $(BASELINE),evals/baseline_metrics_pinned.json)
 
 run-v21:  ## v2.1 (published main, pinned) over the frozen set on the same generator; 6h timebox
 	$(PY) -m evals.run_baseline_v21
@@ -172,6 +172,53 @@ reconcile-d021:  ## reproduce the D-021 finding from the committed trace fixture
 
 metrics:  ## print the current Prometheus exposition
 	$(PY) -m src.cli metrics
+
+guardrail-variance:  ## the scope guardrail across the seven v3 runs on identical input (no API calls)
+	$(PY) scripts/guardrail_variance.py
+
+guardrail-probe:  ## does pinning the classifier's sampling remove the flips? (--report reads the stored probe)
+	$(PY) scripts/guardrail_variance.py --report
+
+generator-determinism:  ## does seed=0,top_k=1 pin the generator? (REPORT=1 reprints the stored probe)
+	$(PY) scripts/generator_determinism.py $(if $(REPORT),--report,)
+
+gemini-reconcile:  ## Gemini bill vs every recorded token count, on tokens; names the gap (REPORT=1 reprints)
+	$(PY) scripts/gemini_reconcile.py $(if $(REPORT),--report,)
+
+corpus-licenses:  ## each corpus paper's arXiv license, counted; changes nothing (REPORT=1 reprints)
+	$(PY) scripts/corpus_licenses.py $(if $(REPORT),--report,)
+
+trace-units:  ## Langfuse units per traced query, and the sampling rate the daily ceiling implies
+	$(PY) scripts/trace_units.py
+
+# ── Phase 5: serving ───────────────────────────────────────────────────────────
+serve:  ## run the API locally on :8000 (memory ledger; not a deployed configuration)
+	$(PY) -m uvicorn src.api.main:app --port 8000 --no-proxy-headers
+
+docker-build:  ## build the serving image (index and pinned model baked in)
+	docker build -f infra/Dockerfile -t arxiv-agent-v3 .
+
+docker-run:  ## run the image locally with a volume-backed ledger and threads on :7860
+	@# Only GOOGLE_API_KEY crosses into the container — not the whole .env, which also holds
+	@# the judge's OpenAI key that the agent never uses. Tracing is off locally.
+	set -a && . ./.env && set +a && docker run --rm -p 127.0.0.1:7860:7860 -e GOOGLE_API_KEY \
+	  -e API__LEDGER=sqlite -e API__LEDGER_PATH=/data/ledger.sqlite -e CHECKPOINT_DB=/data/threads.sqlite \
+	  -v arxiv-agent-data:/data arxiv-agent-v3
+
+deploy-space:  ## deploy to a Hugging Face Docker Space: SPACE=owner/name [DRY=1]
+	$(PY) scripts/deploy_space.py --space $(SPACE) $(if $(DRY),--dry-run,--i-confirmed-public)
+
+space-secrets:  ## (owner runs this) copy the Space's secrets from a gitignored deploy env file: SPACE=owner/name [ENV_FILE=.env.deploy]
+	$(PY) scripts/space_secrets.py --space $(SPACE) --env-file $(or $(ENV_FILE),.env.deploy)
+
+smoke-live:  ## assert a running instance's effects: URL=... [SPACE=owner/name] [ENV_FILE=.env.deploy] [SAMPLE_RATE=1.0] [NO_TRACE=1]
+	$(PY) scripts/smoke_live.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --env-file $(or $(ENV_FILE),.env) --sample-rate $(or $(SAMPLE_RATE),1.0) $(if $(NO_TRACE),--no-trace,)
+
+load-check:  ## G-3 load check: URL=... [SPACE=owner/name] [C=10] [SERVED=30] [MAX_MIN=15] [LABEL=deployed] [NO_TOKEN=1]
+	$(PY) scripts/load_check.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --concurrency $(or $(C),10) --min-served $(or $(SERVED),30) --max-minutes $(or $(MAX_MIN),15) --label $(or $(LABEL),deployed) $(if $(NO_TOKEN),--no-token,) --key-exclusive
+
+load-report:  ## every load-check number, from evals/runs/loadcheck_<LABEL>.json
+	$(PY) scripts/load_check.py --report --label $(or $(LABEL),deployed)
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .index-verify

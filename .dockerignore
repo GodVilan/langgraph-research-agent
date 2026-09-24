@@ -1,0 +1,15 @@
+# Allow-list: the image needs the source, the corpus, and the one index Phase 4 measured.
+# Everything else stays out — above all infra/docker-compose.langfuse.yml, whose committed
+# fixture credentials must never reach a deployed artifact (tests/test_deploy_guards.py).
+*
+!pyproject.toml
+!LICENSE
+!src/
+!data/chunks_512.json
+!data/metadata.json
+!data/CORPUS.sha256
+!data/INDEX.sha256
+!data/indices/BGE_cs512.faiss
+!data/indices/BGE_cs512_meta.pkl
+**/__pycache__
+**/*.pyc

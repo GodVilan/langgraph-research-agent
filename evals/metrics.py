@@ -209,7 +209,9 @@ def run_summary(record: RunRecord) -> dict[str, Any]:
         "notional_usd_per_query_median": round(statistics.median(notional), 4)
         if notional
         else None,
-        "billed_usd": 0.0,
+        # Not computed here and never assumed $0: billing is the provider's record (D-046).
+        "billed_usd": None,
+        "billed_basis": "docs/billing/gemini.json (provider record, hand-entered)",
         "statuses": {
             s: sum(1 for r in record.items.values() if r.status == s)
             for s in sorted({r.status for r in record.items.values()})

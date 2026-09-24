@@ -1,0 +1,16 @@
+{
+ "mode": "local-kill",
+ "stop": "SIGKILL immediately after the response (no shutdown code runs)",
+ "shutdown_s": 122.1,
+ "trace_id": "7f8480663e575cb5d81cfd73982fb0d7",
+ "trace": {
+  "observations": 15,
+  "roots": 0,
+  "root_name": null,
+  "root_has_answer": false,
+  "complete": false,
+  "seconds_until_first_seen": 0.1
+ },
+ "complete": false,
+ "probed_utc": "2026-09-24T20:52:36+00:00"
+}

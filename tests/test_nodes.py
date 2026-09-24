@@ -264,3 +264,47 @@ class TestInputLayerEncoding:
         fullwidth = "".join(chr(ord(c) - ord("a") + 0xFF41) for c in "transformer")
         result = await validate_input(state(question=f"explain {fullwidth} models"))  # type: ignore[arg-type]
         assert result["refused"] is False
+
+
+class TestCitationParsing:
+    """The generator cites in three forms; the old parser recognised one (see finalize.py)."""
+
+    KNOWN = frozenset({"2605.30179_0006", "2605.29580_0003", "2605.11111_0006"})
+
+    def parse(self, answer: str) -> tuple[set[str], set[str]]:
+        from src.agent.nodes.finalize import cited_chunk_ids
+
+        return cited_chunk_ids(answer, set(self.KNOWN))
+
+    def test_one_full_id_per_bracket(self) -> None:
+        assert self.parse("LoRA freezes W0 [2605.30179_0006].") == ({"2605.30179_0006"}, set())
+
+    def test_several_ids_in_one_bracket(self) -> None:
+        """134 of 645 completed eval answers used this form; all were missed before."""
+        resolved, unresolved = self.parse("Both do [2605.30179_0006, 2605.29580_0003].")
+        assert resolved == {"2605.30179_0006", "2605.29580_0003"} and not unresolved
+
+    def test_an_abbreviated_id_resolves_when_unique(self) -> None:
+        resolved, _ = self.parse("As shown [29580_0003].")
+        assert resolved == {"2605.29580_0003"}
+
+    def test_an_ambiguous_abbreviation_is_not_guessed(self) -> None:
+        from src.agent.nodes.finalize import cited_chunk_ids
+
+        known = set(self.KNOWN) | {"2604.30179_0006"}  # two papers share the suffix
+        resolved, unresolved = cited_chunk_ids("As shown [30179_0006].", known)
+        assert not resolved and unresolved == {"30179_0006"}
+
+    def test_an_invented_abbreviation_is_unresolved(self) -> None:
+        resolved, unresolved = self.parse("Invented [99999_0001].")
+        assert not resolved and unresolved == {"99999_0001"}
+
+    def test_an_invented_full_id_is_unresolved(self) -> None:
+        assert self.parse("[2605.00000_0001]") == (set(), {"2605.00000_0001"})
+
+    def test_a_corrupted_id_is_seen_and_reported(self) -> None:
+        """A stray digit (`[32605.30179_0006]`): unresolved, so the warning fires."""
+        assert self.parse("LoRA [32605.30179_0006].") == (set(), {"32605.30179_0006"})
+
+    def test_non_citation_brackets_are_ignored(self) -> None:
+        assert self.parse("see [1] and the interval [0, 1]") == (set(), set())

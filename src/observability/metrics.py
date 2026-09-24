@@ -11,9 +11,9 @@ Two deliberate choices:
   quote prompts (docs/SCREEN.md). A single trigger counter would show a steady stream of
   alarming-looking events for something that withholds nothing. `warn` and `block` mean
   different things and are counted separately.
-* **Cost is two counters, not one.** Billed cost is $0 on the free tier; notional cost
-  prices the same tokens at paid rates (D-004). Collapsing them would make the dashboard
-  read zero forever, or imply spend that is not happening.
+* **Cost is notional only.** Notional cost prices the tokens at paid standard rates (D-004).
+  A "billed" series used to record $0 from a free-tier assumption while the key was billed
+  $7.60 (D-046); billing now comes only from the provider's own record, not from here.
 """
 
 from __future__ import annotations
@@ -85,8 +85,9 @@ tokens_total = Counter(
 
 cost_usd_total = Counter(
     "arxiv_agent_cost_usd_total",
-    "Accumulated cost. 'billed' is what the provider charges (0 on the free tier); "
-    "'notional' prices the same tokens at paid rates (DECISIONS D-004).",
+    "Accumulated cost. 'notional' prices the tokens at paid standard rates (DECISIONS D-004). "
+    "No 'billed' series is written: billing comes from the provider's record, and the $0 this "
+    "used to record was an assumption, not a measurement (D-046).",
     labelnames=("kind",),  # billed | notional
     registry=REGISTRY,
 )
@@ -152,7 +153,6 @@ def record_run(state: dict[str, Any], elapsed_s: float) -> None:
         tokens_total.labels(kind="input").inc(usage.input_tokens)
         tokens_total.labels(kind="output").inc(usage.output_tokens)
         tokens_total.labels(kind="thinking").inc(usage.reasoning_tokens)
-        cost_usd_total.labels(kind="billed").inc(usage.cost_usd)
         cost_usd_total.labels(kind="notional").inc(usage.notional_cost_usd)
         if usage.missing_usage_metadata:
             missing_usage_metadata_total.inc(usage.missing_usage_metadata)

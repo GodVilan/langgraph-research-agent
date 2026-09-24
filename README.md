@@ -7,11 +7,16 @@ v3 keeps v2.1's retrieval unchanged and replaces the orchestration, guardrails,
 observability, evaluation, and serving layers. The audit that opened this project is in
 [docs/AUDIT.md](docs/AUDIT.md).
 
-**Status: Phase 3 of 5.** The graph compiles, checkpoints, and terminates correctly under
-the full test suite, and retrieval runs against the real index. There are **no answer
-quality metrics yet** — the evaluation harness is Phase 4, and until it exists this README
-makes no claim about how well the agent answers anything. See
-[What is not built yet](#what-is-not-built-yet).
+<!-- STATUS:START -->
+<!-- Rendered from docs/status.json by `make readme-stats`. -->
+**Status: Phase 5 of 5 — deployed on Hugging Face Spaces and verified by `make smoke-live`; the G-3 load check is not yet published (first attempt aborted, DECISIONS D-048).** **Live: <https://godvillain-scholium.hf.space>**
+<!-- STATUS:END -->
+
+Hosted on Hugging Face Spaces under PRO — Docker Spaces now need a paid plan
+([DECISIONS D-038](docs/DECISIONS.md)). The Space sleeps when idle; the first request after a
+sleep waits for the container and the 1.3 GB embedding model (see [Serving](#serving)). Phase 4's measurements — the frozen 69-item set, the
+v2.1 re-run, the three-draw spread and the regression gate — are in [docs/PHASE4.md](docs/PHASE4.md).
+See [Known limitations](#known-limitations) before trusting an answer.
 
 Every figure in [Repository facts](#repository-facts) is emitted by `make readme-stats`,
 which measures the repo rather than trusting prose. Numbers stated outside that block are
@@ -159,8 +164,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 573, all passing | `make test` |
-| First-party Python | 38 files, 4,583 lines under `src/` | `make readme-stats` |
+| Tests | 694, all passing | `make test` |
+| First-party Python | 44 files, 6,357 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -175,6 +180,71 @@ Threads resume by id:
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
 checksum is asserted at eval startup and recorded in every baseline — precisely the record
 v2.1 lacked when its corpus was swapped (see [AUDIT §5](docs/AUDIT.md)).
+
+---
+
+## Serving
+
+**Live: <https://godvillain-scholium.hf.space>** — Hugging Face Spaces, CPU Basic, one
+container ([D-038](docs/DECISIONS.md)). The example below is the one `make smoke-live` runs,
+extracted from this file, against the deployed Space:
+
+<!-- CURL:START -->
+```bash
+curl -s -X POST https://godvillain-scholium.hf.space/query -H 'Content-Type: application/json' -d '{"question": "What is LoRA?", "stream": false}'
+```
+<!-- CURL:END -->
+
+`make smoke-live URL=…` runs that exact command, extracted from this file, and asserts the
+answer cites a returned source — so this example cannot drift from what is tested. The same
+image runs locally with `make docker-build` and `make docker-run` (:7860, volume-backed ledger).
+
+`POST /query` streams server-sent events by default (`node` → `token` → one authoritative
+`final`); `"stream": false` returns one JSON body. Threads resume at
+`POST /threads/{thread_id}/query`; `GET /health`, `GET /ready` and `GET /metrics` do what they
+say. Every response carries the answer, its sources, **which guardrail stage decided and
+whether that stage is deterministic**, a `truncated` flag with its reason, and both cost
+figures (billed and notional). Full reference: [docs/SERVING.md](docs/SERVING.md).
+
+What stands between the public and the API key, in order: a per-IP token bucket (429), a
+**global daily notional cost ceiling of $0.50 kept in a ledger that survives restarts** (429
+until 00:00 UTC; each request reserves its $0.025 ceiling before running, so concurrent
+requests cannot jointly pass it), and a two-slot concurrency gate (503). A deployed container
+**refuses to start** on a ledger that would forget the day's spend — checked against the real
+image, as is the volume-backed ledger carrying spend across a restart ([D-037](docs/DECISIONS.md)).
+
+**BGE-large ships, 1.3 GB and all**, because Phase 4 measured the smaller model: bge-small
+Recall@5 0.174 vs bge-large 0.267 on n=43 factual items (v2.1: 0.233), with large finding gold
+on 5 items small misses and small on none that large misses. The image pins the model to a
+commit and verifies the FAISS index against `data/INDEX.sha256` at build time; nothing is
+built or downloaded at start.
+
+---
+
+## Known limitations
+
+- **The input guardrail refuses answerable questions, and pinning it traded chance for
+  certainty.** All 43 factual questions are verified in scope, so every block is a false
+  refusal. Pinned (`seed=0, top_k=1`, what ships) refuses the same 5 of 43 on every call, against an unpinned mean of 4.3 per draw (range 3–6, n=7 draws on identical input).
+  Pinning fixed the stricter end of that range in place: `sp-016`, which unpinned refused in
+  only 2 of 7 draws, is now refused every time, and a user who hits one of the five no longer
+  has a chance on retry (`make guardrail-variance`, `make guardrail-probe`). The pinned
+  classifier gave byte-identical output on 140 of 140 probe calls on 2026-09-24 — one day, one
+  model version, not a provider guarantee — so a classifier decision is still reported
+  `deterministic: false`. Re-measured end to end: the pinned configuration passes the
+  regression gate and is now the baseline CI gates ([D-035](docs/DECISIONS.md),
+  [D-044](docs/DECISIONS.md)).
+- **v3 refuses 26 of 46 answerable items** in Phase 4 — the largest single failure in this
+  project, and the reason refusal accuracy is never quoted without it
+  ([D-029](docs/DECISIONS.md), [PHASE4.md](docs/PHASE4.md)).
+- **One refusal figure is a ceiling, and is read as one.** Refusal accuracy on unanswerable-attribute items is 11 of 11 (n=11, 1.000) in all six judged runs, pinned and unpinned, beside hallucinated refusals of 24–27 of 46 answerable items in the same runs — **above the 0.95 too-easy line, so this stratum cannot tell configurations apart, and its zero spread is a ceiling artifact, not evidence of stability** (`make metrics-spread`, `make gate`). The regression gate still holds it at ±0 on purpose: a missed refusal on an unanswerable item is the regression most worth catching, even at the cost of an occasional false alarm ([D-044](docs/DECISIONS.md)).
+- **Throughput is the model's free-tier quota**: 10 calls a minute in the container, ~3–4 calls
+  per query, so a few queries a minute for the whole instance. Beyond two in-flight queries a
+  request waits up to 20 s for a slot, then gets `503 busy` rather than a long silent wait.
+- **Threads are not durable without a volume**, and a follow-up question is retrieved without
+  its antecedent (BACKLOG).
+- **The corpus is fixed**: 150 papers from one day of cs.LG. Live arXiv fetch is off on the
+  public endpoint ([D-036](docs/DECISIONS.md)).
 
 ---
 
@@ -441,48 +511,87 @@ Stated plainly, because a reader should not have to infer it:
 | | Phase | Status |
 |---|---|---|
 | Eval dataset | 4 | **Frozen: 69 items** (43 factual / 3 multi-hop / 2 unanswerable-topic / 11 unanswerable-attribute / 10 ambiguous), `evals/datasets/phase4.json`, `make verify-dataset`. Why 69 and not 100: [EVALS.md](docs/EVALS.md). |
-| Metrics, baseline, CI regression gate | 4 | Not built. **No judge-validated answer quality number exists for v3.** One human-scored slice exists (25 of 69, [EVALS.md](docs/EVALS.md)): refusal accuracy **10/10 (n=13)** *and* hallucinated-refusal rate **7/10 (n=10)** — read as a pair, that is an agent that refuses readily, not one that knows what is absent; the first number alone would be the near-perfect-metric trap. |
+| Metrics, baseline, CI regression gate | 4 | **Built** — metrics over all 69 with a three-draw spread, a live regression gate demonstrated failing on an injected regression ([PHASE4.md](docs/PHASE4.md)). |
 | v2.1-vs-v3 comparison | 4 | **Run.** Same frozen 69 items, same corpus, same generator, v2.1 pinned at `8d3e67f`, retriever frozen identical. **Retrieval: no gain for v3** — Recall@5 0.267 (v3, three runs, spread 0.000) vs 0.233 (v2.1), and v2.1 is *ahead* on MRR (0.196 vs 0.175) and on finding the gold paper (28 vs 21–22 of 43), with the same 30 of 43 items missed by both; the number belongs to the eval set's paraphrasing, not to either system. **Outcomes: v3 ahead outside the spread** — 15 correct of 46 answerable vs 6, and 5 wrong vs 11 (7 of v2.1's 11 answered from the wrong paper). v3's justification is orchestration, checkpointing and observability — **not retrieval quality**. Detail and the places v3 is worse: [EVALS.md](docs/EVALS.md). |
-| FastAPI service, Docker, deployment, load figures | 5 | Not built. |
+| FastAPI service, Docker | 5 | **Built and run locally** ([SERVING.md](docs/SERVING.md)). |
+| Deployment | 5 | **Live** at <https://godvillain-scholium.hf.space>, verified by `make smoke-live` and on-host checks ([D-047](docs/DECISIONS.md)). |
+| Load figures | 5 | **Not published.** The first load check was aborted — it found a reservation leak (fixed) and was itself a runaway ([D-048](docs/DECISIONS.md)). |
 
 Deferred design choices and their reasons are in [BACKLOG.md](docs/BACKLOG.md).
 
 ### Numbers this README does not report
 
-There are no answer relevance, faithfulness, Recall@k, MRR@k, latency, or cost-per-query
-figures here, because none have been measured. The `~16 LLM calls per query` design target
-in [BUDGET.md](docs/BUDGET.md) is a target written down so Phase 4 can falsify it, not a
-result.
+No latency figure for the deployed instance and no load-check figure: the one load check run so
+far was aborted and its numbers are not a result ([D-048](docs/DECISIONS.md)). Phase 4's p50/p95 are a local batch run, single-user, and are not
+serving figures.
 
 ---
 
 ## Cost
 
-The agent runs on `gemini-3.5-flash-lite` free tier. OpenAI is reserved for the Phase 4
-evaluation judge under a **$5 lifetime ceiling**; $0.00 has been spent.
+The agent runs on `gemini-3.5-flash-lite`. OpenAI is the evaluation judge only, never part of
+the agent.
+
+**The largest spend in this project was on the side assumed to be free.** Every "Gemini billed
+$0" this repo used to print came from a free-tier assumption, not a measurement: the key's
+Google Cloud project had billing enabled throughout, and Google billed it:
+
+<!-- GEMINI:START -->
+<!-- Rendered from docs/billing/gemini.json (hand-entered from the provider's record) and evals/runs/gemini_reconcile.json by `make readme-stats`. -->
+**Gemini API spend: $7.60** — provider-sourced (Google Cloud Billing — Gemini API (service AEFD-7695-64FA), SKU export, 2026-08-19 to 2026-09-24), hand-entered 2026-09-24 into `docs/billing/gemini.json`. 27,277,355 prompt tokens (4,703,996 of them cached) and 274,770 output tokens on `gemini-3.5-flash-lite`; **89% of the cost was uncached input and 9% output**. Only 24% of those prompt tokens were seen by any instrumentation in this repo (`make gemini-reconcile`, DECISIONS D-046).
+<!-- GEMINI:END -->
+
+It dwarfs the OpenAI judge spend below. Most of those prompt tokens were never seen by any
+instrumentation here (the share is in the line above); the only unrecorded activity large
+enough to account for them is
+full-text work — eval-set construction and the multi-hop necessity checks send whole papers per
+call (~99k prompt tokens per multi-hop candidate, `make gemini-reconcile`) and discarded their usage. That is consistent
+with, not proven by, the records ([D-046](docs/DECISIONS.md)). A billed figure in this repo now
+comes from the provider's own record, or is shown as unverified — never as $0 by default.
+
+**Data use.** Every run to date — construction, eval runs, probes, CLI — went through a key on a
+**paid, billing-enabled** project. The deployed Space uses a **free-tier key** in a project with
+no billing account, where Google's terms allow prompts and responses to be used to improve its
+products. The corpus is public arXiv text, so that is acceptable for the questions this corpus
+answers; do not send the endpoint anything private.
+
+<!-- JUDGESPEND:START -->
+<!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`; the figure is summed from the batches by `make judge-spend`. -->
+**OpenAI judge spend: $0.1670 of the $5.00 lifetime ceiling** — 939 Batch requests, 1,359,403 input / 51,711 output tokens at batch rates, measured 2026-09-24.
+<!-- JUDGESPEND:END -->
 
 The originally pinned `gemini-2.5-flash-lite` was retired for new API keys and returns 404,
 found on the first live run ([DECISIONS D-012](docs/DECISIONS.md)). Its rates were briefly
 used as a placeholder and understated cost by ~3.6x; every `PRICING` entry now carries a
 `verified` flag and a source, and an unverified entry warns on every use.
 
-**Determinism is gone, and pinning the thinking budget does not bring it back.** Running one
-fixed prompt five times produced five distinct outputs at every working setting — the model
-reports that it ignores `temperature` ("uses fixed sampling defaults"), and
-`thinking_budget=0` is rejected outright. Reproduce with:
+**Determinism was not recoverable with the knobs first tried — and is with two that were
+not.** One fixed prompt run five times gave five distinct outputs at every setting D-014
+tried: the model ignores `temperature` ("uses fixed sampling defaults"), and
+`thinking_budget=0` is rejected outright. `seed=0, top_k=1` were never tried then. Tried in
+Phase 5, they make the output byte-identical: 140 of 140 scope-classifier calls, and 5 of 5 on
+both D-014's own prompt and the real generation call (`make generator-determinism`, probed
+2026-09-24 — one day on one model version, not a provider guarantee). Only the classifier
+ships pinned; pinning the generator is greedy decoding, would change answer quality, and is a
+measured Phase 6 arm, not a v3.0 change ([D-035](docs/DECISIONS.md), [D-042](docs/DECISIONS.md)).
 
 ```bash
 python scripts/determinism_probe.py --runs 5
 ```
 
-Thinking is pinned to `minimal` anyway, because thinking tokens bill at the output rate and
-`low` costs roughly 6x `minimal` on the same prompt ([DECISIONS D-014](docs/DECISIONS.md)).
-Phase 4 must design a variance estimate rather than assume repeatability.
+Thinking is pinned to `minimal`, because thinking tokens bill at the output rate and `low`
+costs roughly 6x `minimal` on the same prompt ([DECISIONS D-014](docs/DECISIONS.md)). Phase
+4's outcome variance was measured with unpinned generation and judging.
 
-Because billed cost on a free tier is always zero, a cost ceiling checked against it would
-never be exercised. `Usage` therefore tracks both the billed figure and a *notional* figure
-pricing the same tokens at paid rates, and the ceiling checks the notional one
-([DECISIONS D-004](docs/DECISIONS.md)). Any published cost figure states which it is.
+**What the cost is made of.** 89% of the Gemini bill is uncached input and 9% is output
+(thinking included); cached input is 2%. The thinking pin worked — output, where thinking would
+show, is the small share — so **context size is the cost lever, not thinking** ([D-014](docs/DECISIONS.md),
+[D-046](docs/DECISIONS.md)).
+
+Every ceiling checks a *notional* cost: the tokens priced at paid standard rates, with cached
+input at its $0.03/1M rate ([DECISIONS D-004](docs/DECISIONS.md)). It is known at request time,
+which a bill is not. `Usage` records no billed figure; the API returns `billed_cost_usd: null`
+with the reason. Any published cost figure states which it is.
 
 ---
 
@@ -495,9 +604,39 @@ pricing the same tokens at paid rates, and the ceiling checks the notional one
 | [DECISIONS.md](docs/DECISIONS.md) | Architecture decisions with cost and reversal conditions |
 | [BUDGET.md](docs/BUDGET.md) | Spend ceiling, verified unit prices, allocation, and mandatory controls |
 | [BACKLOG.md](docs/BACKLOG.md) | What was deliberately deferred, and why |
+| [PHASE4.md](docs/PHASE4.md) | Phase 4 close-out: the v2.1 trade, the variance decomposition, what is not done |
+| [SERVING.md](docs/SERVING.md) | The HTTP API, its limits and why each sits where it does, the container, deploy |
 
 ---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+**The code is MIT** ([LICENSE](LICENSE)). **The corpus is not.** `data/chunks_512.json` and
+`data/metadata.json` hold the full text and metadata of 150 arXiv papers, each under the license
+its authors chose on arXiv, and the MIT license does not extend to them:
+
+<!-- LICENSES:START -->
+<!-- Rendered from data/LICENSES.json (`make corpus-licenses`, arXiv OAI-PMH, fetched 2026-09-24) by `make readme-stats`. -->
+| License on arXiv | Papers |
+|---|---:|
+| CC BY 4.0 | 85 |
+| arXiv non-exclusive distribution | 54 |
+| CC BY-NC-SA 4.0 | 6 |
+| CC BY-NC-ND 4.0 | 3 |
+| CC BY-SA 4.0 | 2 |
+| **total** | **150** |
+<!-- LICENSES:END -->
+
+What that means here, stated as the open question it is rather than resolved:
+
+* **Creative Commons papers** (CC BY, BY-SA, BY-NC-SA, BY-NC-ND) permit redistribution with
+  attribution. Every answer the service returns names its source papers by arXiv id and title;
+  the ShareAlike, NonCommercial and NoDerivatives terms attach to those papers' text, not to this
+  project's code, and the project is non-commercial.
+* **Papers under arXiv's non-exclusive distribution license** grant distribution rights *to
+  arXiv*, not to third parties. This repository commits their full text in the chunk file, the
+  container image bakes it in, and the service quotes excerpts of it in answers. Whether that is
+  permitted is **not verified**. Nothing has been changed yet; the audit (`make corpus-licenses`,
+  per-paper results in `data/LICENSES.json`) exists so the decision can be made on the facts.
+
+This is a statement of what the licenses say, not legal advice.

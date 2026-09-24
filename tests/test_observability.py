@@ -157,7 +157,7 @@ class TestTracePayload:
         lf.record_state(Recorder(), sample_state())
         metadata = captured["update"][-1]["metadata"]  # type: ignore[index]
 
-        assert metadata["usage"]["cost_usd_billed"] == 0.0
+        assert metadata["usage"]["cost_usd_billed"] == sample_state()["usage"].cost_usd
         assert metadata["usage"]["cost_usd_notional"] == 0.00335
         assert metadata["usage"]["thinking_tokens"] == 120
         assert metadata["retrieval"][0]["hit_chunk_ids"] == ["2605.1_0001", "2605.1_0002"]
@@ -165,8 +165,9 @@ class TestTracePayload:
         assert metadata["guardrail_summary"] == {"block": 2, "warn": 0}
         assert metadata["critique_verdict"] == "pass"
 
-    def test_billed_and_notional_cost_stay_separate(self) -> None:
-        """Collapsing them would read zero forever on the free tier, or imply spend."""
+    def test_no_billed_cost_is_claimed_to_the_trace(self) -> None:
+        """The trace used to carry billed $0 as its cost — a tier assumption on a key that was
+        billed $7.60 (D-046). Now no cost_details are sent, and billed is None (unverified)."""
         captured: list[dict[str, object]] = []
 
         class Recorder:
@@ -176,11 +177,14 @@ class TestTracePayload:
             def update_trace(self, **kwargs: object) -> None: ...
             def create_event(self, **kwargs: object) -> None: ...
 
-        lf.record_state(Recorder(), sample_state())
-        usage_update = next(c for c in captured if "cost_details" in c)
-        assert usage_update["cost_details"] == {"total": 0.0}
+        state = sample_state()
+        state["usage"] = state["usage"].model_copy(update={"cost_usd": None})
+        lf.record_state(Recorder(), state)
+        assert not any("cost_details" in c for c in captured)
         metadata = captured[-1]["metadata"]
+        assert metadata["usage"]["cost_usd_billed"] is None  # type: ignore[index]
         assert metadata["usage"]["cost_usd_notional"] > 0  # type: ignore[index]
+        assert "cached_input_tokens" in metadata["usage"]  # type: ignore[operator]
 
     def test_block_and_warn_events_are_emitted_info_is_not(self) -> None:
         events: list[dict[str, object]] = []
@@ -218,7 +222,8 @@ class TestMetrics:
         assert 'arxiv_agent_requests_total{outcome="answered"}' in payload
         assert 'arxiv_agent_tokens_total{kind="thinking"}' in payload
         assert 'arxiv_agent_cost_usd_total{kind="notional"}' in payload
-        assert 'arxiv_agent_cost_usd_total{kind="billed"}' in payload
+        # Deliberately absent: a billed series recorded $0 from a tier assumption (D-046).
+        assert 'arxiv_agent_cost_usd_total{kind="billed"}' not in payload
         assert "arxiv_agent_request_latency_seconds_bucket" in payload
 
     def test_guardrail_counter_separates_warn_from_block(self) -> None:

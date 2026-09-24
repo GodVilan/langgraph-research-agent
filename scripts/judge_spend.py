@@ -26,6 +26,7 @@ import httpx
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 RUNS = Path("evals/runs")
+SPEND_ARTIFACT = RUNS / "judge_spend.json"
 BASE = "https://api.openai.com/v1"
 # docs/BUDGET.md: gpt-5.6-luna standard $0.20 / $1.20 per 1M; batch is exactly half.
 PRICE_IN_PER_M = 0.10
@@ -53,6 +54,11 @@ def receipts() -> list[tuple[str, dict[str, Any]]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help=f"also record the total in {SPEND_ARTIFACT} for `make readme-stats` to render",
+    )
     args = parser.parse_args()
 
     headers = {"Authorization": f"Bearer {api_key()}"}
@@ -96,6 +102,24 @@ def main() -> int:
             }
             rows.append(row)
 
+    # Receipts are our record; the account's batch list is the provider's. A batch in the
+    # second and not the first is money spent that no total here would include — which is
+    # how three overwritten receipts hid 117 paid requests until 2026-09-24.
+    receipted = {r["batch_id"] for r in rows}
+    unreceipted: list[str] = []
+    with httpx.Client(timeout=60, headers=headers) as client:
+        after: str | None = None
+        while True:
+            params: dict[str, Any] = {"limit": 100, **({"after": after} if after else {})}
+            page = client.get(f"{BASE}/batches", params=params).json()
+            for b in page.get("data", []):
+                meta = b.get("metadata") or {}
+                if b["id"] not in receipted and str(meta.get("arm", "")).startswith("luna"):
+                    unreceipted.append(f"{b['id']} {b['status']} {b.get('request_counts')}")
+            if not page.get("has_more"):
+                break
+            after = page["data"][-1]["id"]
+
     priced = [r for r in rows if "usd" in r]
     total = {
         "batches": len(rows),
@@ -107,6 +131,25 @@ def main() -> int:
         "usd_at_batch_rates": round(sum(float(r["usd"]) for r in priced), 4),
         "ceiling_usd": 5.00,
     }
+    if unreceipted:
+        print("UNRECEIPTED judge batches on the account (the total below undercounts):")
+        for line in unreceipted:
+            print("  ", line)
+    if args.write and unreceipted:
+        raise SystemExit("refusing to write a spend total while batches are unreceipted")
+    if args.write:
+        # The one place the spend figure is typed is nowhere: README and BUDGET render it from
+        # this artifact (`make readme-stats`), and tests/test_docs.py fails a stale copy.
+        from datetime import UTC, datetime
+
+        stamped = {
+            **total,
+            "measured_utc": datetime.now(UTC).strftime("%Y-%m-%d"),
+            "batches_detail": [
+                {k: r.get(k) for k in ("receipt", "status", "requests", "usd")} for r in rows
+            ],
+        }
+        SPEND_ARTIFACT.write_text(json.dumps(stamped, indent=1) + "\n", encoding="utf-8")
     if args.json:
         print(json.dumps({"batches": rows, "total": total}, indent=2))
         return 0

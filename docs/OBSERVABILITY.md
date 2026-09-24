@@ -53,6 +53,14 @@ seeded from the compose file. Everything binds to `127.0.0.1`.
 > against any non-localhost `LANGFUSE_HOST`, and `get_client()` raises instead of quietly
 > tracing somewhere it should not. It is the one tracing failure that is not degraded to a
 > no-op — a misrouted credential is a configuration bug, not a backend outage.
+>
+> **Phase 5 extended the guard.** Either half of the pair is refused (the public key alone
+> was checked before), locality is the *parsed hostname* (the substring test accepted
+> `https://localhost.attacker.example`), the compose file must publish only loopback ports
+> and may not use host networking while it carries the seeds, the image's `.dockerignore`
+> allow-list never admits `infra/`, and the Space deploy refuses a context containing a
+> compose file or the `LANGFUSE_INIT_*` block — all asserted by
+> `tests/test_deploy_guards.py`, each with a case that makes it fire.
 
 ```bash
 make langfuse-down        # stop, keep data
@@ -106,10 +114,17 @@ and *what did the guardrails do*.
 
 ### Billed and notional cost are separate, deliberately
 
-Billed cost is `$0` on the Gemini free tier. Notional cost prices the same tokens at paid
-standard rates ([DECISIONS D-004](./DECISIONS.md)). A single cost field would either read
-zero forever or imply spend that is not happening, so both are carried and every published
-figure says which it is.
+Notional cost prices the tokens at paid standard rates, cached input at $0.03/1M
+([DECISIONS D-004](./DECISIONS.md)); every ceiling checks it. **Billed cost is not computed
+here at all.** Traces used to carry billed `$0` from a free-tier assumption while the key's
+project was being billed — $7.60 by the provider's record ([D-046](./DECISIONS.md)). A trace
+now carries `cost_usd_billed: null` (unverified), sends no `cost_details`, and records
+`cached_input_tokens`; billing is read from the provider, never assumed.
+
+**What tracing never saw.** Instrumentation recorded under a quarter of the prompt tokens Google
+billed (`make gemini-reconcile`): eval-set construction and the multi-hop necessity checks sent
+whole papers per call and discarded their `Usage`, and the v2.1 baseline and the probe scripts
+recorded no tokens at all. A trace store is a record of what was traced, not of what was spent.
 
 ### Non-LLM latency is in the same trace
 
@@ -192,9 +207,9 @@ underlying rule is D-004's, applied one level up: never divide two numbers that 
 different populations (D-021).
 
 **Langfuse's own figure still is not ours.** It prices from its rate card; we price from
-`src/config.PRICING` and separate billed from notional. Merging them is how a free-tier
-project publishes a spend figure it never spent — which the first run of `make budget` did
-(D-020). They agree here because both are right, not because either was copied.
+`src/config.PRICING`, notional only. Folding Langfuse's estimate into a "billed" column is how
+the first run of `make budget` published a spend figure nobody had measured (D-020); the second
+lesson, D-046, is that the $0 "billed" column it was folded into was never measured either. They agree here because both are right, not because either was copied.
 
 ---
 
@@ -239,10 +254,64 @@ drifted number discredits the ones that are correct.
 
 ---
 
+## Sampling
+
+**Policy: every request is traced (`LANGFUSE_SAMPLE_RATE=1.0`), and this is what it costs at
+volume** (`make trace-units`, over the 69 traces of the Phase 4 window):
+
+| | |
+|---|---|
+| Langfuse units per traced query | **43** median (trace + observations), 45 max |
+| Langfuse Cloud Hobby allowance | 50,000 units/month (pricing page, 2026-09-23) → ~1,160 traced queries/month, ~38/day |
+| Most queries the daily ceiling admits | 146/day ($0.50 ÷ $0.00342 mean notional per query) |
+| Units/month if that worst case ran all month | ~167k — **3.3× the allowance** |
+| Head-sampling rate that makes the worst case fit | **0.30** |
+
+A demo endpoint is expected to see a few queries a day, so discarding 70% of traces up front
+would lose most of the evidence for no benefit. If sustained traffic approaches ~38 queries
+a day, set `LANGFUSE_SAMPLE_RATE=0.30`. What Langfuse does when a Hobby project exceeds its
+allowance is **not verified** — the pricing page does not say.
+
+Two properties make the knob trustworthy (DECISIONS D-039):
+
+* **It is verified in effect.** Langfuse applies `sample_rate` only when it creates the
+  global OpenTelemetry provider; if another provider is registered first it reuses that one
+  and drops the rate silently. The service checks the effective sampler at startup and
+  refuses to start when a configured rate is not in effect.
+* **A sampled-out request says so.** It returns `trace_id: ""`, never an id pointing at a
+  trace that was not exported (`tests/test_api_concurrency.py`).
+
+Scores are not part of the serving figure: the 115 on the Phase 4 window were pushed by the
+eval harness, and the service writes none.
+
+### Spans buffered at a stop
+
+The server does not flush per request — a flush waits on the exporter, and a slow or
+rate-limiting Langfuse would then sit on the request path (it added 3.2 s against a silent
+backend before the change, D-041). Spans ship on the batch exporter's schedule, and the server
+flushes once, bounded at 10 s, when it shuts down. Whether the last request's trace survives a
+stop therefore depends on how the process is stopped (`scripts/span_loss_probe.py`, one query,
+stop sent the instant the response arrives, then the trace read back until it stops growing):
+
+| Stop | Trace | Evidence |
+|---|---|---|
+| SIGTERM — uvicorn's graceful path, runs the shutdown flush | **complete**: 32 observations, answer present | `evals/runs/span_loss_local.json` |
+| SIGKILL — no shutdown code runs | **partial: 15 of 32 observations, no answer** — the root span and the late nodes were still buffered | `evals/runs/span_loss_local-kill.json` |
+
+The first version of the probe asked only whether the trace *existed*, and reported the
+SIGKILL case as exported — the early nodes' spans had already shipped. Completeness (the root
+span's output, which ends last) is the test that separates the two.
+
+**On the Space: not verified yet.** What a Space sends a container on sleep or pause —
+SIGTERM with a grace period, or a kill — is the host's behaviour, measured by
+`span_loss_probe.py space OWNER/NAME` after deploy. If it is a kill, the last few seconds of
+traces before every sleep are partial, and that is recorded here rather than papered over.
+
+---
+
 ## What is not instrumented, and why
 
-- **No sampling.** Every run is traced. At this volume that is free; a deployed instance
-  with real traffic would need a sampling policy, and does not have one.
+- **Sampling is a derived knob, set to trace everything.** See [Sampling](#sampling).
 - **No alerting.** Metrics are exposed, nothing consumes them. There is no Prometheus
   server or Grafana in `infra/` — adding one would be a dashboard nobody watches.
 - **No per-node cost attribution beyond what the handler infers.** The handler attributes

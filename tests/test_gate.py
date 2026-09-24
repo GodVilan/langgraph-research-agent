@@ -114,3 +114,122 @@ class TestTheGateFiresEndToEnd:
         ).returncode
 
         assert code == 2
+
+
+R = "evals/runs/v3_de699d68{}.json"
+S = "evals/runs/scores_luna-low_de699d68_all{}.json"
+COMMITTED_BASELINES = {
+    # Phase 4, unpinned: r1-r3.
+    "evals/baseline_metrics.json": [(R.format(t), S.format(t)) for t in ("", "_r2", "_r3")],
+    # The shipped configuration, pinned: three draws (D-044).
+    "evals/baseline_metrics_pinned.json": [
+        (R.format(t), S.format(t)) for t in ("_pinned", "_pinned_r2", "_pinned_r3")
+    ],
+}
+
+
+class TestDerivationRule:
+    @pytest.mark.parametrize("baseline_path", sorted(COMMITTED_BASELINES))
+    def test_the_rule_reproduces_each_committed_baseline(self, baseline_path: str) -> None:
+        """Baselines are never hand-edited: each committed one must be regenerated exactly by
+        the one derivation function from the runs it names. The Phase 4 baseline stated its
+        rule but no committed code produced it until this test existed."""
+        import json
+        from pathlib import Path
+
+        from evals.gate import derive_baseline, gated_values
+        from evals.run_set import RunRecord
+        from evals.schema import EvalSet
+        from evals.scoring import ScoreSheet
+
+        runs = COMMITTED_BASELINES[baseline_path]
+        evalset = EvalSet.read(Path("evals/datasets/phase4.json"))
+        committed = json.loads(Path(baseline_path).read_text())
+        records = [RunRecord.model_validate_json(Path(r).read_text()) for r, _ in runs]
+        per_run = [
+            gated_values(evalset, rec, ScoreSheet.load(Path(sh)))
+            for rec, (_, sh) in zip(records, runs, strict=True)
+        ]
+        derived = derive_baseline(per_run, records, committed, [Path(r) for r, _ in runs])
+        assert set(derived["metrics"]) == set(committed["metrics"])
+        for name, ref in committed["metrics"].items():
+            got = derived["metrics"][name]
+            assert got["value"] == pytest.approx(ref["value"])
+            assert got["tolerance"] == pytest.approx(ref["tolerance"])
+            assert [float(x) for x in got["runs"]] == [float(x) for x in ref["runs"]]
+
+    def test_outcome_tolerance_is_floored_retrieval_is_not(self) -> None:
+        """Three equal draws of an outcome metric are a small-sample artifact while generation
+        and judging stay unpinned: the unpinned spread is the floor. Retrieval is deterministic
+        by construction and keeps its own (zero) spread."""
+        from pathlib import Path
+        from types import SimpleNamespace
+
+        from evals.gate import derive_baseline
+
+        ref = {
+            "metrics": {
+                "correct_answers": {"value": 15.7, "tolerance": 1.0},
+                "hallucinated_refusals": {"value": 25.3, "tolerance": 2.0},
+                "factual_recall@5": {"value": 0.267, "tolerance": 0.05},
+            }
+        }
+        rec = SimpleNamespace(set_sha256="s", corpus_sha256="c", scope_classifier_pinned=True)
+        runs = [
+            {"correct_answers": 15.0, "hallucinated_refusals": h, "factual_recall@5": 0.267}
+            for h in (27.0, 23.0, 25.0)
+        ]
+        out = derive_baseline(runs, [rec] * 3, ref, [Path("a"), Path("b"), Path("c")])  # type: ignore[list-item]
+        m = out["metrics"]
+        assert m["correct_answers"]["tolerance"] == 1.0  # own 0, floored
+        assert m["correct_answers"]["tolerance_basis"].startswith("floor")
+        assert m["hallucinated_refusals"]["tolerance"] == 4.0  # own 4 > floor 2
+        assert m["factual_recall@5"]["tolerance"] == 0.0  # retrieval: own, not floored
+
+    def test_one_run_carries_the_reference_spread(self) -> None:
+        from pathlib import Path
+        from types import SimpleNamespace
+
+        from evals.gate import derive_baseline
+
+        ref = {"metrics": {"hallucinated_refusals": {"value": 25.3, "tolerance": 2.0}}}
+        rec = SimpleNamespace(set_sha256="s", corpus_sha256="c", scope_classifier_pinned=True)
+        out = derive_baseline([{"hallucinated_refusals": 27.0}], [rec], ref, [Path("x")])  # type: ignore[list-item]
+        assert out["metrics"]["hallucinated_refusals"]["tolerance"] == 2.0
+        assert "carried" in out["derivation"]
+
+    def test_runs_of_different_configurations_are_refused(self) -> None:
+        from pathlib import Path
+        from types import SimpleNamespace
+
+        from evals.gate import derive_baseline
+
+        ref = {"metrics": {"m": {"value": 1.0, "tolerance": 0.0}}}
+        a = SimpleNamespace(set_sha256="s", corpus_sha256="c", scope_classifier_pinned=True)
+        b = SimpleNamespace(set_sha256="s", corpus_sha256="c", scope_classifier_pinned=None)
+        with pytest.raises(ValueError, match="one configuration"):
+            derive_baseline([{"m": 1.0}, {"m": 1.0}], [a, b], ref, [Path("x"), Path("y")])  # type: ignore[list-item]
+
+
+class TestStricterOfBaselines:
+    def test_each_metric_takes_the_tighter_bound(self) -> None:
+        from evals.gate import evaluate, strictest
+
+        phase4 = {
+            "metrics": {
+                "hallucinated_refusals": {"value": 25.333, "tolerance": 2.0},  # ceiling 27.333
+                "correct_answers": {"value": 15.667, "tolerance": 1.0},  # floor 14.667
+            }
+        }
+        pinned1 = {
+            "metrics": {
+                "hallucinated_refusals": {"value": 27.0, "tolerance": 2.0},  # ceiling 29
+                "correct_answers": {"value": 15.0, "tolerance": 1.0},  # floor 14
+            }
+        }
+        combined = strictest([phase4, pinned1])
+        assert combined["metrics"]["hallucinated_refusals"]["value"] == pytest.approx(27.333)
+        assert combined["metrics"]["correct_answers"]["value"] == pytest.approx(14.667)
+        # 28 refusals passes the loosened single-draw baseline but not the stricter bound.
+        assert not evaluate({"hallucinated_refusals": 28.0}, pinned1)
+        assert evaluate({"hallucinated_refusals": 28.0}, combined)

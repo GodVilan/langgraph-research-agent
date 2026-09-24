@@ -201,11 +201,36 @@ def _usage(trace: Any) -> dict[str, Any] | None:
     return usage if isinstance(usage, dict) else None
 
 
-def notional_for(input_tokens: int, output_tokens: int, pricing: ModelPricing) -> float:
-    """Price tokens the same way ``src/agent/llm.usage_from_message`` does."""
+def notional_for(
+    input_tokens: int, output_tokens: int, pricing: ModelPricing, cached_input_tokens: int = 0
+) -> float:
+    """Price tokens the same way ``src/agent/llm.usage_from_message`` does: the cached part of
+    the prompt at the cached rate (the full input rate when that is unverified)."""
+    cached = min(cached_input_tokens, input_tokens)
+    cached_rate = (
+        pricing.notional_cached_input_usd
+        if pricing.notional_cached_input_usd is not None
+        else pricing.notional_input_usd
+    )
     return (
-        input_tokens * pricing.notional_input_usd + output_tokens * pricing.notional_output_usd
+        (input_tokens - cached) * pricing.notional_input_usd
+        + cached * cached_rate
+        + output_tokens * pricing.notional_output_usd
     ) / 1_000_000
+
+
+def rate_floor(pricing: ModelPricing, input_tokens: float = 0.0, cached: float = 0.0) -> float:
+    """The lowest blended rate these tokens could carry: their input at the input rate, with
+    the *recorded* cached share at the cached rate.
+
+    Not simply the cached rate. Using $0.03 as the floor for every token would make the D-021
+    blend ($0.10/1M, impossible for uncached input) look possible and silently disable the
+    check that caught it. A population with no recorded cached tokens keeps the $0.30 floor.
+    """
+    if not input_tokens or not cached or pricing.notional_cached_input_usd is None:
+        return pricing.notional_input_usd
+    share = min(cached, input_tokens) / input_tokens
+    return share * pricing.notional_cached_input_usd + (1 - share) * pricing.notional_input_usd
 
 
 def classify(traces: list[Any], pricing: ModelPricing) -> dict[str, Any]:
@@ -232,9 +257,13 @@ def classify(traces: list[Any], pricing: ModelPricing) -> dict[str, Any]:
 
         row["input_tokens"] = int(usage.get("input_tokens") or 0)
         row["output_tokens"] = int(usage.get("output_tokens") or 0)
+        row["cached_input_tokens"] = int(usage.get("cached_input_tokens") or 0)
         row["stored_notional"] = float(usage.get("cost_usd_notional") or 0)
         row["recomputed_notional"] = notional_for(
-            row["input_tokens"], row["output_tokens"], pricing
+            row["input_tokens"],
+            row["output_tokens"],
+            pricing,
+            int(usage.get("cached_input_tokens") or 0),  # absent on pre-D-046 traces: 0
         )
         (priced if row["stored_notional"] > 0 else unpriced).append(row)
 
@@ -307,7 +336,12 @@ def report(groups: dict[str, Any], duplicates: list[Any], pricing: ModelPricing)
     tokens = sum(r["input_tokens"] + r["output_tokens"] for r in priced)
     if tokens:
         blended = stored / tokens * 1_000_000
-        low, high = pricing.notional_input_usd, pricing.notional_output_usd
+        low = rate_floor(
+            pricing,
+            sum(r["input_tokens"] for r in priced),
+            sum(r.get("cached_input_tokens", 0) for r in priced),
+        )
+        high = pricing.notional_output_usd
         print(f"  tokens {tokens:,} -> blended ${blended:.4f}/1M (must sit in ${low}-${high})")
         if not low - 1e-6 <= blended <= high + 1e-6:
             failures.append(

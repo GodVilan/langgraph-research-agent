@@ -91,6 +91,12 @@ a labelled slice before the flag flips.
 
 ## D-004 — Budget ceilings are enforced against *notional* cost
 
+> **Note 2026-09-24 (D-046).** The premise "on the free tier, billed cost is always `0.0`" was
+> an assumption about the key, not a measurement: its project had billing enabled throughout and
+> Google billed $7.60. Enforcing ceilings on notional cost was right for a different reason than
+> the one given — a bill is known only after the fact — and `Usage` no longer computes a billed
+> figure at all.
+
 **Decided:** `Usage` carries both `cost_usd` (what we are actually billed) and
 `notional_cost_usd` (the same tokens priced at paid-tier rates). `BudgetLimits.
 max_notional_cost_usd` is checked against the notional figure.
@@ -349,6 +355,14 @@ accumulator, deliberately not conflated with the per-request guard.
 ---
 
 ## D-014 — Thinking budget is pinned to `minimal`; determinism is not recoverable
+
+> **Note 2026-09-24 (D-046) — the pin worked, and thinking was never the lever.** The bill:
+> 89% of Gemini cost was uncached input, 9% output (thinking included), 2% cached input.
+> Pinning `minimal` kept thinking off the bill; the cost lever is context size.
+>
+> **Rescoped 2026-09-24 (D-035, D-042).** "Not recoverable" was true for the knobs tried —
+> temperature, reasoning effort, thinking budget. `seed=0, top_k=1` were not tried, and they
+> make the output byte-identical for both the scope classifier and the generator.
 
 **Decided:** `agent_reasoning_effort` defaults to `"minimal"` and is passed explicitly on
 every call. It is never left at the model default.
@@ -1529,3 +1543,542 @@ documentation before committing it — the same artifact-verification discipline
 the D-021 reconciliation and the judge-format check in `docs/PHASE4.md` §4. **Third defect
 found by that practice.** In each case the number was already in hand and looked fine; the
 check was performed because publishing it was the next step.
+
+---
+
+## D-035 — The scope classifier ships with pinned sampling, and its decision is returned in every response
+
+**The problem, measured.** Across seven v3 runs on identical input — r1, r2, r3, the traced
+run, and three comparison arms whose changes all sit *after* the guardrail — the input scope
+guardrail blocked **5, 3, 4, 4, 6, 3 and 5** of the same 43 verified factual questions. Three
+questions were blocked in all seven; three (`sp-016`, `sp-021`, `sp-044`) flipped between
+answered and refused with nothing changed (`make guardrail-variance`, no API calls). On a
+public endpoint the same question can be answered or refused by chance.
+
+**The brief offered three options. The measurement decided between them.** `make
+guardrail-probe` calls the classifier alone over the 28 factual questions the keyword fast
+path does not decide, 5 draws each, under two configurations (280 calls, Gemini free tier,
+$0 billed):
+
+| | refused per draw | verdict flips | items whose output varied |
+|---|---|---|---|
+| production (unpinned) | 5, 4, 5, 3, 5 | 3 of 28 | **28 of 28** |
+| pinned: `seed=0, top_k=1` | 5, 5, 5, 5, 5 | **0 of 28** | **0 of 28 — byte-identical on 140 of 140 calls** |
+
+**Decided — all three, not one of them:**
+
+1. **Pin** the scope classifier (`get_chat_model(pinned=True)`, `PIN_SCOPE_CLASSIFIER=true`).
+   Scoped to the classifier only: the generator, planner and critic stay unpinned, because
+   changing them moves the Phase 4 baseline and that is a measured Phase 6 question, not a
+   serving tweak (BACKLOG).
+2. **Return the decision** in every response: `guardrail.stage`, `reason`, `deterministic`,
+   and a `note` for the classifier stage (`src/guardrails/decision.py`). The classifier stage
+   is still reported `deterministic: false` — byte-identical in a 140-call probe is a
+   measurement, not a guarantee the provider makes, and a model update can move it.
+3. **Document** the seven-draw range and the probe in the README's Known limitations.
+
+**This corrects D-014 in part.** D-014 concluded "determinism is not recoverable" after trying
+temperature (ignored), reasoning effort and thinking budget — five distinct outputs from five
+runs at every setting. It never tried `seed` or `top_k`. For this call, they recover it. The
+conclusion held for the parameters tested and was stated more broadly than they supported.
+
+**What it costs.** The served system is no longer exactly the measured one: Phase 4's metrics
+were produced unpinned, and `PIN_SCOPE_CLASSIFIER=false` reproduces that configuration. The
+pinned classifier refuses a fixed 5 of 43 (`sp-003`, `sp-014`, `sp-016`, `sp-026`, `sp-044`),
+inside the unpinned range of 3–6 — consistent rather than better, and still refusing the
+paraphrased questions D-029 is about.
+
+**Reverses if:** a repeat of `make guardrail-probe` shows the pinned configuration varying —
+at which point the note's claim is withdrawn and the stage is legible only.
+
+---
+
+## D-036 — Live arXiv fetch is off on the public endpoint
+
+**Decided:** `POST /query` has no `use_arxiv` field (unknown fields are rejected) and the
+service always runs with `use_arxiv=False`. The CLI keeps the option.
+
+**Why:** a live fetch makes the server download and parse PDFs on an anonymous caller's
+behalf — outbound traffic and CPU the caller chooses — and every fetched paper is embedded
+into a process-wide session index (`src/retrieval/session_index.py`) that later requests
+search. That sharing was a documented cache on a single-user CLI; on a public endpoint it is
+one caller writing into every other caller's retrieval. BACKLOG already declined PDF upload
+until auth exists for the same reason.
+
+**Reverses if:** the endpoint gains authentication, and the session index becomes per-request.
+
+---
+
+## D-037 — The daily cost ceiling reserves before it runs, and refuses to start on a ledger that forgets
+
+**Decided:** a global daily ceiling on *notional* cost (`API__DAILY_NOTIONAL_CEILING_USD`,
+$0.50), kept in a ledger separate from graph state (`src/api/ledger.py`). Each request
+atomically **reserves** the per-request ceiling ($0.025) before the graph runs and **settles**
+to its actual cost after. A deployed container **refuses to start** with `API__LEDGER=memory`,
+with `sqlite` whose path is on the container's own root filesystem, or with a daily ceiling
+below one reservation.
+
+**Why reserve rather than check.** A check-then-run ceiling lets N concurrent requests each see
+room for one. Reservation makes committed-plus-reserved spend a hard bound however many race:
+50 concurrent reservations against room for 4 admit exactly 4 (`tests/test_api.py`).
+
+**Why the startup refusal.** An in-memory total resets on restart, and on a host that sleeps
+when idle every wake is a restart — a ceiling that never binds, as the brief put it. A README
+line asking for a persistent ledger would be an instruction; refusing to boot is a mechanism
+(§8.9). Verified on the real image: both refusals fire; a volume-backed ledger carried
+$0.003628 across a container restart.
+
+**Why notional.** D-004's reason, unchanged: billed cost is $0 on the free tier.
+
+**Fails closed.** An unreachable ledger refuses the query with 503 rather than serving it
+uncounted. The Upstash backend asserts each command's result, not the HTTP status — a 200
+carrying a per-command error is not a write (D-026, fourth instance).
+
+**Cost:** one ledger round-trip before and after each query; for `upstash`, a network call
+each way. A crashed request's reservation stays counted until midnight — over-counting, the
+safe direction.
+
+---
+
+## D-038 — Hugging Face Docker Spaces now require a paid plan: the sixth external change
+
+**Found before deploying, from the provider's own docs (2026-09-23):** "Gradio and Docker
+Spaces run on compute and require a paid plan to create: PRO for personal accounts." PRO is
+$9/month. The account this project deploys from is not PRO and has no payment method on file
+(`whoami`: `isPro: False`, `canPay: False`). The brief's "Hugging Face Spaces, free CPU tier"
+no longer exists for a new Docker Space on a free account; the CPU Basic hardware is still
+free, but only under PRO.
+
+**This is D-034's pattern, a sixth time** — the provider surface changed under the plan. What
+made the earlier five survivable applies here too: the image is host-agnostic (one
+Dockerfile, env-configured, two durable ledger backends), so the choice of host is a
+configuration and billing decision, not a code change.
+
+**Resolved 2026-09-24 (Srikanth, Phase 5 review): Hugging Face PRO ($9/month), CPU Basic,
+Upstash Redis free tier for the daily ledger, Langfuse Cloud Hobby for traces.** Reasons:
+
+* the deploy tooling already targets it — `make deploy-space`, `make space-secrets`, the
+  context checks and the dry run. Another host means new tooling, new guards, new failure modes;
+* **the cost is fixed and known.** A pay-per-use host behind a public endpoint has an
+  open-ended bill, bounded only by this project's own ceilings holding;
+* Fly.io costs more and needs a volume.
+
+**Fallback, not built:** Google Cloud Run, request-based billing, `max-instances=1`, 2 GiB,
+Upstash for the ledger. Its free tier covers demo traffic, but it needs a billing account with
+no hard cap. Nothing is built for it unless Srikanth says so.
+
+---
+
+## D-039 — Every request is traced; the sampling knob exists, is derived, and is verified in effect
+
+**Measured (`make trace-units`, the 69-trace Phase 4 window):** 43 Langfuse units per query
+(median; trace + observations). At the most queries the $0.50/day ceiling admits — 146/day at
+the $0.00342 mean notional cost — tracing everything is ~167k units/month against Langfuse
+Cloud Hobby's 50k. A head-sampling rate of **0.30** makes that worst case fit.
+
+**Decided:** ship `LANGFUSE_SAMPLE_RATE=1.0`, and state the arithmetic rather than pre-emptively
+discard 70% of traces from an endpoint that will see a few queries a day. Hobby covers about
+1,160 traced queries a month (~38/day). If sustained traffic approaches that, set the derived
+0.30. What Langfuse does when a Hobby project exceeds its allowance is **not verified** — the
+pricing page does not say.
+
+**The guard that made the knob trustworthy.** Langfuse applies `sample_rate` only when it
+creates the global OpenTelemetry provider itself; if one is already registered it reuses it and
+drops the rate without a warning. A configured policy that is silently not in effect is the
+D-023 family. The service checks the *effective* sampler at startup and refuses to start if a
+configured rate is not in effect. A sampled-out request returns `trace_id: ""`, never a dead id.
+
+---
+
+## D-040 — The load check bypasses the per-IP bucket, and only that
+
+**Decided:** when `LOADCHECK_TOKEN` is set on the instance, a request carrying a matching
+`X-Loadcheck-Token` (constant-time compare) skips the per-IP bucket. The daily ceiling and
+the concurrency gate still apply. Unset, no bypass exists.
+
+**Why:** every load-check request comes from one address. Without the bypass, 10 concurrent
+users against a 3-request burst measures the limiter, not the service. The two limits it does
+not bypass are the ones that protect the key. A run *without* the token is reported alongside,
+as evidence that the per-IP limit fires on the deployed instance.
+
+---
+
+## D-041 — Phase 5, what running found that the tests did not
+
+The §8.1 pattern again — seven instances, each found by building or running the real thing rather than by a test written in advance:
+
+| Found by | Defect | Fix |
+|---|---|---|
+| reading the CLI while wiring SSE | `--stream` ran the graph **twice** per question — once to stream, once for the answer — paying for every streamed query double | one run path, `run_query(on_event=…)`; a test asserts one set of model calls per streamed question |
+| first real query in the container | the model pacer started **empty with a bucket of one**, so every call after the first waited 5 s with a single user: 16.6 s for a 3-call query | bucket of 3, starts full; 4.3 s from idle; the 60 s window still admits ≤ 15 calls |
+| first container start on a volume | the volume mounted **root-owned**; the uid-1000 service could not open its own database | `/data` created and owned by uid 1000 in the image |
+| the sqlite-on-a-volume test | `mount_point()` skipped non-existent path components and judged a not-yet-created ledger file by the wrong mount | walk the path lexically |
+| extending the seeded-key guard | `host_is_local` was a **substring** test: `https://localhost.attacker.example` counted as local | parse the hostname |
+| writing the sampling test | Langfuse **silently drops** `sample_rate` when another OTel provider exists | startup check on the effective sampler (D-039) |
+| `/ready` in the container | the chunk count read a non-existent attribute and reported 0 | read the FAISS index's `ntotal`; now 5,401 |
+
+And the one found by *not* running: the daily ceiling could be configured below one
+reservation, admitting nothing while `/ready` said ready. It is now a startup refusal.
+
+---
+
+## D-042 — `seed=0, top_k=1` makes the generator deterministic too; measured, not shipped
+
+**Measured (`make generator-determinism`, Gemini free tier, $0, probed 2026-09-24):** N=5
+calls per cell, `gemini-3.5-flash-lite` at `reasoning_effort=minimal`.
+
+| Prompt | Unpinned (production) | Pinned `seed=0, top_k=1` |
+|---|---|---|
+| D-014's own fixed prompt, verbatim | 5 distinct of 5 — reproduces D-014 | **1 distinct of 5 — byte-identical** |
+| the real `generate` call (v2 prompt, fixed 5-chunk context from r1's `sp-001`) | 3 distinct of 5 | **1 distinct of 5 — byte-identical** |
+
+The pinned generator's output equals one of the unpinned draws (`9719d9c9`): pinning selects
+one of the answers sampling can produce, it does not invent a new one.
+
+**Decided: not shipped in v3.0.** `top_k=1` on the generator is greedy decoding. It would
+change answer quality, and so every Phase 4 outcome metric, not only the classifier's refusal
+count. It goes to BACKLOG as a measured Phase 6 arm: three pinned runs against the three
+unpinned, same judge. What changes now is wording: Phase 4's variance "lives in *unpinned*
+generation and judging" (EVALS.md, PHASE4.md), and D-014 carries a rescoping note.
+
+**Not a contract.** Five identical outputs on one day, one model version, one key. The
+classifier result (140 of 140, D-035) is stated the same way, with its probe date.
+
+---
+
+## D-043 — The published OpenAI spend was stale and undercounted; the account is now the check
+
+**Found 2026-09-24, while pricing G-1.** Every document quoted **$0.0942 over 465 requests**
+(CLAUDE.md, README, BUDGET, the Phase 5 brief). The provider's own records say **$0.1196 over
+673 requests** (`make judge-spend`, 21 batches, none unreceipted). Two separate errors:
+
+| | Requests | Spent | Why it was missing |
+|---|---:|---:|---|
+| traced run's judging (q1 + q3) | 91 | $0.0172 | judged *after* $0.0942 was measured; the typed figure never moved — C-1 again |
+| three batches with no receipt | 117 | $0.0082 | the expired `dense_only` q1 (67 paid of 69) and the two rubric-v1 validation q1 batches (25 + 25): each receipt was **overwritten** by a later submit for the same arm and stage, so `judge-spend`, which summed receipts, could not see them |
+
+The second is the worse one: a tool built so the spend figure would be emitted rather than
+typed was emitting from an incomplete source, and nothing compared it to the provider's.
+
+**Fixed three ways.** `write_receipt` archives a receipt for a different batch instead of
+overwriting it (tested); `judge-spend` lists the account's batches and **refuses to write a
+total while any judge batch is unreceipted**; the three lost receipts are reconstructed from
+the account's batch list, marked as reconstructed. The spend line in README and BUDGET, and a
+per-line breakdown in BUDGET, are rendered from the artifact, and `tests/test_docs.py` fails
+a stale copy or a spend figure typed outside the rendered blocks — which is how the allocation
+table's "$0.00 spent" on full runs that had cost $0.0654 was caught.
+
+**Cost of the error:** none in money — $0.1196 is 2.4% of the $5 ceiling. The cost is to the
+claim "every number is regenerable": this one was regenerable from an incomplete source.
+
+---
+
+## D-044 — The shipped (pinned) configuration is re-measured, passes the gate, and becomes the CI baseline
+
+D-035 shipped a pinned scope classifier while every Phase 4 number had been measured unpinned
+— D-002's problem again: a changed component invalidates the comparison until it is
+re-measured. So it was re-measured (Phase 5 review, G-1).
+
+**Pre-registered before judging** (CLAUDE.md, 2026-09-24): the gate passes and Recall@5 stays
+0.267, because every item the pinned classifier blocks was already a refusal or a gold miss —
+`sp-016` was a hallucinated refusal in r1–r3 and misses gold at k=5.
+
+**Run:** v3, pinned default, frozen set `de699d68`, Gemini free tier ($0): the same 5 blocked
+as the probe, 0 errors. **Judged:** `gpt-5.6-luna` @ `low`, Batch, two-stage, 69 q1 + 19 q3.
+Cost cap $0.07 for this run (the estimator said $0.0640, conservative by design; measured
+comparable runs $0.0154–$0.0173). **Actual: $0.0154** (q1 $0.0053, q3 $0.0102) — no anomaly.
+
+| gated metric | Phase 4 baseline (unpinned, r1–r3) | pinned run | |
+|---|---|---:|---|
+| factual Recall@5 (n=43; v2.1 0.233) | 0.267 ±0.000 | **0.267** | as pre-registered |
+| factual MRR (n=43; v2.1 0.196) | 0.175 ±0.000 | 0.175 | |
+| hallucinated refusals (n=46 answerable) | 25.3 ±2 (26, 26, 24) | **27** | inside tolerance, **above all three unpinned runs** |
+| correct answers (n=46) | 15.7 ±1 (15, 16, 16) | 15 | |
+| attribute correct refusals (n=11) | 11 ±0 | 11 | |
+
+**Gate: passed.** Stated with its caveat: 27 hallucinated refusals is one more than any
+unpinned run — the direction pinning predicts (5 blocks every call against an unpinned mean of
+4.3), and one pinned run cannot separate that from noise.
+
+**Decided:** `evals/baseline_metrics_pinned.json` is committed **beside** the Phase 4 baseline,
+which stays untouched. Values are the pinned run's own; tolerances are the Phase 4 three-run
+spread, **carried** — one run cannot measure its own spread (the rule was written into
+`evals/gate.py` before the result existed). CI now gates the shipped configuration: the
+must-pass step and the injected-regression step both run against the pinned run and baseline,
+and the injected regression fails it (replayed locally before committing).
+
+**Cost:** the tolerance on the shipped baseline is borrowed, not measured. Two more pinned
+runs would measure it; that is the Phase 6 arm in BACKLOG, not a v3.0 blocker.
+
+### D-044, amended 2026-09-24 — three pinned draws, and the answer to "was 27 noise?"
+
+**The correction (Phase 5 review).** Re-baselining on one pinned draw *loosened* the gate: the
+centre became the one draw already worse than all three unpinned runs, so hallucinated
+refusals would have passed up to 29 (was ~27.3) and correct answers down to 14 (was ~14.7).
+Until the fix landed, CI gated every metric on the **stricter** of the Phase 4 and pinned
+baselines (`evals/gate.py --baseline A --baseline B`).
+
+**Two more pinned full runs**, judged the same way (Batch, `low`, two-stage). Cap $0.06;
+projected $0.0346 from the estimator's actuals line; **actual $0.0320** (r2 $0.0150, r3
+$0.0170). The classifier blocked the same 5 items in all three pinned runs.
+
+| n=46 answerable / n=43 factual | unpinned (r1, r2, r3) | pinned (p1, p2, p3) |
+|---|---|---|
+| hallucinated refusals | 26, 26, 24 → **25.3 ±2** | 27, 27, 25 → **26.3 ±2** |
+| correct answers | 15, 16, 16 → 15.7 ±1 | 15, 15, 15 → 15.0 ±0 |
+| Recall@5 (v2.1 0.233) / MRR (v2.1 0.196) | 0.267 / 0.175, spread 0 | 0.267 / 0.175, spread 0 |
+| attribute correct refusals (n=11) | 11 ±0 | 11 ±0 |
+
+**The answer, stated either way as asked: 27 was partly noise, and a rise is not shown.** The
+third pinned draw gave 25. Across three draws pinning moves the mean by +1.0 — the direction
+the mechanism predicts (5 blocks every call against an unpinned mean of 4.3) — but +1.0 is
+inside the spread of either configuration (2), and the ranges overlap (24–26 vs 25–27). By this
+project's reporting rule, a difference no larger than the spread has not been shown to be a
+difference. Three draws, no confidence interval.
+
+**The baseline, re-centred by code.** `evals/baseline_metrics_pinned.json` is now the mean of the
+three pinned draws with their own max-min spread, written by `evals/gate.py --derive-baseline`
+— no hand edits. Doing so exposed that the Phase 4 baseline's stated rule had never been
+implemented in committed code; the one derivation function now regenerates **both** committed
+baselines exactly from the runs they name, and `tests/test_gate.py` fails if either drifts. CI
+gates the shipped configuration against the re-centred baseline; the injected regression still
+fails it. One consequence stated plainly: pinned correct answers had spread 0 across three
+draws, so the shipped gate allowed no drop in correct answers at all — **superseded by the
+note below**.
+
+### D-044, note 2026-09-24 — an outcome tolerance is floored by the unpinned spread
+
+**The correction (Phase 5 review).** A zero tolerance on pinned correct answers is a flaky gate.
+Generation and judging are still unpinned — D-042 measured generator pinning and did not ship
+it — and unpinned correct answers ranged 15–16. Three equal draws (15, 15, 15) from a process
+known to vary are a small-sample artifact, not evidence that the variance is gone.
+
+**The rule, in `evals/gate.py` (`derive_baseline`), applied by regeneration, not by hand:**
+
+* **retrieval metrics** (Recall@k, MRR): tolerance = their own observed spread. Retrieval is
+  deterministic by construction, and `make index-verify` enforces identical rankings;
+* **outcome metrics** (correct answers, hallucinated refusals, anything downstream of
+  generation or judging): tolerance = **max(own spread, the unpinned spread for the same
+  metric)**, the unpinned spread read from the reference baseline (`evals/baseline_metrics.json`).
+  Each metric records which basis it used (`tolerance_basis`).
+
+**Result:** pinned correct answers 15.0 **±1.0** (floored — own spread 0); hallucinated
+refusals 26.3 ±2.0 (own spread = floor); Recall@5 0.267 ±0 and MRR 0.175 ±0 (retrieval, own).
+The Phase 4 baseline regenerates unchanged (derived against itself, the floor is its own
+spread), both CI steps replay correctly, and `tests/test_gate.py` asserts each branch.
+
+**What the floor does not fix — and deliberately so.** Attribute correct refusals (n=11) is an
+outcome metric whose unpinned spread was also 0 (11, 11, 11), so under this rule it stays at
+±0.
+
+### D-044, note 2 (2026-09-24) — the ±0 gate on attribute refusals is intentional
+
+**Decided (Phase 5 review):** keep attribute correct refusals at ±0.
+
+**What the zero means.** It is a **ceiling metric**: 11 of 11 (1.000) in all six judged runs,
+pinned and unpinned. Zero spread at the ceiling is a ceiling artifact, not evidence of
+stability — the stratum cannot vary upward, and at 1.000 it is above the 0.95 too-easy line
+(CLAUDE.md §3), so it cannot tell configurations apart. The README states that beside the
+figure, paired with the hallucinated-refusal count as the refusal pair always is.
+
+**Why the strict gate anyway.** A missed refusal on an unanswerable item — the agent answering
+a question the corpus cannot support — is the regression most worth catching. A one-item drop
+fails CI; that is accepted, **including an occasional false alarm** from unpinned generation or
+judging, as the price of never letting that regression through silently. The asymmetry is the
+decision: a false alarm costs a rerun, a missed regression costs a fabricated answer served as
+fact.
+
+**Reverses if:** false alarms on this metric recur often enough to be ignored — at which point
+a gate that is routinely overridden is worse than a looser one, and the stratum needs hardening
+(more, harder attribute items) rather than a wider tolerance.
+
+---
+
+## D-045 — The Phase 4 baseline's stated derivation had no producing code
+
+**Found 2026-09-24** while re-centring the pinned baseline. `evals/baseline_metrics.json` says
+of itself *"value = mean of three complete runs; tolerance = their max-min spread"* — and no
+committed code implemented that sentence. The file was produced outside the repo, and every
+review since Phase 4 closed read the derivation string as if it were a derivation.
+
+**It is the C-1 class** — a number that could not be regenerated by a command in the repo —
+in its least visible form: not a typed figure in prose but a machine-read artifact carrying
+its own provenance text, which is exactly what makes it look regenerable. The regression gate,
+the part of the project that exists to catch drift, rested on it.
+
+**Fixed:** one derivation function (`evals/gate.py derive_baseline`) now regenerates the
+Phase 4 baseline exactly from r1–r3, and the pinned baseline from its three runs;
+`tests/test_gate.py` fails if either committed baseline differs from what the function
+produces from the runs it names. Baselines are written by `--derive-baseline`, never by hand.
+Reserved for the post-mortem (BACKLOG).
+
+---
+
+## D-046 — "Billed" was $0 by assumption, not measurement; Gemini was billed $7.60
+
+**Found 2026-09-24 by Srikanth, from Google Cloud Billing** (SKU export, 2026-08-19 to
+2026-09-24; not committed — the figures are hand-entered in `docs/billing/gemini.json` with
+source and date). The Gemini key's project had billing enabled throughout. **Every "Gemini billed
+$0" in this repo was wrong**: README, BUDGET, OBSERVABILITY, SERVING, PHASE4, the API's
+`billed_cost_usd: 0.0`, the `arxiv_agent_cost_usd_total{kind="billed"}` series, the trace
+metadata, every run artifact's `cost_usd: 0.0`, and the self-judge receipt's "free tier — $0".
+
+| SKU | tokens | billed |
+|---|---:|---:|
+| 3.5 flash-lite input (uncached) | 22,573,359 | $6.77 |
+| 3.5 flash-lite input (cached) | 4,703,996 | $0.14 |
+| 3.5 flash-lite output (incl. thinking) | 274,770 | $0.69 |
+| 2.5 flash-lite input + output (the first live run, D-012) | 13,904 | $0.002 |
+| **total** | | **$7.60** |
+
+All rates match the verified card ($0.30 / $0.03 cached / $2.50; 2.5 at $0.10 / $0.40). That
+is **45× the OpenAI judge spend** ($7.60 / $0.1670, `make judge-spend`) the project tracked to four decimal places under a $5 ceiling,
+on the provider it had no ceiling for.
+
+**How it happened.** `ModelPricing` carried "billed" rates of $0 from the belief that the key
+was on the free tier; `Usage.cost_usd` multiplied tokens by them; everything downstream reported
+the product as a measurement. Nothing ever compared it with the provider's record. It is the
+C-1 class again — a number nobody could regenerate from a source — and the same shape as D-043
+(OpenAI spend summed from an incomplete source), one level down: this figure had no source at
+all, only a default.
+
+**Decided — the rule:** **a billed figure comes from the provider's own record, or it is shown
+as "unverified" — never 0 by default.** In code: `ModelPricing` has no billed rates;
+`Usage.cost_usd` is `None` unless a provider record supplied it, and the reducer keeps
+unverified unverified; the API returns `billed_cost_usd: null` with a `billed_cost_basis`; no
+billed metric series is written; traces carry `cost_usd_billed: null` and no `cost_details`.
+The provider's figure is rendered into README and BUDGET from `docs/billing/gemini.json`, and
+`tests/test_docs.py` fails a doc that asserts Gemini was billed $0.
+
+**Cached input (the second defect).** Google billed 4.7M prompt tokens as cached at $0.03/1M.
+LangChain reports them (`input_token_details.cache_read`, inside `input_tokens`); `Usage`
+ignored them and priced every prompt token at $0.30 — an overstatement, the safe direction for
+a ceiling, but wrong. `Usage.cached_input_tokens` now records them and notional prices them at
+the cached rate. The blended-rate sanity checks (`make budget`, `make reconcile-cost`) use the
+*recorded* cached share for their floor — using the cached rate for every token would have
+made the D-021 blend look possible and disabled the check that caught it.
+
+**Reconciliation, on tokens (`make gemini-reconcile`).** Billed prompt tokens 27,277,355;
+recorded by any instrumentation 6,530,193 (eval runs 6.22M, CLI 0.20M, tests 0.07M, the
+Gemini judge arm 0.02M, probes 0.02M). **The gap — 20,747,162 prompt tokens, 76%, and 42% of
+output — is uninstrumented usage, named, not spread.** Only full-text work is large enough to
+fill it: one multi-hop construction candidate is ~99k prompt tokens (eight calls carrying whole
+papers), one run of the necessity-fixture suite ~504k, the v2.1 baseline run at least 771k —
+all three discarded or never exposed their usage. **Srikanth's hypothesis that full-text QA
+drafting dominates is consistent with the records and not confirmed by them:** the gap equals
+~210 candidates' worth, the 4.7M cached tokens point to long identical prefixes sent repeatedly,
+and construction and the necessity tests make the same kind of call — nothing recorded can say
+which of the two dominates.
+
+**Cost of the error:** $7.60, and the claim that every number here is regenerable. **Reverses
+if:** never — this is a rule about where numbers come from.
+
+**Also found while reconciling:** Langfuse Cloud answers `GET /api/public/traces` with 410 for
+organisations created on or after 2026-09-16; `make smoke-live`'s trace check and
+`span_loss_probe.py` use it and must move to `/api/public/v2/observations` before deploy.
+
+### D-046, note 2026-09-24 — the gap was callers discarding usage; the fix is structural
+
+The 76% gap had one cause, not several: **callers discarded the usage the wrapper handed
+them.** `call_structured` and `call_text` always returned a `Usage`; eval-set construction
+(`drafted, _ = await call_structured(...)`), the necessity checks and the probes threw it away,
+and three scripts built their own models and bypassed the wrapper entirely. Recording that
+depends on every caller choosing to keep the number is an instruction, not a mechanism (§8.9).
+
+**The mechanism.** `usage_from_message` — which every response through `call_text` and
+`call_structured` passes through — now appends one row per call to a local usage log
+(`Settings.usage_log`, `.usage/llm_usage.jsonl`, gitignored): timestamp, activity (the running
+program, or an explicit `USAGE_ACTIVITY`), model, input, cached, output, thinking, notional. A
+caller can drop the `Usage` object; it cannot drop the row. The three bypassing scripts now build
+models through `get_chat_model` (which gained `overrides` for D-014's probe settings), and the
+judge's synchronous arms — which call Gemini's OpenAI-compatible HTTP endpoint around LangChain —
+write a row per call. `tests/test_usage_log.py` asserts a wrapper call leaves a correct row, that
+a caller discarding its `Usage` still leaves one, and **fails if any module other than
+`src/agent/llm.py` builds a chat model, calls Gemini over HTTP without `record_usage`, or calls
+`.ainvoke` on a model without `usage_from_message`** (mutation-checked: an injected bypass fails
+it). The suite writes its rows to a temporary file, never the real log (§8.10).
+
+**What it does not do.** It records calls from now on; it cannot recover the 20.7M tokens
+already spent unrecorded. A log that cannot be written is reported as an error rather than
+failing the query — a served request is not taken down by its own bookkeeping.
+
+---
+
+## D-047 — Deployed: what the live host changed, and what running against it found
+
+**Deployed 2026-09-24** to `godvillain/Scholium` (HF PRO, CPU Basic, public), commit `c40fc900`
+of the Space repo. Build 201 s; a variable-change restart took ~30 s to `/ready`. Upstash ledger,
+Langfuse Cloud traces, the deploy key a free-tier key in its own no-billing project (15 RPM /
+500 RPD, read from AI Studio by Srikanth).
+
+**Verified on the host, by effect:**
+
+| Check | Result |
+|---|---|
+| `make smoke-live` | every check passes — README example cites a returned source, `/ready` 5,401 chunks and the Phase 4 index checksum, limiter keys on the real client, forged `X-Forwarded-For` ignored, trace **complete** in Langfuse Cloud (32 observations, root carries the answer) via the v2 API, effective sample rate 1.0 in `/ready` and in the run log |
+| ledger durability | $0.003606 today before a restart, $0.003606 after — read back from Upstash by the new container |
+| seeded-key refusal | the Space's own built image (`registry.hf.space/godvillain-scholium`), run with the seeded pair and a Cloud host: "refusing to start", startup failed |
+| span loss on stop | Space paused the instant a response landed: trace **complete** (33 observations, root answer) — the pause is a graceful stop and the shutdown flush runs. A natural idle sleep cannot be triggered on demand; it is inferred from pause, not observed |
+
+**Found by running it — none visible locally:**
+
+1. **The trusted proxy hop count is 1, and 0 was actively wrong.** At the default of 0 the limiter
+   keyed on the socket peer, which on Spaces is a *rotating* proxy node: 6 distinct keys in 8
+   plain requests from one client. The per-IP limit would have been shared by strangers on the
+   same node and escapable by landing on another. With `API__TRUSTED_PROXY_HOPS=1` (a Space
+   variable) the key is stable, equals the client's address, and ignores forged headers.
+2. **The generator's citation format drifted on the free-tier key.** Recorded eval answers (all
+   on the paid key) cited full ids; on the free-tier key 4 of 4 sampled answers used
+   abbreviated ids (`[30179_0006]`) and one used a corrupted id (`[32605.30179_0006]`). Whether
+   the tier or a week of model drift is the cause cannot be separated from here. It exposed a
+   pre-existing parser defect: **134 of 645 completed eval answers (21%) put several ids in one
+   bracket and `finalize` recognised none of them** — so citation-ordered sources and the
+   invented-citation warning had not worked for a fifth of answers. One parser now accepts all
+   forms, resolves an abbreviation only when unique, and reports corrupted ids as unresolved.
+   No gated metric reads it (retrieval uses retrieved ids; the judge reads text).
+3. **`smoke-live` could not assert on one draw.** Unpinned generation (D-042) makes the README
+   example's citation form a draw: about 2 of ~10 free-tier draws carried no resolvable
+   citation. The check now runs up to 3 draws, prints each draw's citations, passes if any cites
+   a returned source, and warns with the count when not all did — a relaxation of the brief's
+   single-draw wording, flagged rather than made silently.
+4. **Local Langfuse could not test the v2 API.** The v2 observations endpoint needs self-hosted
+   Langfuse v4, whose migrations need a newer ClickHouse than the pinned 24.3 (25.8 also fails).
+   The migration was tested on a throwaway v4 stack (ClickHouse 26.9, its own volumes, the
+   Phase 4 trace store untouched), then against Cloud. `infra/docker-compose.langfuse.yml` is
+   unchanged and still v3.
+5. **`make serve` did not run uvicorn like the container** (no `--no-proxy-headers`), so a local
+   forged header rewrote the client address — caught by `smoke-live`'s forgery check. Fixed.
+
+---
+
+## D-048 — The first deployed load check found a reservation leak, and was itself a runaway
+
+**2026-09-24, first G-3 run against the Space, aborted by hand.** Three failures, two of them
+mine in the measuring tool and one in the service:
+
+1. **The service leaked daily-ceiling reservations.** A request reserved $0.025, then waited at
+   the concurrency gate *in the request's own coroutine*. A client that disconnected while queued
+   cancelled that coroutine between reserve and settle, and the reservation stayed counted until
+   midnight. The run's 83 client-side connection errors left enough stranded reservations that
+   the $0.50 ceiling answered `429 daily_cost_ceiling` **after one served query**. On a public
+   endpoint that is a denial-of-service: open requests, drop them, and the day's ceiling is gone
+   for everyone. **Fixed and redeployed** (`caefad03`): admission (reserve + gate) runs as its own
+   task awaited through `asyncio.shield`, so no client can cancel it half-way; a client that has
+   left gets its slot and reservation handed back by a done-callback. Tested by reproducing the
+   disconnect while queued; the pre-fix sequence, run against the same scenario, leaks $0.025.
+2. **The load tool hot-looped.** On an instant rejection it retried at once: ~74,000 requests in
+   minutes, **70,510 of them answered by Hugging Face's own platform rate limiter** (HTML 429s),
+   not by this service. It now honours `Retry-After`, backs off on non-JSON (platform) 429s,
+   **aborts on `daily_cost_ceiling`** (which cannot clear before 00:00 UTC), and stops at 600
+   requests sent whatever happens — each tested.
+3. **The cold-start figure timed the wrong container.** After `restart_space` the old container
+   kept answering `/ready` for seconds; the tool took that 200 as the new container. `/ready` now
+   reports a per-process `boot_id`, and cold start is timed until a *new* boot id answers.
+
+**What the aborted run does not support:** any latency or throughput figure. Its artifact was
+never written (the tool was killed); its per-request log is not a load-check result. **Not
+published.**
+
+**Consequence today:** the leaked reservations stay counted until 00:00 UTC (an over-count, the
+safe direction; the ledger was not hand-edited). With ~$0.19 of the day left, a load check to the
+G-3 spec (≥30 served, 10 users each holding a $0.025 reservation) cannot run until the reset.

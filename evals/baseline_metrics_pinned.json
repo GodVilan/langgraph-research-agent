@@ -1,0 +1,68 @@
+{
+ "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+ "corpus_sha256": "e1be96d1abb6ba3ecc1a7e20ef15ead9674c739b135388936af41a36d4152110",
+ "judge": "gpt-5.6-luna @ low, two-stage (D-030a)",
+ "rubric_version": 2,
+ "configuration": {
+  "scope_classifier_pinned": true
+ },
+ "derivation": "value = mean of 3 complete runs. Tolerance: retrieval metrics = their max-min spread (deterministic by construction); outcome metrics = max(their max-min spread, the reference baseline's spread for the same metric), because generation and judging stay unpinned and a few equal draws do not show the variance is gone (D-044 note). A drop larger than the tolerance is a regression. 3 draws, no confidence interval.",
+ "tolerance_reference": "evals/baseline_metrics.json",
+ "runs": [
+  "evals/runs/v3_de699d68_pinned.json",
+  "evals/runs/v3_de699d68_pinned_r2.json",
+  "evals/runs/v3_de699d68_pinned_r3.json"
+ ],
+ "metrics": {
+  "factual_recall@5": {
+   "value": 0.267,
+   "tolerance": 0.0,
+   "tolerance_basis": "own spread (retrieval is deterministic by construction)",
+   "runs": [
+    0.267,
+    0.267,
+    0.267
+   ]
+  },
+  "factual_mrr": {
+   "value": 0.17499999999999996,
+   "tolerance": 0.0,
+   "tolerance_basis": "own spread (retrieval is deterministic by construction)",
+   "runs": [
+    0.175,
+    0.175,
+    0.175
+   ]
+  },
+  "hallucinated_refusals": {
+   "value": 26.333333333333332,
+   "tolerance": 2.0,
+   "tolerance_basis": "own spread",
+   "runs": [
+    27,
+    27,
+    25
+   ]
+  },
+  "correct_answers": {
+   "value": 15.0,
+   "tolerance": 1.0,
+   "tolerance_basis": "floor: reference (unpinned) spread",
+   "runs": [
+    15,
+    15,
+    15
+   ]
+  },
+  "attribute_correct_refusals": {
+   "value": 11.0,
+   "tolerance": 0.0,
+   "tolerance_basis": "own spread",
+   "runs": [
+    11,
+    11,
+    11
+   ]
+  }
+ }
+}

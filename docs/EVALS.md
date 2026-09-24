@@ -716,7 +716,7 @@ Two instruments produce every Phase 4 outcome number, and both are nondeterminis
   the design below is built around; a fixture tuned until it stopped moving would have hidden it.
 
 **Design.** N = 3 complete runs of v3 over all 69 items (`make run-set` with `--tag r2`,
-`--tag r3`; free tier, ~15 min each), each scored in full by the shipping judge
+`--tag r3`; ~15 min each at the pacing rate, billed on the key's paid project — D-046), each scored in full by the shipping judge
 (`gpt-5.6-luna` at `low`, two-stage, Batch). Every metric — the refusal pair, answer accuracy,
 grounding, clarification, Recall@5, MRR — is then reported as **three values and their
 spread** (min, max, std across runs), per stratum, with n. The judge is held fixed across
@@ -876,7 +876,7 @@ with a **decomposition** rather than a single number.
 | `unanswerable_topic`, correct refusals (n=2) | 2 / 1 / 2 → **1** |
 | ambiguous clarified (n=10) | 4 / 3 / 3 → **1** |
 
-**The variance lives entirely in generation and judging; retrieval contributes none of it.**
+**The variance lives entirely in unpinned generation and judging; retrieval contributes none of it.** (Rescoped 2026-09-24: generation here is unpinned. `seed=0, top_k=1` makes the generator's output byte-identical on a 5-draw probe — D-042 — so the generation share is a property of the sampling configuration, not of the model.)
 Identical input, identical index, identical query embedding — the retrieved list is the same
 every time, and every run-to-run difference downstream comes from what the generator wrote and
 what the judge made of it. (The one exception is *which* items the scope guardrail blocks — 5,

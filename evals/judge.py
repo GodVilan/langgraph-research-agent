@@ -460,6 +460,51 @@ def estimate() -> None:
         f"\nestimated total for the chosen arms ${total:.4f}; OpenAI-billed arms count against "
         f"the $5 lifetime ceiling ($2 alert), others are billed as named per arm"
     )
+    if SCOPE["all"]:
+        for line in recent_actuals():
+            typer.echo(line)
+
+
+def recent_actuals(arm_id: str = "luna-low", n: int = 3) -> list[str]:
+    """The last ``n`` comparable full runs' actual cost, beside the conservative estimate.
+
+    The estimate stays deliberately conservative (Phase 5 review: do not recalibrate it); this
+    puts the measured figures next to it so the gap is visible at the moment of deciding.
+    Comparable = a full-run (``--all``) judging of the shipping configuration by the same arm,
+    q1 and q3 together; source: ``evals/runs/judge_spend.json`` (`make judge-spend`).
+    """
+    spend_file = RUNS / "judge_spend.json"
+    if not spend_file.exists():
+        return ["(no evals/runs/judge_spend.json: run `make judge-spend` for measured actuals)"]
+    detail = json.loads(spend_file.read_text(encoding="utf-8")).get("batches_detail", [])
+    arms = ("dense_only", "section_filter", "v21")
+    runs: dict[str, float] = {}
+    for row in detail:
+        name = str(row["receipt"])
+        prefix = f"batch_{arm_id}_"
+        if not name.startswith(prefix) or "_all" not in name or row.get("usd") is None:
+            continue
+        if any(a in name for a in arms) or name.count(".") > 1:  # arms, archived receipts
+            continue
+        tag = name.removeprefix(prefix).split("_all", 1)[1].removesuffix(".json") or "_r1"
+        runs[tag] = runs.get(tag, 0.0) + float(row["usd"])
+    if not runs:
+        return ["(no comparable full runs recorded)"]
+
+    def submitted(tag: str) -> str:
+        # Chronological, from the q1 receipt: sorting tags by name put "traced" after "r3"
+        # and dropped the newest run from "the last three".
+        suffix = "" if tag == "_r1" else tag
+        receipt = RUNS / f"batch_{arm_id}_q1_all{suffix}.json"
+        if receipt.exists():
+            return str(json.loads(receipt.read_text(encoding="utf-8")).get("submitted_at") or "")
+        return ""
+
+    order = sorted(runs, key=lambda t: (submitted(t), t))[-n:]
+    return [
+        f"measured, last {len(order)} comparable full runs ({arm_id}, q1+q3): "
+        + ", ".join(f"{t.strip('_')} ${runs[t]:.4f}" for t in order)
+    ]
 
 
 def _q3_targets(
@@ -588,6 +633,15 @@ def write_receipt(path: Path, info: dict[str, Any]) -> None:
     if not info.get("batch_id"):
         raise typer.BadParameter(f"submit produced no batch_id; nothing was queued: {info}")
     path.parent.mkdir(parents=True, exist_ok=True)
+    # Never overwrite a receipt for a different batch: archive it beside the new one. An
+    # overwrite hid three paid batches (117 requests) from `make judge-spend` until the
+    # account's own batch list was checked against the receipts (Phase 5 review).
+    if path.exists():
+        previous = json.loads(path.read_text(encoding="utf-8"))
+        old_id = str(previous.get("batch_id", ""))
+        if old_id and old_id != info["batch_id"]:
+            archived = path.with_name(f"{path.stem}.{old_id[-12:]}.json")
+            archived.write_text(json.dumps(previous, indent=2) + "\n", encoding="utf-8")
     path.write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
     written = json.loads(path.read_text(encoding="utf-8"))
     if written.get("batch_id") != info["batch_id"]:
@@ -776,6 +830,17 @@ def run(arm: str = "oss120b", items: str = "") -> None:
             usage = data.get("usage", {})
             spend["prompt_tokens"] += int(usage.get("prompt_tokens", 0) or 0)
             spend["completion_tokens"] += int(usage.get("completion_tokens", 0) or 0)
+            # Every synchronous judge call — including the Gemini arms, which call Gemini's
+            # OpenAI-compatible endpoint around the LangChain wrapper — lands in the usage log.
+            from src.agent.llm import record_usage
+
+            record_usage(
+                str(data.get("model") or a.model),
+                int(usage.get("prompt_tokens", 0) or 0),
+                int(usage.get("completion_tokens", 0) or 0),
+                provider=a.base_url,
+                activity=f"judge:{a.id}",
+            )
             spend["providers"].add(provider or "provider-not-reported")
             return _parse_stage(stage, data["choices"][0]["message"]["content"])
 

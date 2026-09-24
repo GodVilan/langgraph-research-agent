@@ -147,6 +147,20 @@ class TestASubmitCannotReportSuccessWithoutHappening:
 
         assert _json.loads(receipt.read_text())["batch_id"] == "batch_abc"
 
+    def test_a_second_submit_archives_the_first_receipt(self, tmp_path: Path) -> None:
+        """An overwrite hid three paid batches (117 requests) from `make judge-spend`."""
+        import json as _json
+
+        from evals.judge import write_receipt
+
+        receipt = tmp_path / "batch_luna-low_q1.json"
+        write_receipt(receipt, {"arm": "luna-low", "stage": "q1", "batch_id": "batch_first000001"})
+        write_receipt(receipt, {"arm": "luna-low", "stage": "q1", "batch_id": "batch_second00002"})
+
+        ids = {_json.loads(f.read_text())["batch_id"] for f in tmp_path.glob("batch_*.json")}
+        assert ids == {"batch_first000001", "batch_second00002"}
+        assert _json.loads(receipt.read_text())["batch_id"] == "batch_second00002"
+
     def test_an_unwritable_receipt_is_not_reported_as_submitted(self, tmp_path: Path) -> None:
         """The receipt is the handle a later collect needs; unverifiable means unsubmitted."""
         import typer
@@ -161,3 +175,37 @@ class TestASubmitCannotReportSuccessWithoutHappening:
                 write_receipt(target, {"batch_id": "batch_xyz"})
         finally:
             target.chmod(0o644)
+
+
+class TestEstimatorShowsActuals:
+    def test_last_three_comparable_runs_are_printed_beside_the_estimate(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import json as _json
+
+        from evals import judge
+
+        detail = [
+            {"receipt": f"batch_luna-low_{st}_all{tag}.json", "usd": usd}
+            for tag, usd in [("", 0.015), ("_r2", 0.0154), ("_r3", 0.0173), ("_traced", 0.0172)]
+            for st in ("q1", "q3")
+        ] + [
+            {"receipt": "batch_luna-low_q1_all_v21.json", "usd": 9.9},  # an arm: not comparable
+            {"receipt": "batch_luna-low_q1.json", "usd": 9.9},  # the sample: not comparable
+        ]
+        (tmp_path / "judge_spend.json").write_text(_json.dumps({"batches_detail": detail}))
+        for tag, when in [
+            ("", "2026-09-18"),
+            ("_r2", "2026-09-19"),
+            ("_r3", "2026-09-20"),
+            ("_traced", "2026-09-17"),
+        ]:  # traced is the oldest here
+            (tmp_path / f"batch_luna-low_q1_all{tag}.json").write_text(
+                _json.dumps({"batch_id": f"b{tag}", "submitted_at": when})
+            )
+        monkeypatch.setattr(judge, "RUNS", tmp_path)
+        (line,) = judge.recent_actuals()
+        # chronological: traced (09-17) is the oldest, so the last three are r1, r2, r3
+        assert "r1 $0.0300" in line and "r2 $0.0308" in line and "r3 $0.0346" in line
+        assert "traced" not in line
+        assert "9.9" not in line

@@ -87,9 +87,9 @@ def summarise(traces: list[Any]) -> dict[str, Any]:
             "unpriced": 0.0,
             "no_usage": 0.0,
             "input": 0.0,
+            "cached": 0.0,
             "output": 0.0,
             "thinking": 0.0,
-            "billed": 0.0,
             "notional": 0.0,
         }
     )
@@ -119,9 +119,9 @@ def summarise(traces: list[Any]) -> dict[str, Any]:
 
         row["priced"] += 1
         row["input"] += float(usage.get("input_tokens") or 0)
+        row["cached"] += float(usage.get("cached_input_tokens") or 0)
         row["output"] += float(usage.get("output_tokens") or 0)
         row["thinking"] += float(usage.get("thinking_tokens") or 0)
-        row["billed"] += float(usage.get("cost_usd_billed") or 0)
         row["notional"] += notional
     return dict(rows)
 
@@ -151,7 +151,14 @@ def check_blended_rate(rows: dict[str, Any]) -> str | None:
     if not tokens or not notional:
         return None
     blended = notional / tokens * 1_000_000
-    low, high = pricing.notional_input_usd, pricing.notional_output_usd
+    from scripts.reconcile_cost import rate_floor
+
+    low = rate_floor(
+        pricing,
+        sum(r["input"] for r in billable),
+        sum(r.get("cached", 0.0) for r in billable),
+    )
+    high = pricing.notional_output_usd
     if low - 1e-6 <= blended <= high + 1e-6:
         return None
     return (
@@ -171,30 +178,27 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
         )
     else:
         lines = [
-            "| Environment | Priced traces | Input | Output | Thinking | Billed USD |"
-            " Notional USD |",
-            "|---|---:|---:|---:|---:|---:|---:|",
+            "| Environment | Priced traces | Input | Output | Thinking | Notional USD |",
+            "|---|---:|---:|---:|---:|---:|",
         ]
         for env, row in sorted(rows.items()):
             label = f"`{env}`" + (" _(test traffic)_" if is_test_environment(env) else "")
             lines.append(
                 f"| {label} | {int(row['priced']):,} | "
                 f"{int(row['input']):,} | {int(row['output']):,} | {int(row['thinking']):,} | "
-                f"${row['billed']:.5f} | ${row['notional']:.5f} |"
+                f"${row['notional']:.5f} |"
             )
         # The total covers agent spend only. `tests/test_trace_integration.py` writes real
         # traces to its own environment, and folding those into a figure labelled "agent
         # spend" would be D-021's category error committed a second time, in miniature.
         billable = {e: r for e, r in rows.items() if not is_test_environment(e)}
-        total_billed = sum(r["billed"] for r in billable.values())
         total_notional = sum(r["notional"] for r in billable.values())
         total_priced = int(sum(r["priced"] for r in billable.values()))
         total_input = sum(r["input"] for r in billable.values())
         total_output = sum(r["output"] for r in billable.values())
         lines.append(
             f"| **total** | **{total_priced:,}** | **{int(total_input):,}** | "
-            f"**{int(total_output):,}** | | **${total_billed:.5f}** | "
-            f"**${total_notional:.5f}** |"
+            f"**{int(total_output):,}** | | **${total_notional:.5f}** |"
         )
 
         tokens = total_input + total_output
@@ -205,7 +209,8 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
             lines.append(
                 f"_Blended ${blended:.4f} per 1M tokens, between the "
                 f"${pricing.notional_input_usd} input and ${pricing.notional_output_usd} "
-                f"output rates as a mostly-input workload should be. "
+                f"output rates as a mostly-input workload should be (cached input, at "
+                f"${pricing.notional_cached_input_usd}, is the only thing allowed below it). "
                 f"`make reconcile-cost` checks this._"
             )
 
@@ -232,8 +237,10 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
 
 {body}
 
-Billed is what the provider charges — $0 on the Gemini free tier. Notional prices the same
-tokens at paid standard rates (DECISIONS D-004). **This table is the agent side only.** OpenAI
+Notional prices the tokens at paid standard rates (DECISIONS D-004). **There is no billed
+column.** It used to read $0 from a free-tier assumption while the key's project was billed;
+billing comes only from the provider's own record — see the Gemini line above, from
+docs/billing/gemini.json (DECISIONS D-046). **This table is the agent side only.** OpenAI
 judge spend is a different provider on a different ceiling and is never summed with the figures
 above; regenerate it with `make judge-spend`, which reads usage from the batch objects
 themselves.

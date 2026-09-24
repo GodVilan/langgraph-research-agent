@@ -224,6 +224,13 @@ data/indices/
 data/indices/
 .index-verify/
 
+# Deploy credentials for `make space-secrets` (Langfuse Cloud, Upstash). Never committed;
+# asserted gitignored before it is read (scripts/space_secrets.py).
+.env.deploy
+
+# The per-call LLM usage log (src/agent/llm.py record_usage).
+.usage/
+
 # Graph checkpoints (per-developer thread state)
 .checkpoints/
 

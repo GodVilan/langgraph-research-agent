@@ -99,6 +99,10 @@ class RunRecord(BaseModel):
     generator_model: str
     prompt_version: str
     started_at: str
+    # Whether the input scope classifier ran with pinned sampling (D-035). None on artifacts
+    # written before the field existed — every one of those ran unpinned. Recorded because
+    # the served configuration and the measured one must be the same configuration.
+    scope_classifier_pinned: bool | None = None
     # What a reader can regenerate this from, and the one thing they cannot. Corpus, set,
     # prompt version and every per-item record are pinned above; the judge that later scores
     # these answers has no pinnable weights revision from any provider (D-030b), and the
@@ -166,6 +170,12 @@ def apply_arm(arm: str) -> None:
 
     for key, value in ARMS[arm].items():
         os.environ[key] = value
+
+
+def _ceiling() -> float:
+    from src.config import get_settings
+
+    return get_settings().budget.max_notional_cost_usd
 
 
 def run_path(set_sha: str, tag: str = "") -> Path:
@@ -289,9 +299,11 @@ def report(record: RunRecord) -> str:
         f"total {sum(calls)}",
         f"latency s (excludes pacing sleeps): p50 {statistics.median(latency):.1f} p95 {p95:.1f} "
         f"max {max(latency):.1f}",
-        f"tokens {tokens:,}; billed $0.0000 (free tier); notional ${sum(notional):.4f} total, "
+        f"tokens {tokens:,}; billed: not derivable from a run (provider record, D-046); "
+        f"notional ${sum(notional):.4f} total, "
         f"${statistics.median(notional):.4f}/query median, ${max(notional):.4f} max "
-        f"(ceiling {0.05})",
+        # Read, not typed: this said "ceiling 0.05" for a week after the ceiling became $0.025.
+        f"(per-request ceiling ${_ceiling()})",
     ]
     return "\n".join(lines)
 
@@ -352,6 +364,7 @@ async def main() -> int:
             generator_model=settings.model_name(),
             prompt_version=RequestOptions().prompt_version,
             started_at=datetime.now(UTC).isoformat(),
+            scope_classifier_pinned=settings.pin_scope_classifier,
         )
 
     wanted = {i.strip() for i in args.only.split(",") if i.strip()}

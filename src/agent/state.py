@@ -125,15 +125,21 @@ class Source(BaseModel):
 class Usage(BaseModel):
     """Accumulated spend.
 
-    ``cost_usd`` is what we are actually billed (0.0 on the Gemini free tier).
-    ``notional_cost_usd`` prices the same tokens at paid rates so the budget ceiling is a
-    live guard rather than dead code. See docs/DECISIONS.md D-004.
+    ``notional_cost_usd`` prices the tokens at paid standard rates, cached input at the cached
+    rate; every ceiling checks it (D-004). ``cost_usd`` — billed — is ``None`` unless a figure
+    came from the provider's own record. It used to be computed as $0 from a free-tier
+    assumption while the key was in fact billed (D-046); an unverified billed figure is now
+    shown as unverified, never as zero.
     """
 
     input_tokens: int = 0
+    # The part of `input_tokens` the provider served from its implicit cache (Gemini's
+    # `cached_content_token_count`, a subset of the prompt count). Billed at a tenth of the
+    # input rate; 4.7M of the 27.3M prompt tokens billed through 2026-09-24 were cached.
+    cached_input_tokens: int = 0
     output_tokens: int = 0
     reasoning_tokens: int = 0
-    cost_usd: float = 0.0
+    cost_usd: float | None = None
     notional_cost_usd: float = 0.0
     llm_calls: int = 0
     tool_calls: int = 0
@@ -203,9 +209,13 @@ def merge_usage(left: Usage | None, right: Usage | None) -> Usage:
     deadlines = [d for d in (left.deadline_at, right.deadline_at) if d > 0.0]
     return Usage(
         input_tokens=left.input_tokens + right.input_tokens,
+        cached_input_tokens=left.cached_input_tokens + right.cached_input_tokens,
         output_tokens=left.output_tokens + right.output_tokens,
         reasoning_tokens=left.reasoning_tokens + right.reasoning_tokens,
-        cost_usd=left.cost_usd + right.cost_usd,
+        # Unverified stays unverified: a sum is known only if both parts are.
+        cost_usd=None
+        if left.cost_usd is None or right.cost_usd is None
+        else left.cost_usd + right.cost_usd,
         notional_cost_usd=left.notional_cost_usd + right.notional_cost_usd,
         llm_calls=left.llm_calls + right.llm_calls,
         tool_calls=left.tool_calls + right.tool_calls,

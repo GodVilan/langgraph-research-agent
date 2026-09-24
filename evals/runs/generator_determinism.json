@@ -1,0 +1,105 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "reasoning_effort": "minimal",
+ "n": 5,
+ "probed_utc": "2026-09-24T15:09:11+00:00",
+ "generate_item": "sp-001",
+ "cells": {
+  "d014/production": {
+   "distinct": 5,
+   "sha8": [
+    "1cfe93d3",
+    "ad43fa5a",
+    "389c88da",
+    "983e85bf",
+    "86b7294f"
+   ],
+   "chars": [
+    526,
+    508,
+    504,
+    492,
+    530
+   ],
+   "outputs": [
+    "Low-rank adaptation (LoRA) fundamentally changes transformer fine-tuning by freezing the original model weights and injecting trainable rank decomposition matrices into each attention layer. Instead of updating all parameters, LoRA optimizes only these low-rank matrices to approximate the weight updates, drastically reducing the required memory and computational resources. Consequently, this approach enables efficient domain adaptation without increasing inference latency or storing multiple full-sized model checkpoints.",
+    "Low-Rank Adaptation (LoRA) fundamentally changes transformer fine-tuning by freezing the original model weights and injecting trainable rank decomposition matrices into each attention layer. Instead of updating the massive weight matrices directly, LoRA optimizes a tiny fraction of parameters, drastically reducing memory consumption and computational overhead. Consequently, this approach enables efficient domain-specific adaptation while producing model checkpoints that are only a few megabytes in size.",
+    "Low-rank adaptation (LoRA) fundamentally changes transformer fine-tuning by freezing the original model weights and injecting trainable rank decomposition matrices into each attention layer. Instead of updating every parameter across billions of weights, LoRA optimizes only a tiny fraction of low-rank matrices to approximate the weight updates. This approach drastically reduces the memory required for gradient storage and optimizer states while maintaining performance comparable to full fine-tuning.",
+    "Low-rank adaptation (LoRA) fundamentally changes transformer fine-tuning by freezing the original model weights and injecting trainable rank decomposition matrices into each attention layer. Instead of updating every parameter in the massive weight matrices during backpropagation, LoRA optimizes only these smaller, auxiliary matrices to capture task-specific adjustments. This drastically reduces the number of trainable parameters and memory consumption while maintaining high performance.",
+    "Low-rank adaptation (LoRA) fundamentally changes transformer fine-tuning by freezing the original model weights and injecting trainable rank decomposition matrices into each attention layer. Instead of updating every parameter in the massive weight matrices during backpropagation, LoRA optimizes only these smaller, low-rank matrices to capture the task-specific adjustments. Consequently, this approach drastically reduces the required GPU memory, storage space, and computational overhead without sacrificing model performance."
+   ]
+  },
+  "d014/pinned": {
+   "distinct": 1,
+   "sha8": [
+    "3a2602d5",
+    "3a2602d5",
+    "3a2602d5",
+    "3a2602d5",
+    "3a2602d5"
+   ],
+   "chars": [
+    422,
+    422,
+    422,
+    422,
+    422
+   ],
+   "outputs": [
+    "Traditional fine-tuning modifies all original model parameters, which becomes computationally expensive for large transformer architectures. Low-rank adaptation (LoRA) freezes the pre-trained weights and injects trainable rank decomposition matrices into each transformer layer. This approach drastically reduces the number of trainable parameters and GPU memory requirements while maintaining comparable task performance.",
+    "Traditional fine-tuning modifies all original model parameters, which becomes computationally expensive for large transformer architectures. Low-rank adaptation (LoRA) freezes the pre-trained weights and injects trainable rank decomposition matrices into each transformer layer. This approach drastically reduces the number of trainable parameters and GPU memory requirements while maintaining comparable task performance.",
+    "Traditional fine-tuning modifies all original model parameters, which becomes computationally expensive for large transformer architectures. Low-rank adaptation (LoRA) freezes the pre-trained weights and injects trainable rank decomposition matrices into each transformer layer. This approach drastically reduces the number of trainable parameters and GPU memory requirements while maintaining comparable task performance.",
+    "Traditional fine-tuning modifies all original model parameters, which becomes computationally expensive for large transformer architectures. Low-rank adaptation (LoRA) freezes the pre-trained weights and injects trainable rank decomposition matrices into each transformer layer. This approach drastically reduces the number of trainable parameters and GPU memory requirements while maintaining comparable task performance.",
+    "Traditional fine-tuning modifies all original model parameters, which becomes computationally expensive for large transformer architectures. Low-rank adaptation (LoRA) freezes the pre-trained weights and injects trainable rank decomposition matrices into each transformer layer. This approach drastically reduces the number of trainable parameters and GPU memory requirements while maintaining comparable task performance."
+   ]
+  },
+  "generate/production": {
+   "distinct": 3,
+   "sha8": [
+    "ea594dec",
+    "ea594dec",
+    "9719d9c9",
+    "ea594dec",
+    "5ed0137b"
+   ],
+   "chars": [
+    161,
+    161,
+    176,
+    161,
+    181
+   ],
+   "outputs": [
+    "Based on the retrieved passages, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010].",
+    "Based on the retrieved passages, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010].",
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009].",
+    "Based on the retrieved passages, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010].",
+    "Based on the retrieved papers, the top-1 error rate achieved by LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset is **21.92%** [2605.29525_0010, 2605.29525_0009]."
+   ]
+  },
+  "generate/pinned": {
+   "distinct": 1,
+   "sha8": [
+    "9719d9c9",
+    "9719d9c9",
+    "9719d9c9",
+    "9719d9c9",
+    "9719d9c9"
+   ],
+   "chars": [
+    176,
+    176,
+    176,
+    176,
+    176
+   ],
+   "outputs": [
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009].",
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009].",
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009].",
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009].",
+    "Based on the retrieved papers, LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset achieves a top-1 error rate of **21.92%** [2605.29525_0010, 2605.29525_0009]."
+   ]
+  }
+ }
+}

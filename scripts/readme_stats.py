@@ -107,6 +107,151 @@ def render() -> str:
 {END}"""
 
 
+# ── Status and spend: rendered, never typed (Phase 5 review — C-1 recurred) ────────────
+# "Status: Phase 3 of 5" and "$0.00 spent" both survived Phase 4's close because they were
+# prose. Each now has exactly one source, and tests/test_docs.py fails a stale rendering.
+
+STATUS_JSON = REPO / "docs" / "status.json"
+SPEND_JSON = REPO / "evals" / "runs" / "judge_spend.json"
+BLOCKS = {
+    "STATUS": ("<!-- STATUS:START -->", "<!-- STATUS:END -->"),
+    # Not "SPEND": that marker belongs to `make budget`'s trace table. Sharing it let each
+    # generator overwrite the other's block in BUDGET.md (caught 2026-09-24).
+    "JUDGESPEND": ("<!-- JUDGESPEND:START -->", "<!-- JUDGESPEND:END -->"),
+    "SPENDTABLE": ("<!-- SPENDTABLE:START -->", "<!-- SPENDTABLE:END -->"),
+    "GEMINI": ("<!-- GEMINI:START -->", "<!-- GEMINI:END -->"),
+    "LICENSES": ("<!-- LICENSES:START -->", "<!-- LICENSES:END -->"),
+}
+LICENSES_JSON = REPO / "data" / "LICENSES.json"
+
+
+def render_licenses() -> str:
+    """Per-license paper counts, from `make corpus-licenses` (arXiv OAI-PMH)."""
+    from collections import Counter
+
+    sys.path.insert(0, str(REPO))
+    from scripts.corpus_licenses import NAMES
+
+    data = json.loads(LICENSES_JSON.read_text(encoding="utf-8"))
+    counts = Counter(NAMES.get(str(v), str(v)) for v in data["papers"].values())
+    start, end = BLOCKS["LICENSES"]
+    rows = "\n".join(f"| {name} | {n} |" for name, n in counts.most_common())
+    return (
+        f"{start}\n<!-- Rendered from data/LICENSES.json (`make corpus-licenses`, arXiv OAI-PMH, "
+        f"fetched {data['fetched_utc'][:10]}) by `make readme-stats`. -->\n"
+        f"| License on arXiv | Papers |\n|---|---:|\n{rows}\n"
+        f"| **total** | **{sum(counts.values())}** |\n{end}"
+    )
+
+
+GEMINI_BILLING = REPO / "docs" / "billing" / "gemini.json"
+GEMINI_RECONCILE = REPO / "evals" / "runs" / "gemini_reconcile.json"
+
+
+def render_gemini() -> str:
+    """The Gemini bill: a provider-sourced, hand-entered figure, never computed and never $0
+    by default (DECISIONS D-046). Shares are computed from the SKU lines in the record."""
+    bill = json.loads(GEMINI_BILLING.read_text(encoding="utf-8"))
+    rec = json.loads(GEMINI_RECONCILE.read_text(encoding="utf-8"))
+    total = float(bill["total_usd"])
+    by = {}
+    for sku in bill["skus"]:
+        key = (sku["model"], sku["kind"])
+        by[key] = by.get(key, 0.0) + float(sku["usd"])
+    model = "gemini-3.5-flash-lite"
+    share_in = by[(model, "input_uncached")] / total
+    share_out = by[(model, "output")] / total
+    billed_in = rec["billed"]["input_incl_cached"]
+    seen = rec["measured"]["input"] / billed_in
+    start, end = BLOCKS["GEMINI"]
+    return (
+        f"{start}\n<!-- Rendered from docs/billing/gemini.json (hand-entered from the provider's "
+        f"record) and evals/runs/gemini_reconcile.json by `make readme-stats`. -->\n"
+        f"**Gemini API spend: ${total:.2f}** — provider-sourced ({bill['provider']}, SKU "
+        f"export, {bill['period']['from']} to {bill['period']['to']}), hand-entered "
+        f"{bill['entered_utc']} into `docs/billing/gemini.json`. "
+        f"{billed_in:,} prompt tokens ({rec['billed']['cached']:,} of them cached) and "
+        f"{rec['billed']['output']:,} output tokens on `{model}`; **{share_in:.0%} of the cost was "
+        f"uncached input and {share_out:.0%} output**. Only {seen:.0%} of those prompt tokens were "
+        f"seen by any instrumentation in this repo (`make gemini-reconcile`, DECISIONS D-046).\n"
+        f"{end}"
+    )
+
+
+def render_status() -> str:
+    status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
+    url = status.get("live_url")
+    live = f"**Live: <{url}>**" if url else "**No live endpoint yet.**"
+    start, end = BLOCKS["STATUS"]
+    return (
+        f"{start}\n<!-- Rendered from docs/status.json by `make readme-stats`. -->\n"
+        f"**Status: Phase {status['phase']} of {status['of']} — {status['state']}.** {live}\n"
+        f"{end}"
+    )
+
+
+def render_spend() -> str:
+    spend = json.loads(SPEND_JSON.read_text(encoding="utf-8"))
+    start, end = BLOCKS["JUDGESPEND"]
+    return (
+        f"{start}\n<!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`; "
+        f"the figure is summed from the batches by `make judge-spend`. -->\n"
+        f"**OpenAI judge spend: ${spend['usd_at_batch_rates']:.4f} of the "
+        f"${spend['ceiling_usd']:.2f} lifetime ceiling** — {spend['requests']} Batch requests, "
+        f"{spend['prompt_tokens']:,} input / {spend['completion_tokens']:,} output tokens at "
+        f"batch rates, measured {spend['measured_utc']}.\n"
+        f"{end}"
+    )
+
+
+# What each batch receipt paid for, by its file name (evals/runs/batch_<arm>_<stage>[_all][_tag]).
+SPEND_LINES = (
+    (
+        "Judge validation — the 25-item sample, three judge configurations",
+        lambda r: "_all" not in r,
+    ),
+    (
+        "Full runs of the shipped configuration (r1, r2, r3, traced, pinned)",
+        lambda r: "_all" in r and not any(t in r for t in ("dense_only", "section_filter", "v21")),
+    ),
+    (
+        "Comparison arms (dense_only, section_filter, v2.1)",
+        lambda r: any(t in r for t in ("dense_only", "section_filter", "v21")),
+    ),
+)
+
+
+def render_spend_table() -> str:
+    spend = json.loads(SPEND_JSON.read_text(encoding="utf-8"))
+    rows = spend["batches_detail"]
+    lines = [
+        "<!-- SPENDTABLE:START -->",
+        "<!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`. -->",
+        "",
+        "| Line | Batches | Requests | Spent (batch rates) |",
+        "|---|---:|---:|---:|",
+    ]
+    for label, match in SPEND_LINES:
+        mine = [r for r in rows if match(r["receipt"]) and r.get("usd") is not None]
+        lines.append(
+            f"| {label} | {len(mine)} | {sum(int(r['requests'] or 0) for r in mine)} | "
+            f"${sum(float(r['usd']) for r in mine):.4f} |"
+        )
+    lines.append(
+        f"| **Total** | {spend['priced']} | {spend['requests']} | "
+        f"**${spend['usd_at_batch_rates']:.4f}** |"
+    )
+    lines.append("<!-- SPENDTABLE:END -->")
+    return "\n".join(lines)
+
+
+def replace_block(text: str, name: str, block: str) -> str:
+    start, end = BLOCKS[name]
+    return re.sub(
+        re.escape(start) + r".*?" + re.escape(end), lambda _: block, text, flags=re.DOTALL
+    )
+
+
 def main() -> int:
     readme = REPO / "README.md"
     text = readme.read_text(encoding="utf-8")
@@ -118,7 +263,17 @@ def main() -> int:
     updated = re.sub(
         re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.DOTALL
     )
+    updated = replace_block(updated, "STATUS", render_status())
+    updated = replace_block(updated, "JUDGESPEND", render_spend())
+    updated = replace_block(updated, "GEMINI", render_gemini())
+    updated = replace_block(updated, "LICENSES", render_licenses())
     readme.write_text(updated, encoding="utf-8")
+    budget = REPO / "docs" / "BUDGET.md"
+    budget_text = replace_block(budget.read_text(encoding="utf-8"), "JUDGESPEND", render_spend())
+    budget_text = replace_block(budget_text, "GEMINI", render_gemini())
+    budget.write_text(
+        replace_block(budget_text, "SPENDTABLE", render_spend_table()), encoding="utf-8"
+    )
     print(block)
     return 0
 

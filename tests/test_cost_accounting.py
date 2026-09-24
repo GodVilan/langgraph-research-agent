@@ -351,4 +351,46 @@ class TestTestTrafficIsNotAgentSpend:
         block = render(rows, days=30, n_traces=2)
 
         assert "_(test traffic)_" in block
-        assert "| **total** | **0** | **0** | **0** | | **$0.00000** | **$0.00000** |" in block
+        assert "| **total** | **0** | **0** | **0** | | **$0.00000** |" in block
+        assert "Billed USD" not in block  # no billed column: provider record only (D-046)
+
+
+class TestCachedInputAndBilled:
+    """Google billed 4,703,996 cached input tokens at $0.03/1M separately from uncached input
+    at $0.30; LangChain reports them as `input_token_details.cache_read`, inside `input_tokens`.
+    Usage ignored them and priced every prompt token at $0.30 (D-046)."""
+
+    def _message(self, cached: int) -> object:
+        from langchain_core.messages import AIMessage
+
+        return AIMessage(
+            content="x",
+            usage_metadata={
+                "input_tokens": 10_000,
+                "output_tokens": 100,
+                "total_tokens": 10_100,
+                "input_token_details": {"cache_read": cached},
+            },
+        )
+
+    def test_cached_tokens_are_recorded_and_priced_at_the_cached_rate(
+        self, settings: object
+    ) -> None:
+        from src.agent.llm import usage_from_message
+
+        u = usage_from_message(self._message(cached=4_000), settings)  # type: ignore[arg-type]
+        assert u.cached_input_tokens == 4_000
+        expected = (6_000 * 0.30 + 4_000 * 0.03 + 100 * 2.50) / 1_000_000
+        assert u.notional_cost_usd == pytest.approx(expected)
+
+    def test_no_billed_figure_is_computed(self, settings: object) -> None:
+        from src.agent.llm import usage_from_message
+
+        u = usage_from_message(self._message(cached=0), settings)  # type: ignore[arg-type]
+        assert u.cost_usd is None  # unverified, never $0 by default
+
+    def test_unverified_billed_stays_unverified_through_the_reducer(self) -> None:
+        from src.agent.state import Usage, merge_usage
+
+        merged = merge_usage(Usage(cost_usd=None, input_tokens=1), Usage(cost_usd=None))
+        assert merged.cost_usd is None

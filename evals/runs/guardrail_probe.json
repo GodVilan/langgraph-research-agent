@@ -1,0 +1,1238 @@
+{
+ "model": "gemini-3.5-flash-lite",
+ "n": 5,
+ "draws": {
+  "production/sp-003": [
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data query unrelated to machine learning, AI, or academic research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning or AI research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning or AI research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry, not specifically about machine learning, AI, or deep learning research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or performance inquiry unrelated to machine learning or AI research."
+   }
+  ],
+  "production/sp-005": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to experimental results and metrics from a machine learning or AI research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to experimental results from a research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to experimental results and metrics from a machine learning research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific experimental results in a machine learning or research paper context."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to specific experimental results from a research paper."
+   }
+  ],
+  "production/sp-006": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance metric on a standard dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to an optimization algorithm and model performance metrics in machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance metric on a standard vision dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance metric on a standard computer vision benchmark."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question is about evaluating an optimization algorithm on an image classification benchmark, which falls within machine learning."
+   }
+  ],
+  "production/sp-007": [
+   {
+    "in_scope": true,
+    "reason": "This question asks about machine learning training budgets and practices."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to training iteration budgets commonly used in machine learning experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model training iterations and budgets."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to training iterations, which is a core concept in machine learning model optimization."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to model training procedures commonly discussed in machine learning research."
+   }
+  ],
+  "production/sp-009": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to AI model costs and evaluation pricing."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the cost of evaluating large language models, which falls under the domain of AI and machine learning usage."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the cost of evaluating large language models, which falls under the machine learning and AI domain."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the cost of evaluating large language models, which falls under the domain of AI."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about API pricing for a specific commercial model rather than machine learning research or concepts."
+   }
+  ],
+  "production/sp-010": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a tunable parameter in a machine learning or data science approach (CLAD)."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or AI research approach."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a tunable parameter in a specific machine learning or data science approach."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a tunable parameter in a machine learning approach."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a tunable parameter in a machine learning approach."
+   }
+  ],
+  "production/sp-011": [
+   {
+    "in_scope": true,
+    "reason": "The question is about a specific evaluation metric for a machine learning vision-language task."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to object detection and scene graph generation metrics in machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question is about a specific evaluation metric for a computer vision and deep learning scene graph generation approach."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to specific computer vision and machine learning evaluation metrics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to evaluation metrics for a computer vision model approach, which falls under machine learning."
+   }
+  ],
+  "production/sp-012": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model performance on a molecular dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about machine learning predictions for a specific molecular property model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks for the performance metric of a specific machine learning model on a chemical dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model performance metrics on a chemical dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about error metrics for a machine learning model on a chemical dataset."
+   }
+  ],
+  "production/sp-014": [
+   {
+    "in_scope": false,
+    "reason": "This question is a general factual query unrelated to machine learning, AI, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general query about a taxonomy rather than machine learning, AI, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about a general taxonomy and not machine learning or AI research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a meta-query about a taxonomy rather than a topic in machine learning, AI, or data science."
+   }
+  ],
+  "production/sp-016": [
+   {
+    "in_scope": false,
+    "reason": "The question lacks context regarding machine learning, AI, or data science."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to plotting and data analysis typically found in machine learning or data science literature."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question asks about a specific text passage rather than machine learning or AI research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to technical details within academic research plots, which falls under data science and machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to plotting data which is common in machine learning and data science research papers."
+   }
+  ],
+  "production/sp-018": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a hyperparameter used in a Monte Carlo sampling algorithm, which is relevant to machine learning and statistical modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "Langevin Monte Carlo sampling is a machine learning and probabilistic optimization technique."
+   },
+   {
+    "in_scope": true,
+    "reason": "Langevin Monte Carlo is a sampling method frequently used in machine learning and probabilistic modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "Langevin Monte Carlo sampling is a machine learning optimization and sampling technique."
+   },
+   {
+    "in_scope": true,
+    "reason": "Langevin Monte Carlo sampling is a machine learning optimization and sampling technique."
+   }
+  ],
+  "production/sp-021": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to model evaluation metrics and architectures in machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question requests a specific metric result for an architecture, which pertains to machine learning research evaluation."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to performance metrics and architectures in machine learning evaluations."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical metric and model architecture from machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to specific experimental metrics from a machine learning study."
+   }
+  ],
+  "production/sp-022": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the contents of a specific section within an academic paper, which is common in ML research assistance."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section within an academic paper, typically in the context of ML/AI research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in an academic paper, which is typically within the scope of research literature."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to reading and extracting information from an academic research paper, which is within the assistant's scope."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question refers to the specific sections of an academic research paper, which is within scope for a machine learning research assistant."
+   }
+  ],
+  "production/sp-026": [
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about a clinical case example and medical data, not machine learning or AI research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about a clinical case example, which is outside the scope of machine learning or AI research."
+   }
+  ],
+  "production/sp-031": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to the evaluation metrics used in machine learning or academic research papers."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question is about evaluating model performance in machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question concerns performance evaluation metrics commonly used in machine learning and academic research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation methodology commonly used in machine learning and academic research papers."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to performance evaluation metrics commonly used in machine learning research."
+   }
+  ],
+  "production/sp-032": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning evaluation metric and approach from research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning evaluation metric and approach from AI research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific metric and approach in machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to specific machine learning evaluation metrics and research approaches."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific metric and approach in machine learning research."
+   }
+  ],
+  "production/sp-033": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to graphons and network scaling, which are topics in machine learning and network science."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns graphons and network scale limits, which are core topics in machine learning and network science research."
+   },
+   {
+    "in_scope": true,
+    "reason": "Graphons and convergence of large networks are core topics in graph machine learning and statistical network analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to graphons and network scaling, which are topics in machine learning and graph theory research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to graphons and network scale, which are topics in advanced data science and machine learning theory."
+   }
+  ],
+  "production/sp-034": [
+   {
+    "in_scope": true,
+    "reason": "This question relates to skill analysis in machine learning evaluation datasets."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing skill usage patterns in machine learning data samples."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to data analysis within the context of machine learning skill acquisition and evaluation."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to skill analysis in machine learning or algorithmic experiment samples."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning and data science analysis of model skills."
+   }
+  ],
+  "production/sp-035": [
+   {
+    "in_scope": true,
+    "reason": "Evaluating system performance metrics is a common task in machine learning and data science research."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question pertains to the evaluation results of a machine learning system."
+   },
+   {
+    "in_scope": true,
+    "reason": "Evaluating system performance metrics is a common task in machine learning and data science research."
+   },
+   {
+    "in_scope": true,
+    "reason": "Evaluating system performance metrics is a common task in machine learning and data science research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning system."
+   }
+  ],
+  "production/sp-036": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to language models and their architecture parameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the architecture and parameters of language models, which is a core topic in machine learning and AI research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the architectural details of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to technical details of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to language model architectures and their specifications."
+   }
+  ],
+  "production/sp-039": [
+   {
+    "in_scope": true,
+    "reason": "The question discusses training dynamics such as epochs and convergence in machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model training dynamics and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model training dynamics such as epochs and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to model training behavior and convergence across epochs, which is a machine learning topic."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics such as epochs and model convergence."
+   }
+  ],
+  "production/sp-040": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about machine learning model evaluation metrics and architecture specifics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to model evaluation metrics and architectures in machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about evaluation metrics and model architecture related to a specific machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics and architecture evaluations in machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to model evaluation metrics and architectures in machine learning research."
+   }
+  ],
+  "production/sp-041": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing model behavior and layer ablation in machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question investigates neural network layer ablation and its effect on accuracy, which is in scope for machine learning research."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about the performance impact of removing a layer in a neural network."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy of a machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing neural network layer contributions and accuracy metrics."
+   }
+  ],
+  "production/sp-042": [
+   {
+    "in_scope": true,
+    "reason": "This question inquires about computational resources used for machine learning experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "Hardware utilization details are commonly discussed in academic machine learning research papers."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computational resources used in machine learning or AI experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about the computational hardware resources used in machine learning or AI experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computational resource details used for machine learning experiments."
+   }
+  ],
+  "production/sp-044": [
+   {
+    "in_scope": false,
+    "reason": "This question does not pertain to machine learning, artificial intelligence, or data science research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about a specific engineering or physics calculation rather than machine learning or AI research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about a specific technical calculation or physics problem, not machine learning or AI."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question likely refers to a specific ML or optimization research problem involving operating points."
+   },
+   {
+    "in_scope": false,
+    "reason": "This question is not related to machine learning, artificial intelligence, or data science."
+   }
+  ],
+  "production/sp-047": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methodology often used in evaluating machine learning models and experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methodology often used in evaluating machine learning models."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question refers to an empirical evaluation methodology common in machine learning research papers."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question pertains to statistical methodology often used in machine learning evaluation and data science."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methodology often used in evaluating machine learning models."
+   }
+  ],
+  "production/sp-048": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation metric in a research context, likely in robotics, motion planning, or machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a proposed machine learning or robotics research approach."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation metric in a research context, likely within machine learning or robotics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a proposed algorithmic approach in a research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation metric in a machine learning or robotics research context."
+   }
+  ],
+  "production/sp-050": [
+   {
+    "in_scope": true,
+    "reason": "The question concerns model behavior, bootstrap fractions, and oscillatory components relevant to machine learning and data science."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns machine learning model behavior and hyperparameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses model behavior regarding bootstrap fractions and oscillatory components, which is relevant to machine learning and data science."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns machine learning model behavior and empirical analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses model behavior regarding bootstrap fraction and oscillatory components, which pertains to machine learning research."
+   }
+  ],
+  "pinned/sp-003": [
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning, AI, or academic research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning, AI, or academic research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning, AI, or academic research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning, AI, or academic research."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a general statistical or data inquiry not specific to machine learning, AI, or academic research."
+   }
+  ],
+  "pinned/sp-005": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics from a research paper, which falls under academic research and machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics from a research paper, which falls under academic research and machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics from a research paper, which falls under academic research and machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics from a research paper, which falls under academic research and machine learning."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about specific metrics from a research paper, which falls under academic research and machine learning."
+   }
+  ],
+  "pinned/sp-006": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance on a benchmark dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance on a benchmark dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance on a benchmark dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance on a benchmark dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning optimization algorithm and its performance on a benchmark dataset."
+   }
+  ],
+  "pinned/sp-007": [
+   {
+    "in_scope": true,
+    "reason": "This question asks about a machine learning model's training hyperparameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about a machine learning model's training hyperparameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about a machine learning model's training hyperparameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about a machine learning model's training hyperparameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "This question asks about a machine learning model's training hyperparameters."
+   }
+  ],
+  "pinned/sp-009": [
+   {
+    "in_scope": true,
+    "reason": "The question concerns pricing and evaluation metrics for a specific artificial intelligence model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns pricing and evaluation metrics for a specific artificial intelligence model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns pricing and evaluation metrics for a specific artificial intelligence model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns pricing and evaluation metrics for a specific artificial intelligence model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question concerns pricing and evaluation metrics for a specific artificial intelligence model."
+   }
+  ],
+  "pinned/sp-010": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or algorithmic approach and its parameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or algorithmic approach and its parameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or algorithmic approach and its parameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or algorithmic approach and its parameters."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about a specific machine learning or algorithmic approach and its parameters."
+   }
+  ],
+  "pinned/sp-011": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computer vision and scene graph generation evaluation metrics, which are core machine learning topics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computer vision and scene graph generation evaluation metrics, which are core machine learning topics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computer vision and scene graph generation evaluation metrics, which are core machine learning topics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computer vision and scene graph generation evaluation metrics, which are core machine learning topics."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to computer vision and scene graph generation evaluation metrics, which are core machine learning topics."
+   }
+  ],
+  "pinned/sp-012": [
+   {
+    "in_scope": true,
+    "reason": "The question asks for a machine learning model's performance metric on a dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks for a machine learning model's performance metric on a dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks for a machine learning model's performance metric on a dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks for a machine learning model's performance metric on a dataset."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks for a machine learning model's performance metric on a dataset."
+   }
+  ],
+  "pinned/sp-014": [
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is unrelated to machine learning, artificial intelligence, or data science."
+   }
+  ],
+  "pinned/sp-016": [
+   {
+    "in_scope": false,
+    "reason": "The question is a reading comprehension query about a specific text rather than a machine learning or AI topic."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a reading comprehension query about a specific text rather than a machine learning or AI topic."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a reading comprehension query about a specific text rather than a machine learning or AI topic."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a reading comprehension query about a specific text rather than a machine learning or AI topic."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is a reading comprehension query about a specific text rather than a machine learning or AI topic."
+   }
+  ],
+  "pinned/sp-018": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to Langevin Monte Carlo sampling, which is a method used in machine learning and statistical modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to Langevin Monte Carlo sampling, which is a method used in machine learning and statistical modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to Langevin Monte Carlo sampling, which is a method used in machine learning and statistical modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to Langevin Monte Carlo sampling, which is a method used in machine learning and statistical modeling."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to Langevin Monte Carlo sampling, which is a method used in machine learning and statistical modeling."
+   }
+  ],
+  "pinned/sp-021": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and model architectures."
+   }
+  ],
+  "pinned/sp-022": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in a research paper, likely related to machine learning or AI."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in a research paper, likely related to machine learning or AI."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in a research paper, likely related to machine learning or AI."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in a research paper, likely related to machine learning or AI."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to a section in a research paper, likely related to machine learning or AI."
+   }
+  ],
+  "pinned/sp-026": [
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is about clinical medicine rather than machine learning or artificial intelligence."
+   }
+  ],
+  "pinned/sp-031": [
+   {
+    "in_scope": true,
+    "reason": "The question asks about performance measures, which are commonly used in machine learning and academic research assessment."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about performance measures, which are commonly used in machine learning and academic research assessment."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about performance measures, which are commonly used in machine learning and academic research assessment."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about performance measures, which are commonly used in machine learning and academic research assessment."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question asks about performance measures, which are commonly used in machine learning and academic research assessment."
+   }
+  ],
+  "pinned/sp-032": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and specific research approaches."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and specific research approaches."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and specific research approaches."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and specific research approaches."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning evaluation metrics and specific research approaches."
+   }
+  ],
+  "pinned/sp-033": [
+   {
+    "in_scope": true,
+    "reason": "Graphons and network scale asymptotic analysis are fundamental topics in advanced machine learning theory and graph statistics."
+   },
+   {
+    "in_scope": true,
+    "reason": "Graphons and network scale asymptotic analysis are fundamental topics in advanced machine learning theory and graph statistics."
+   },
+   {
+    "in_scope": true,
+    "reason": "Graphons and network scale asymptotic analysis are fundamental topics in advanced machine learning theory and graph statistics."
+   },
+   {
+    "in_scope": true,
+    "reason": "Graphons and network scale asymptotic analysis are fundamental topics in advanced machine learning theory and graph statistics."
+   },
+   {
+    "in_scope": true,
+    "reason": "Graphons and network scale asymptotic analysis are fundamental topics in advanced machine learning theory and graph statistics."
+   }
+  ],
+  "pinned/sp-034": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning skill acquisition and evaluation analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning skill acquisition and evaluation analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning skill acquisition and evaluation analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning skill acquisition and evaluation analysis."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning skill acquisition and evaluation analysis."
+   }
+  ],
+  "pinned/sp-035": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning or data science system."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning or data science system."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning or data science system."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning or data science system."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to the evaluation results of a machine learning or data science system."
+   }
+  ],
+  "pinned/sp-036": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to architectural specifications of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to architectural specifications of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to architectural specifications of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to architectural specifications of language models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to architectural specifications of language models."
+   }
+  ],
+  "pinned/sp-039": [
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics and convergence."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question discusses machine learning training dynamics and convergence."
+   }
+  ],
+  "pinned/sp-040": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model evaluation metrics and specific model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model evaluation metrics and specific model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model evaluation metrics and specific model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model evaluation metrics and specific model architectures."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to machine learning model evaluation metrics and specific model architectures."
+   }
+  ],
+  "pinned/sp-041": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy metrics of a machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy metrics of a machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy metrics of a machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy metrics of a machine learning model."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to analyzing the internal layers and accuracy metrics of a machine learning model."
+   }
+  ],
+  "pinned/sp-042": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to computational resource utilization for machine learning or academic experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to computational resource utilization for machine learning or academic experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to computational resource utilization for machine learning or academic experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to computational resource utilization for machine learning or academic experiments."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to computational resource utilization for machine learning or academic experiments."
+   }
+  ],
+  "pinned/sp-044": [
+   {
+    "in_scope": false,
+    "reason": "The question is not related to machine learning, artificial intelligence, data science, or related research papers."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is not related to machine learning, artificial intelligence, data science, or related research papers."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is not related to machine learning, artificial intelligence, data science, or related research papers."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is not related to machine learning, artificial intelligence, data science, or related research papers."
+   },
+   {
+    "in_scope": false,
+    "reason": "The question is not related to machine learning, artificial intelligence, data science, or related research papers."
+   }
+  ],
+  "pinned/sp-047": [
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methods often used for evaluating machine learning models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methods often used for evaluating machine learning models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methods often used for evaluating machine learning models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methods often used for evaluating machine learning models."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question pertains to statistical methods often used for evaluating machine learning models."
+   }
+  ],
+  "pinned/sp-048": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a machine learning or robotics research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a machine learning or robotics research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a machine learning or robotics research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a machine learning or robotics research paper."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to an empirical evaluation of a machine learning or robotics research paper."
+   }
+  ],
+  "pinned/sp-050": [
+   {
+    "in_scope": true,
+    "reason": "The question refers to statistical modeling and machine learning behavior regarding bootstrap fractions and model components."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to statistical modeling and machine learning behavior regarding bootstrap fractions and model components."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to statistical modeling and machine learning behavior regarding bootstrap fractions and model components."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to statistical modeling and machine learning behavior regarding bootstrap fractions and model components."
+   },
+   {
+    "in_scope": true,
+    "reason": "The question refers to statistical modeling and machine learning behavior regarding bootstrap fractions and model components."
+   }
+  ]
+ }
+}

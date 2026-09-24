@@ -1,0 +1,17 @@
+{
+ "mode": "space",
+ "space": "godvillain/Scholium",
+ "stop": "HfApi.pause_space immediately after the response",
+ "trace_id": "7b905b494f2748e048130323bdcb276d",
+ "trace": {
+  "observations": 33,
+  "roots": 1,
+  "root_name": "query",
+  "root_has_answer": true,
+  "complete": true,
+  "seconds_until_first_seen": 6.4,
+  "seconds_until_complete": 23.9
+ },
+ "complete": true,
+ "probed_utc": "2026-09-24T21:16:13+00:00"
+}

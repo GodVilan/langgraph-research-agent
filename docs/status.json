@@ -1,0 +1,14 @@
+{
+  "_comment": "The one hand-edited source for the project status. `make readme-stats` renders README's STATUS block from it; tests/test_docs.py fails if the README disagrees. Edit here, never in the README.",
+  "phase": 5,
+  "of": 5,
+  "state": "deployed on Hugging Face Spaces and verified by `make smoke-live`; the G-3 load check is not yet published (first attempt aborted, DECISIONS D-048)",
+  "live_url": "https://godvillain-scholium.hf.space",
+  "closed_phases": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

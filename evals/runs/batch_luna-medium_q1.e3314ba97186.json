@@ -1,0 +1,11 @@
+{
+  "arm": "luna-medium",
+  "stage": "q1",
+  "model_served": null,
+  "file_id": "file-5gcm5N9B1CUnHsGQDjU5Ey",
+  "batch_id": "batch_6aad3921593c8190a1c3e3314ba97186",
+  "requests": 25,
+  "submitted_at": null,
+  "status_at_reconstruction": "completed",
+  "reconstructed": "2026-09-24 from the account's batch list: the original receipt was overwritten by a later submission for the same arm and stage (see evals/judge.py write_receipt)"
+}

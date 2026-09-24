@@ -26,9 +26,14 @@ criterion) with the amendment named on every figure it touches.
 not win — three sheets agree with each other on 25 of 25 — so cost and pinnability decided
 (D-032).
 
-**Total OpenAI spend: $0.0942 of the $5.00 lifetime ceiling**, 465 requests, 781,315 input and
-26,821 output tokens, summed from the batches themselves by `make judge-spend`. The agent side
-is $0.00 billed (Gemini free tier), $0.0033 notional per query median.
+**Total OpenAI spend through Phase 4: $0.1196 of the $5.00 lifetime ceiling**, 673 requests
+across 21 batches (`make judge-spend`, which now checks the account's own batch list). This
+document originally said $0.0942 over 465 requests; that figure was stale — the traced run's
+judging landed after it was measured — and undercounted — three receipts had been overwritten,
+hiding 117 paid requests. Corrected 2026-09-24, DECISIONS D-043. The agent side was
+recorded here as "$0.00 billed (Gemini free tier)". It was not: the key's project was billed
+throughout, $7.60 over the whole project by the provider's record (D-046). $0.0033 notional per
+query median.
 
 ---
 
@@ -80,7 +85,7 @@ Three complete runs of the shipping system, each judged in full:
 * **outcome spreads nonzero** — correct answers ±1, wrong ±2, hallucinated refusals ±2,
   ambiguous clarified ±1, attribute refusal accuracy ±0
 
-**The variance lives entirely in generation and judging; retrieval contributes none of it.**
+**The variance lives entirely in unpinned generation and judging; retrieval contributes none of it.** (Rescoped 2026-09-24: generation here is unpinned. `seed=0, top_k=1` makes the generator's output byte-identical on a 5-draw probe — D-042 — so the generation share is a property of the sampling configuration, not of the model.)
 The reporting rule that follows: outcome metrics carry their spread inline, retrieval metrics do
 not, and a difference no larger than the spread has not been shown to be a difference. Three
 draws, no confidence interval — n=3 cannot support one.

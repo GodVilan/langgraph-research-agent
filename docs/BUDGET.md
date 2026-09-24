@@ -1,14 +1,35 @@
 # BUDGET
 
-**Hard ceiling: $5.00 total OpenAI spend for the lifetime of this project.**
+**Hard ceiling: $5.00 total OpenAI spend for the lifetime of this project.** Gemini had no
+ceiling, because it was assumed free — and it was the larger bill (below, D-046).
 
 OpenAI is the evaluation judge only — never the agent's generator, planner, critic, or
 guardrail classifier, and never the embedding model. The agent graph runs on Gemini
-Flash-Lite free tier throughout. Rationale in [`DECISIONS.md`](./DECISIONS.md) D-001.
+Flash-Lite. It was believed to run on the free tier; the key's project had billing enabled
+throughout ([`DECISIONS.md`](./DECISIONS.md) D-046). Rationale for the split: D-001.
 
-**Status at the end of Phase 1: $0.00 spent. No OpenAI call has been made.** The judge is
-not built until Phase 4, and no credit needs to be loaded before then. Agent-side Gemini
-usage is free-tier and also $0.00 billed.
+<!-- JUDGESPEND:START -->
+<!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`; the figure is summed from the batches by `make judge-spend`. -->
+**OpenAI judge spend: $0.1670 of the $5.00 lifetime ceiling** — 939 Batch requests, 1,359,403 input / 51,711 output tokens at batch rates, measured 2026-09-24.
+<!-- JUDGESPEND:END -->
+
+<!-- GEMINI:START -->
+<!-- Rendered from docs/billing/gemini.json (hand-entered from the provider's record) and evals/runs/gemini_reconcile.json by `make readme-stats`. -->
+**Gemini API spend: $7.60** — provider-sourced (Google Cloud Billing — Gemini API (service AEFD-7695-64FA), SKU export, 2026-08-19 to 2026-09-24), hand-entered 2026-09-24 into `docs/billing/gemini.json`. 27,277,355 prompt tokens (4,703,996 of them cached) and 274,770 output tokens on `gemini-3.5-flash-lite`; **89% of the cost was uncached input and 9% output**. Only 24% of those prompt tokens were seen by any instrumentation in this repo (`make gemini-reconcile`, DECISIONS D-046).
+<!-- GEMINI:END -->
+
+**A billed figure comes from the provider's own record, or it is shown as unverified — never
+as $0 by default** (D-046). The Gemini line above is the provider's record, hand-entered with
+its source and date; nothing in this repo computes a billed Gemini figure.
+
+**Which parts of this file are generated.** The OpenAI spend line, the Gemini line (from the
+hand-entered provider record `docs/billing/gemini.json` and `make gemini-reconcile`), the
+per-line spend table, and the table under
+[Agent-side spend, from traces](#agent-side-spend-from-traces) are rendered by commands
+(`make judge-spend`, `make gemini-reconcile`, then `make readme-stats`; `make budget`) and must
+not be edited by hand —
+`tests/test_docs.py` fails a stale copy. Everything else here (unit prices, allocation,
+controls, the update protocol) is hand-written and dated where it states a fact.
 
 ---
 
@@ -19,8 +40,7 @@ memory** — re-verify against provider docs and update the date.
 
 | Model | Input /1M | Output /1M | Notes |
 |---|---|---|---|
-| `gemini-3.5-flash-lite` free (**in use**) | $0 | $0 | No context caching on the free tier |
-| `gemini-3.5-flash-lite` paid standard | $0.30 | $2.50 | Output rate **includes thinking tokens** |
+| `gemini-3.5-flash-lite` paid standard (**in use, billed**) | $0.30 | $2.50 | Output rate **includes thinking tokens**. Cached input **$0.03** — all three rates matched by the Cloud Billing SKUs, 2026-09-24 |
 | `gemini-3.5-flash-lite` paid batch/flex | $0.15 | $1.25 | |
 | `gemini-2.5-flash-lite` (paid) | $0.10 | $0.40 | **Retired for new API keys** — see below |
 | `gpt-5.6-luna` | $0.20 | $1.20 | Cached input $0.02; cache writes 1.25× uncached |
@@ -29,16 +49,18 @@ memory** — re-verify against provider docs and update the date.
 > this API key ("no longer available to new users"), found on the first live run
 > ([DECISIONS D-012](./DECISIONS.md)). Its rates were briefly used as a `verified=False`
 > placeholder and **understated cost by roughly 3.6x**; the figures below are the corrected
-> ones. Agent-side *billed* cost is $0 on the free tier regardless — this affects reporting
-> and the notional ceiling, not spend.
+> ones. This line used to add that billed cost was "$0 on the free tier regardless". It was
+> not: the key was billed at exactly these paid rates (D-046).
 >
 > Notional cost uses **standard**, not batch: the agent serves interactive requests, so
 > batch pricing would understate what a paid deployment would pay. Batch pricing does apply
 > to the OpenAI judge, where it is mandatory.
 
-Both providers bill thinking/reasoning tokens at the **output** rate. Reasoning tokens are
-the dominant cost variable, not input size, which is why `reasoning_effort` is pinned
-explicitly rather than left at its default.
+Both providers bill thinking/reasoning tokens at the **output** rate, which is why
+`reasoning_effort` is pinned explicitly rather than left at its default. This file used to call
+reasoning tokens "the dominant cost variable, not input size". The bill says the opposite: **89%
+of Gemini cost was uncached input, 9% output** (thinking included). The pin worked; context size
+is the lever (D-046).
 
 OpenAI has **no free tier**. Tier 1 is the entry point: 500 RPM, 500K TPM, 5M batch queue
 limit. Credit must be loaded before any judge call. A full 100-item run is roughly 510K
@@ -72,16 +94,34 @@ explicitly, which changes the serving stack and is named in the spend record whe
 Assumes ~4,000 input and ~1,100 output tokens per judged item (300 visible + ~800 reasoning
 at `medium`), Batch API throughout.
 
-| Line | Items judged | Allocation | Spent |
+| Line | Items judged | Allocation |
+|---|---:|---:|
+| Judge validation (25 items × 2 configs) | 50 | $0.05 |
+| Phase 4 dev — 25-item subset runs (×10) | 250 | $0.27 |
+| Phase 4 dev — 100-item full runs (×6) | 600 | $0.64 |
+| Baselines: v2.1, v3, embedding comparison arm | 300 | $0.32 |
+| CI subset runs (×40) | 1,000 | $1.06 |
+| Phase 6 variant experiment, if reached | 200 | $0.21 |
+| **Planned total** |  | **$2.55** |
+| **Unallocated reserve** |  | **$2.45** |
+
+The allocation above is the plan and is not updated as money is spent. What was actually
+spent, per line, is generated from the batch receipts (the typed "Spent" column this table
+used to carry still read $0.00 for runs that had cost most of the total):
+
+<!-- SPENDTABLE:START -->
+<!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`. -->
+
+| Line | Batches | Requests | Spent (batch rates) |
 |---|---:|---:|---:|
-| Judge validation (25 items × 2 configs) | 50 | $0.05 | **≈$0.0057** — 4 batches + 2 rescoring batches, 42.5K in / 2.5K out at batch rates; `medium` spent ~1.6× `low`'s output tokens and moved zero labels (D-032) |
-| Phase 4 dev — 25-item subset runs (×10) | 250 | $0.27 | $0.00 |
-| Phase 4 dev — 100-item full runs (×6) | 600 | $0.64 | $0.00 |
-| Baselines: v2.1, v3, embedding comparison arm | 300 | $0.32 | $0.00 |
-| CI subset runs (×40) | 1,000 | $1.06 | $0.00 |
-| Phase 6 variant experiment, if reached | 200 | $0.21 | $0.00 |
-| **Planned total** | | **$2.55** | **$0.00** |
-| **Unallocated reserve** | | **$2.45** | |
+| Judge validation — the 25-item sample, three judge configurations | 6 | 60 | $0.0061 |
+| Full runs of the shipped configuration (r1, r2, r3, traced, pinned) | 14 | 626 | $0.1128 |
+| Comparison arms (dense_only, section_filter, v2.1) | 7 | 253 | $0.0481 |
+| **Total** | 27 | 939 | **$0.1670** |
+<!-- SPENDTABLE:END -->
+
+Judge validation also showed that `medium` spent ~1.6× `low`'s output tokens and moved zero
+labels (D-032).
 
 ---
 
@@ -98,19 +138,23 @@ These are requirements, not suggestions. Each one has a specific failure it prev
 | **`run_eval.py` prints estimated cost before executing, and requires `--confirm-cost` above a threshold** | Discovering a $3 run after it has happened. | Phase 4 |
 | **OpenAI dashboard hard cap $5, soft alert $2** | Everything above failing at once. | Manual, before the first judge call |
 | **Cost and tokens summed over the same traces, checked by a blended-rate bound** | A ratio whose numerator and denominator range over different populations. The spend table divided cost from 6 priced traces by tokens from 214, and reported a rate below the input-only price. `make budget` now refuses to write a table whose blended rate falls outside the rate card. | **Done** — [D-021](./DECISIONS.md), `make reconcile-cost` |
+| **A global daily ceiling on the public endpoint, in a ledger that survives restarts** | A public endpoint with a real key behind it spending without limit; and a ceiling that resets every time a sleeping host wakes, which never binds. Each request reserves the $0.025 per-request ceiling before it runs and settles after, so concurrent requests cannot jointly pass it; a deployed container refuses to start on a non-durable ledger. | **Done (Phase 5)** — $0.50/day notional, [D-037](./DECISIONS.md), [SERVING.md](./SERVING.md) §3 |
+| **Model calls paced below the free-tier quota in the served container** | A burst of queries turning into provider 429s and silent client-side retries. 12 calls/min, burst 3 — at most 15 in any minute. Off in the eval path so its latency carries no limiter sleep. | **Done (Phase 5)** — `AGENT_REQUESTS_PER_MINUTE`, [D-041](./DECISIONS.md) |
 | **The test suite never writes to the trace store `make budget` reads** | Synthetic runs with fake token counts and no cost polluting a published spend figure. 187 of 214 traces were test traffic. | **Done** — `tests/conftest.py` disables observability suite-wide |
 
 ---
 
-## Agent-side spend (Gemini, free tier)
+## Agent-side spend (Gemini)
 
-Billed spend is $0.00 by construction. The graph nevertheless meters every call, because a
-ceiling that is permanently satisfied is a ceiling that has never been tested (D-004).
-`Usage` carries both figures:
+The graph meters every call, because a ceiling needs a figure at request time and a bill
+arrives after the fact (D-004). `Usage` carries:
 
-- `cost_usd` — actually billed. `0.0` on the free tier.
-- `notional_cost_usd` — the same tokens priced at paid rates. **This is what the budget
-  ceiling checks**, so the guard is live and exercised today.
+- `notional_cost_usd` — the tokens priced at paid standard rates, the cached part of the
+  prompt at $0.03/1M. **This is what every ceiling checks.**
+- `cached_input_tokens` — the part of the prompt the provider served from its cache (added
+  2026-09-24; before that, cached tokens were priced at the full input rate).
+- `cost_usd` — billed. **`None` (unverified) unless a provider record supplied it.** It used to
+  be computed as $0 from a free-tier assumption on a key that was being billed (D-046).
 
 Any cost figure published anywhere must say which of the two it is.
 
@@ -138,9 +182,9 @@ illustrative sample, not a measurement, and no substitute for Phase 4:
 | Multi-hop (3 sub-questions) | 3 | 3 | 12,969 / 516 | $0.00518 |
 | Out-of-scope refusal | 1 | 0 | 134 / 31 | $0.00012 |
 
-Notional cost is at **verified** paid-standard rates ($0.30 / $2.50). Billed cost is $0.00
-on the free tier. The v3 worst-case call count remains a target for Phase 4 to falsify, not
-a result.
+Notional cost is at **verified** paid-standard rates ($0.30 / $2.50). These runs were also
+*billed* at those rates — the key was on a billing-enabled project (D-046). The v3 worst-case
+call count remains a target for Phase 4 to falsify, not a result.
 
 **The ceiling is a pathological-case bound, not a description of observed behaviour.** Over
 69 queries (`make run-report`): median 4 LLM calls per query against the 16 the budget
@@ -152,7 +196,9 @@ dimension the call ceiling cannot bound, and never on an ordinary run (4.4× hea
 observed per-query max). That is its job; it is not a forecast. The previous $0.05 was a
 round number calibrated against placeholder rates that understated cost ~3.6×.
 
-**Thinking is the dominant cost lever, and it is pinned.** `reasoning_effort` is set
+**Thinking was expected to be the dominant cost lever, so it is pinned — and the pin
+worked.** The bill shows output (thinking included) at 9% of cost and uncached input at 89%:
+context size, not thinking, is what costs money (D-046). `reasoning_effort` is set
 explicitly to `minimal` rather than left at the model default, because thinking tokens bill
 at the output rate. Measured over 5 runs on one prompt (`scripts/determinism_probe.py`,
 2026-08-20): `minimal` produces 0 thinking tokens and ~79 output tokens; `low` produces
@@ -162,7 +208,7 @@ cannot be disabled entirely (`thinking_budget=0` is rejected). Details in
 
 **Per-request, not per-thread.** `usage` is checkpointed, so the ceilings were briefly
 being enforced across a whole thread — three turns accumulated `llm_calls` 3 → 6 → 9 before
-[D-013](./DECISIONS.md) fixed it. Phase 5's daily cost ceiling needs its own accumulator.
+[D-013](./DECISIONS.md) fixed it. Phase 5's daily ceiling has its own accumulator (D-037).
 
 ---
 
@@ -183,18 +229,23 @@ being enforced across a whole thread — three turns accumulated `llm_calls` 3 �
 <!-- SPEND:START -->
 <!-- Generated by `make budget` from Langfuse traces. Do not edit by hand. -->
 
-**Agent-side spend, last 30 days** (generated 2026-09-22):
+**Agent-side spend, last 30 days** (generated 2026-09-24):
 
-| Environment | Priced traces | Input | Output | Thinking | Billed USD | Notional USD |
-|---|---:|---:|---:|---:|---:|---:|
-| `development` | 69 | 673,872 | 13,537 | 0 | $0.00000 | $0.23600 |
-| `integration-test` _(test traffic)_ | 38 | 37,145 | 5,928 | 0 | $0.00000 | $0.02596 |
-| **total** | **69** | **673,872** | **13,537** | | **$0.00000** | **$0.23600** |
+| Environment | Priced traces | Input | Output | Thinking | Notional USD |
+|---|---:|---:|---:|---:|---:|
+| `development` | 276 | 2,678,570 | 54,238 | 0 | $0.93917 |
+| `integration-test` _(test traffic)_ | 8 | 7,820 | 1,248 | 0 | $0.00547 |
+| `span-loss-probe` | 2 | 15,172 | 934 | 0 | $0.00689 |
+| **total** | **278** | **2,693,742** | **55,172** | | **$0.94605** |
 
-_Blended $0.3433 per 1M tokens, between the $0.3 input and $2.5 output rates as a mostly-input workload should be. `make reconcile-cost` checks this._
+_Blended $0.3442 per 1M tokens, between the $0.3 input and $2.5 output rates as a mostly-input workload should be (cached input, at $0.03, is the only thing allowed below it). `make reconcile-cost` checks this._
 
-Billed is what the provider charges — $0 on the Gemini free tier. Notional prices the same
-tokens at paid standard rates (DECISIONS D-004). **This table is the agent side only.** OpenAI
+_Excluded from every column above, not estimated: 0 traces carrying tokens but no cost (synthetic runs from the test suite, which priced nothing), and 2 traces with no usage metadata (pre-instrumentation runs and the duplicate roots of the double-trace bug). 278 of 288 traces in the window are real, priced agent runs. Counting the excluded traces' tokens against the priced traces' cost is what produced an impossible blended rate before (DECISIONS D-021)._
+
+Notional prices the tokens at paid standard rates (DECISIONS D-004). **There is no billed
+column.** It used to read $0 from a free-tier assumption while the key's project was billed;
+billing comes only from the provider's own record — see the Gemini line above, from
+docs/billing/gemini.json (DECISIONS D-046). **This table is the agent side only.** OpenAI
 judge spend is a different provider on a different ceiling and is never summed with the figures
 above; regenerate it with `make judge-spend`, which reads usage from the batch objects
 themselves.

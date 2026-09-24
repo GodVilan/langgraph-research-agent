@@ -1,0 +1,15 @@
+{
+  "_comment": "Hand-entered from the provider's own record. The source CSV is not committed (it lives outside git). Never edit a figure here without updating source and entered_utc; README, BUDGET and scripts/gemini_reconcile.py read this file.",
+  "provider": "Google Cloud Billing — Gemini API (service AEFD-7695-64FA)",
+  "source": "My Billing Account_Reports, 2026-08-19 — 2026-09-30, SKU breakdown CSV exported by Srikanth",
+  "period": {"from": "2026-08-19", "to": "2026-09-24"},
+  "entered_utc": "2026-09-24",
+  "total_usd": 7.602340,
+  "skus": [
+    {"sku": "7207-AF1D-C15D", "description": "Generate content input token count gemini 3.5 flash lite text", "model": "gemini-3.5-flash-lite", "kind": "input_uncached", "tokens": 22573359, "usd": 6.771981},
+    {"sku": "3D01-132D-D29C", "description": "Generate content cached input token count gemini 3.5 flash lite text", "model": "gemini-3.5-flash-lite", "kind": "input_cached", "tokens": 4703996, "usd": 0.141106},
+    {"sku": "5904-BFA2-5FD5", "description": "Generate content output token count gemini 3.5 flash lite text", "model": "gemini-3.5-flash-lite", "kind": "output", "tokens": 274770, "usd": 0.686910},
+    {"sku": "399C-32AD-1412", "description": "Generate content input token count gemini 2.5 flash lite short input text", "model": "gemini-2.5-flash-lite", "kind": "input_uncached", "tokens": 10710, "usd": 0.001068},
+    {"sku": "7133-23F2-04B7", "description": "Generate content output token count gemini 2.5 flash lite short output text non-thinking", "model": "gemini-2.5-flash-lite", "kind": "output", "tokens": 3194, "usd": 0.001275}
+  ]
+}

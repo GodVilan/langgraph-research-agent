@@ -103,12 +103,64 @@ def get_client() -> Any:
             host=settings.langfuse_host,
             environment=settings.langfuse_environment,
             release=settings.release,
+            sample_rate=settings.langfuse_sample_rate,
         )
         log.info("Langfuse enabled: %s (%s)", settings.langfuse_host, settings.langfuse_environment)
     except Exception as exc:  # tracing must never break the agent
         log.warning("Could not start Langfuse: %s", exc)
         _CLIENT = None
     return _CLIENT
+
+
+def sampling_not_in_effect() -> str | None:
+    """Refuse a sample rate the client silently dropped.
+
+    Langfuse applies ``sample_rate`` only when *it* creates the global OpenTelemetry
+    provider; if one is already registered it reuses that provider and ignores the rate
+    without a warning. A configured policy that is not in effect is the D-023 family — it
+    reads as a decision and does nothing — so the effective sampler is checked, not the
+    setting. Returns an error string, or None. Initialises the client, which is the point:
+    a deployed service should find this at startup, not on its first request.
+    """
+    rate = get_observability_settings().langfuse_sample_rate
+    if rate >= 1.0:
+        return None
+    client = get_client()
+    if client is None:
+        return None
+    try:
+        from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
+
+        sampler = client._resources.tracer_provider.sampler
+    except Exception as exc:
+        return f"LANGFUSE_SAMPLE_RATE={rate} could not be verified: {exc}"
+    if isinstance(sampler, TraceIdRatioBased) and abs(sampler.rate - rate) < 1e-9:
+        return None
+    return (
+        f"LANGFUSE_SAMPLE_RATE={rate} is not in effect: the active sampler is "
+        f"{type(sampler).__name__}, because another OpenTelemetry provider was registered "
+        f"before Langfuse started. Every request would be traced."
+    )
+
+
+def effective_sample_rate() -> float | None:
+    """The head-sampling rate actually in force, read from the sampler — not the setting.
+
+    None when tracing is off. ``/ready`` reports it and the startup log records it, so a
+    deployed instance's policy is checked by its effect (D-039).
+    """
+    client = get_client()
+    if client is None:
+        return None
+    try:
+        from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
+
+        sampler = client._resources.tracer_provider.sampler
+    except Exception:
+        return None
+    if isinstance(sampler, TraceIdRatioBased):
+        return float(sampler.rate)
+    return 1.0
 
 
 def callback_handler() -> BaseCallbackHandler | None:
@@ -180,6 +232,12 @@ def current_trace_id() -> str:
     if client is None:
         return ""
     with contextlib.suppress(Exception):
+        from opentelemetry import trace as otel_trace
+
+        # Under head sampling a sampled-out run still has a trace id in its context, but
+        # nothing is exported under it. Returning it would hand the caller a dead link.
+        if not otel_trace.get_current_span().get_span_context().trace_flags.sampled:
+            return ""
         return str(client.get_current_trace_id() or "")
     return ""
 
@@ -265,10 +323,12 @@ def record_state(root: Any, state: dict[str, Any]) -> None:
         if isinstance(usage, Usage):
             metadata["usage"] = {
                 "input_tokens": usage.input_tokens,
+                "cached_input_tokens": usage.cached_input_tokens,
                 "output_tokens": usage.output_tokens,
                 "thinking_tokens": usage.reasoning_tokens,
                 "llm_calls": usage.llm_calls,
                 "tool_calls": usage.tool_calls,
+                # None = unverified. Billing is the provider's record, never assumed (D-046).
                 "cost_usd_billed": usage.cost_usd,
                 "cost_usd_notional": usage.notional_cost_usd,
                 "missing_usage_metadata": usage.missing_usage_metadata,
@@ -279,10 +339,8 @@ def record_state(root: Any, state: dict[str, Any]) -> None:
                     "output": usage.output_tokens,
                     "total": usage.input_tokens + usage.output_tokens,
                 },
-                # Billed and notional are kept apart: on the free tier the first is always
-                # zero, and collapsing them would either read zero forever or imply spend
-                # that is not happening.
-                cost_details={"total": usage.cost_usd},
+                # No cost_details: this used to send the billed figure, which was a $0 tier
+                # assumption on a billed key (D-046). Notional is in the metadata, labelled.
             )
 
         root.update(output={"answer": state.get("answer")}, metadata=metadata)

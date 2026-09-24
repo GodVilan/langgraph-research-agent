@@ -1,0 +1,107 @@
+{
+  "mh-003": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The pancreatic cohort figure is correct, but the hematological study\u2019s relevant totals (1,634 pretraining patients and 189 AML patients) are omitted and replaced with evaluation split sizes. The stated split sizes and the pancreatic cohort total are supported by the retrieved chunks."
+  },
+  "mh-007": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The agent correctly identifies the first paper as evaluating MATH500, but it names the wrong other paper and provides benchmarks that do not match the gold answer. The asserted benchmark list is supported by retrieved chunk [2605.29782_0015]."
+  },
+  "mh-010": {
+    "fact_matches": false,
+    "grounded": false,
+    "reason": "The answer does not identify the correct second study, 2605.30162, and incorrectly concludes that the requested comparison cannot be made. Although the retrieved chunks support mentions of 1B models and 405B checkpoints, they do not support the answer\u2019s central claim that no two studies fulfill the criteria."
+  },
+  "sp-001": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent gives the gold value of 21.92%. The retrieved chunk [2605.29525_0010] explicitly reports that LPA (mean + varied bound) achieves 21.92% error on CIFAR-100 with ResNet-110."
+  },
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent gives 10.97%, matching the gold answer. The retrieved chunk explicitly reports 10.97% Top-1 accuracy for S-Adam with k=2 on ImageNet 8-bit QAT."
+  },
+  "sp-009": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states $19.746 per 1,000 evaluations, matching the gold answer. The retrieved chunk explicitly reports that Claude Haiku 4.5 costs 19.746 per 1,000 evaluations."
+  },
+  "sp-010": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies the confidence threshold \u03c4, which exactly matches the gold answer. The retrieved chunk [2605.29607_0020] explicitly states that CLAD has a single tunable hyperparameter, the confidence threshold \u03c4."
+  },
+  "sp-011": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The retrieved table contains the asserted Motifs mR@50/100 value of 15.2 / 16.2, but under PredCls the gold value is 8.7 / 9.3; 15.2 / 16.2 corresponds to the SGCls setting."
+  },
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 55.011, which matches the gold answer. The retrieved Table 6 chunk explicitly lists the pretrained RoBERTa effective rank as 55.011."
+  },
+  "sp-018": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated learning rate of 0.001 matches the gold answer. The retrieved chunks explicitly report Langevin Monte Carlo learning rates of \u03b7 = 0.001 and \u03b7 = 10\u207b\u00b3."
+  },
+  "sp-023": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly states the Table 1 accuracy as 96.26, and the retrieved chunk [2605.29720_0011] explicitly lists WebFace42M with Acc 96.26."
+  },
+  "sp-025": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies agency-sa-goal, which matches the gold answer. The retrieved chunk [2605.29729_0010] explicitly states that the agency-sa-goal prompt is the most conducive to scheming."
+  },
+  "sp-027": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated score of 21.2 matches the gold answer. The retrieved chunk [2605.29782_0014] explicitly lists 21.2 for the 0.5B DAPO + Hista configuration."
+  },
+  "sp-031": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The gold answer is F1-macro, but the agent instead lists various metrics from unrelated studies. Those listed metrics are supported by the retrieved chunks, so the response is grounded despite not answering the specific question."
+  },
+  "sp-033": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly states that the discrepancy shrinks as graph size increases and that larger graphs yield closer step-graphon approximations. This is explicitly supported by the retrieved chunks, which describe concentration around the latent graphon and improved fidelity for larger graphs."
+  },
+  "sp-034": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 58.8%, matching the gold answer. The retrieved chunk [2605.29829_0034] explicitly shows 58.8% Old Skill for successful samples."
+  },
+  "sp-035": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The gold answer is Minas, whereas the agent identifies PAR. The retrieved chunks explicitly state that PAR attains the lowest sensitivity values and provide its sensitivity scores, so the assertion is grounded in the retrieved context."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated split ratio, 0.6/0.2/0.2, exactly matches the gold answer. The retrieved chunk [2605.29857_0021] explicitly states this target ratio across all datasets."
+  },
+  "sp-039": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s answer matches the gold answer of epoch 25. The retrieved chunk [2605.29863_0013] explicitly states that the non-shuffle version converges prematurely around 25 epochs."
+  },
+  "sp-041": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 6.02% (also rounded to 6.0%), matching the gold answer. The retrieved chunk explicitly says that removing Layer 11 reduced TP accuracy to 6.02%."
+  },
+  "sp-048": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The answer includes the gold comparison for the proposed approach, stating that its collision metric drops from 0.071 to 0.016. This exact fact appears in retrieved chunk [2605.29937_0013]."
+  }
+}

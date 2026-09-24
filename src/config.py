@@ -35,57 +35,49 @@ BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 
 
 class ModelPricing(BaseModel):
-    """USD per 1M tokens. Reasoning/thinking tokens bill at the output rate.
+    """Paid-tier USD per 1M tokens, used for the *notional* cost every ceiling checks (D-004).
 
-    ``input_usd``/``output_usd`` are what we are actually billed on the configured tier.
-    ``notional_*`` are the paid-tier rates, used to compute a shadow cost so the budget
-    ceiling is exercised and testable even while the agent runs on a free tier.
-    See docs/DECISIONS.md D-004.
+    There is deliberately no "billed" rate here. Until 2026-09-24 this model carried billed
+    rates of $0 from an assumption that the key was on the free tier; the key's project had
+    billing enabled throughout and Google billed $7.60 (DECISIONS D-046). A billed figure now
+    comes only from the provider's own record (docs/billing/), never from a rate in code.
 
-    ``verified`` records whether these rates were checked against provider documentation.
-    Unverified rates still drive the ceiling — a ceiling computed from a placeholder is far
-    better than one silently computed from zero — but they must never be published as a
-    cost figure without checking first.
+    Reasoning/thinking tokens bill at the output rate. ``notional_cached_input_usd`` prices the
+    part of the prompt the provider served from its implicit cache; ``None`` means the cached
+    rate is not verified, and cached tokens are then priced at the full input rate — an
+    overstatement, the safe direction for a ceiling.
     """
 
-    input_usd: float
-    output_usd: float
     notional_input_usd: float
     notional_output_usd: float
+    notional_cached_input_usd: float | None = None
     verified: bool = False
     source: str = ""
 
 
 # Do not edit from memory — re-verify against provider docs and update `source`.
-# Free tier: no charge. Free-tier content may be used to improve Google's products;
-# acceptable here because the corpus is public arXiv text (README, DECISIONS D-003).
 PRICING: dict[str, ModelPricing] = {
     "gemini-2.5-flash-lite": ModelPricing(
-        input_usd=0.0,
-        output_usd=0.0,
         notional_input_usd=0.10,
         notional_output_usd=0.40,
         verified=True,
-        source="provider docs, 2026-08-19",
+        source="provider docs, 2026-08-19; matched by the Cloud Billing SKU rates, 2026-09-24",
     ),
-    # In use. Notional rates are paid *standard*, not batch — the agent serves interactive
-    # requests, so batch pricing would understate what a paid deployment would pay.
-    # Batch/Flex are $0.15 / $1.25 for reference. Context caching is not available on the
-    # free tier for this model, and the output rate includes thinking tokens, which is why
-    # the thinking budget is pinned rather than left at the model default (D-014).
+    # In use. Paid *standard* rates, not batch — the agent serves interactive requests.
+    # Batch/Flex are $0.15 / $1.25 for reference. The output rate includes thinking tokens,
+    # which is why the thinking budget is pinned (D-014). Cached input: $0.03/1M, the rate
+    # Google Cloud Billing actually charged on SKU 3D01-132D-D29C (docs/billing/gemini.json).
     "gemini-3.5-flash-lite": ModelPricing(
-        input_usd=0.0,
-        output_usd=0.0,
         notional_input_usd=0.30,
         notional_output_usd=2.50,
+        notional_cached_input_usd=0.03,
         verified=True,
-        source="Google official pricing page, 2026-08-19 (paid standard tier)",
+        source="Google pricing page 2026-08-19 (paid standard); all three rates matched by the "
+        "Cloud Billing SKU breakdown, 2026-09-24",
     ),
     # Not in use. Rates unchecked; the 3.5 standard rates are a closer placeholder than
     # 2.5's, but the entry stays unverified so switching to it warns loudly.
     "gemini-3.1-flash-lite": ModelPricing(
-        input_usd=0.0,
-        output_usd=0.0,
         notional_input_usd=0.30,
         notional_output_usd=2.50,
         verified=False,
@@ -96,8 +88,6 @@ PRICING: dict[str, ModelPricing] = {
 # ceiling — the exact failure D-004 exists to prevent. `Settings.pricing()` logs a warning
 # when this is hit so it cannot pass unnoticed.
 UNKNOWN_MODEL_PRICING = ModelPricing(
-    input_usd=0.0,
-    output_usd=0.0,
     notional_input_usd=0.0,
     notional_output_usd=0.0,
     verified=False,
@@ -163,6 +153,54 @@ class RetrievalSettings(BaseModel):
     query_prefix: str = BGE_QUERY_PREFIX
 
 
+class ApiLimits(BaseModel):
+    """Serving-side ceilings for the public endpoint (Phase 5).
+
+    These sit *outside* the graph. ``BudgetLimits`` bounds one request; nothing in it can
+    bound a day, a client, or how many requests run at once, and D-013 deliberately made the
+    per-request budget forget everything between requests. Each limit here protects the API
+    key behind the endpoint from a different shape of abuse: many requests from one client
+    (per-IP), many clients at once (concurrency), and many requests over a day (the cost
+    ceiling, which is the only one that must survive a restart — docs/SERVING.md).
+    """
+
+    # Per-IP token bucket: `per_ip_per_minute` refill, `per_ip_burst` capacity. In memory
+    # and per process: a smoothing limit, not a budget, so losing it on restart costs a
+    # burst, not money. The daily ceiling below is the one that has to persist.
+    per_ip_per_minute: float = 4.0
+    per_ip_burst: int = 3
+    # Queries admitted to the graph at once. Gemini's free tier allows 15 requests/minute
+    # and the median query makes 4 model calls (`make run-report`), so the model quota —
+    # not CPU — is the ceiling on throughput. More in-flight queries would only queue
+    # inside the model client's retry loop, where nothing reports it.
+    max_concurrent_queries: int = 2
+    # How long an admitted-but-waiting request may queue for a slot before 503.
+    queue_timeout_s: float = 20.0
+    # Global daily ceiling on *notional* cost — the tokens priced at paid standard rates. Not
+    # on billed cost: billing is known only from the provider's record, after the fact
+    # (D-046), and a ceiling needs a figure at request time. $0.50/day is ~150 median
+    # queries ($0.0033 each, `make run-report`) and 20 pathological ones at the $0.025
+    # per-request bound.
+    daily_notional_ceiling_usd: float = 0.50
+    # Where the daily ledger lives. `memory` is refused in a deployed container; `sqlite`
+    # is refused there unless the path is on a mounted volume (src/api/ledger.py).
+    ledger: Literal["memory", "sqlite", "upstash"] = "memory"
+    ledger_path: Path = CHECKPOINT_DIR / "ledger.sqlite"
+    # Entries appended by proxies in front of the service. 0 = trust only the socket peer;
+    # X-Forwarded-For is client-controlled and would let anyone pick their own rate-limit
+    # key. Set to the number of proxies that *append* to the header (docs/SERVING.md).
+    trusted_proxy_hops: int = 0
+    # Set by the container image. Turns ephemeral-state guards from warnings into refusals.
+    deployed: bool = False
+    # Live arXiv fetch stays off on the public endpoint: it triggers outbound fetches and
+    # PDF parsing on an anonymous caller's behalf, and fetched papers enter a process-wide
+    # session index (src/retrieval/session_index.py). The CLI keeps it (DECISIONS D-036).
+    allow_arxiv: bool = False
+    max_top_k: int = 10
+    # Held exclusively for the process lifetime in a deployed container (single worker).
+    worker_lock_path: Path = Path("/tmp/arxiv-agent-v3.worker.lock")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore", env_nested_delimiter="__"
@@ -171,6 +209,12 @@ class Settings(BaseSettings):
     # ── Secrets ────────────────────────────────────────────────────────────────
     google_api_key: SecretStr = SecretStr("")
     hf_token: SecretStr = SecretStr("")
+    # The daily cost ledger on a host with no persistent disk (API__LEDGER=upstash).
+    upstash_redis_rest_url: str = ""
+    upstash_redis_rest_token: SecretStr = SecretStr("")
+    # Lets the load check bypass the per-IP limiter only — never the daily ceiling or the
+    # concurrency cap, which protect the key. Unset = no bypass exists (docs/SERVING.md).
+    loadcheck_token: SecretStr = SecretStr("")
 
     # ── Models ─────────────────────────────────────────────────────────────────
     # Routed through init_chat_model so a provider swap is config, not code.
@@ -186,11 +230,23 @@ class Settings(BaseSettings):
     # output — roughly 6x the output cost for the same prompt. Thinking cannot be disabled
     # outright; thinking_budget=0 is rejected with INVALID_ARGUMENT.
     agent_reasoning_effort: Literal["minimal", "low", "medium", "high"] = "minimal"
+    # Process-wide pacing of model calls, requests per minute; 0 = off. Off by default so
+    # the eval path — where p50/p95 are measured — carries no limiter sleep (BACKLOG, Phase
+    # 3). The container sets it to the free-tier quota, so a burst queues here, visibly,
+    # rather than inside the provider client's silent retry loop.
+    agent_requests_per_minute: float = 0.0
+    # The input scope classifier runs with seed=0, top_k=1 (DECISIONS D-035): measured
+    # byte-identical over 140 calls where the unpinned model flipped verdicts on 3 of 28
+    # questions. Phase 4's metrics were measured with this False; set False to reproduce them.
+    pin_scope_classifier: bool = True
 
     # ── Paths ──────────────────────────────────────────────────────────────────
     data_dir: Path = DATA_DIR
     index_dir: Path = INDEX_DIR
     checkpoint_db: Path = CHECKPOINT_DIR / "threads.sqlite"
+    # Every model response appends one row here (src/agent/llm.py record_usage) — the record
+    # the D-046 reconciliation did not have. Gitignored; the test suite redirects it.
+    usage_log: Path = REPO_ROOT / ".usage" / "llm_usage.jsonl"
 
     # ── Device ─────────────────────────────────────────────────────────────────
     device: Literal["auto", "cpu", "mps", "cuda"] = "auto"
@@ -199,6 +255,7 @@ class Settings(BaseSettings):
     budget: BudgetLimits = Field(default_factory=BudgetLimits)
     graph: GraphLimits = Field(default_factory=GraphLimits)
     retrieval: RetrievalSettings = Field(default_factory=RetrievalSettings)
+    api: ApiLimits = Field(default_factory=ApiLimits)
 
     @property
     def chunks_path(self) -> Path:

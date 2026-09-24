@@ -55,6 +55,16 @@ ISOLATED_SETTINGS = frozenset({"Settings", "ObservabilitySettings"})
 
 
 @pytest.fixture(autouse=True)
+def _isolate_usage_log(settings: Settings, tmp_path: Path) -> None:
+    """Keep the suite out of the real usage log (src/agent/llm.py record_usage).
+
+    The same failure as the 187 synthetic traces (D-021, CLAUDE.md §8.10): a store that
+    produces published numbers must never receive test traffic.
+    """
+    settings.usage_log = tmp_path / "usage.jsonl"
+
+
+@pytest.fixture(autouse=True)
 def _isolate_settings_cache(monkeypatch: pytest.MonkeyPatch, settings: Settings) -> None:
     """Make ``get_settings()`` return the test settings everywhere it is called.
 

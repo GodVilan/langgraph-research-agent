@@ -34,20 +34,16 @@ SYSTEM = "You are a precise technical writer. Answer in exactly three sentences.
 
 async def probe(setting: str, runs: int) -> dict[str, object]:
     """`setting` is 'default', an integer thinking budget, or 'effort:<level>'."""
-    from langchain_google_genai import ChatGoogleGenerativeAI
+    from src.agent.llm import get_chat_model, usage_from_message
 
-    settings = get_settings()
-    kwargs: dict[str, object] = {
-        "model": settings.model_name(),
-        "api_key": settings.google_api_key.get_secret_value(),
-        "temperature": 0.0,
-    }
+    overrides: tuple[tuple[str, object], ...] = ()
     if setting.startswith("effort:"):
-        kwargs["reasoning_effort"] = setting.split(":", 1)[1]
+        overrides = (("reasoning_effort", setting.split(":", 1)[1]),)
     elif setting != "default":
-        kwargs["thinking_budget"] = int(setting)
-
-    llm = ChatGoogleGenerativeAI(**kwargs)  # type: ignore[arg-type]
+        overrides = (("thinking_budget", int(setting)),)
+    # Through the wrapper (one construction site, next to the usage log — D-046). "default"
+    # now means the project's pinned default, not the provider's.
+    llm = get_chat_model(temperature=0.0, overrides=overrides)
 
     digests: list[str] = []
     thinking: list[int] = []
@@ -55,6 +51,7 @@ async def probe(setting: str, runs: int) -> dict[str, object]:
     sample = ""
     for _ in range(runs):
         resp = await llm.ainvoke([("system", SYSTEM), ("user", PROMPT)])
+        usage_from_message(resp)  # type: ignore[arg-type]  # the usage-log row for this call
         text = str(resp.text).strip()
         sample = sample or text
         digests.append(hashlib.sha256(text.encode()).hexdigest()[:10])
