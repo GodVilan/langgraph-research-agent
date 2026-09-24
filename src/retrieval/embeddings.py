@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from src.config import BGE_QUERY_PREFIX, EMBEDDING_MODEL, get_settings, resolve_device
+from src.config import get_settings, resolve_device
 from src.observability.tracing import span
 
 if TYPE_CHECKING:
@@ -25,14 +25,17 @@ log = logging.getLogger(__name__)
 class EmbeddingModel:
     def __init__(
         self,
-        model_name: str = EMBEDDING_MODEL,
+        model_name: str | None = None,
         batch_size: int = 32,
         device: str | None = None,
     ) -> None:
         from sentence_transformers import SentenceTransformer
 
         settings = get_settings()
+        # Frozen default via settings; an explicit name wins, for the comparison arm's index.
+        model_name = model_name or settings.retrieval.embedding_model
         self.model_name = model_name
+        self.query_prefix = settings.retrieval.query_prefix
         self.batch_size = batch_size
         self.device = device or resolve_device(settings.device)
 
@@ -89,7 +92,7 @@ class EmbeddingModel:
             **{"embedding.model": self.model_name, "embedding.device": self.device},
         ):
             vec = self._model.encode(
-                [BGE_QUERY_PREFIX + query],
+                [self.query_prefix + query],
                 convert_to_numpy=True,
                 normalize_embeddings=True,
             ).astype(np.float32)

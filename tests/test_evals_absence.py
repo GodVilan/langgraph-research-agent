@@ -25,12 +25,27 @@ pytestmark = pytest.mark.slow  # reads the 16 MiB chunk file
 
 
 class TestTopicAbsence:
-    @pytest.mark.parametrize("term", ["curriculum learning", "capsule networks"])
+    @pytest.mark.parametrize("term", ["AlphaFold", "click-through rate"])
     def test_genuinely_absent_topics_pass(self, term: str) -> None:
         result = verify_topic_absent(term)
 
         assert result.absent
         assert result.chunks_scanned == load_corpus().n_chunks
+
+    @pytest.mark.parametrize("term", ["curriculum learning", "capsule networks"])
+    def test_topics_absent_as_a_string_but_present_as_a_concept_are_caught(self, term: str) -> None:
+        """Hazard 1, one level down: absence checked as a string, asked as a concept.
+
+        The corpus never writes "curriculum learning" and does discuss training examples
+        ordered "easy to hard"; it never writes "capsule networks" and does discuss
+        "dynamic routing". Both were certified absent by a literal check and both would have
+        scored a correct answer as a failure to refuse. Screening now covers every surface
+        form of a term, which cut the topic stratum from 4 to 2.
+        """
+        result = verify_topic_absent(term)
+
+        assert not result.absent
+        assert result.mentioning_chunk_ids
 
     @pytest.mark.parametrize(
         "term", ["mixture-of-experts", "active learning", "knowledge graph", "meta-learning"]
@@ -65,6 +80,13 @@ class TestAttributeAbsence:
 
         assert result.absent
         assert result.chunks_scanned == 5401
+
+    def test_a_paraphrased_form_in_the_anchor_paper_blocks_the_item(self) -> None:
+        """The exact defect: "batch size" absent, "global batch 16" present in Appendix A."""
+        result = verify_attribute_absent("2605.30237", "batch size")
+
+        assert not result.absent
+        assert "global batch" in result.reason
 
     def test_an_unknown_paper_is_rejected_rather_than_assumed_absent(self) -> None:
         result = verify_attribute_absent("9999.99999", "gsm8k")

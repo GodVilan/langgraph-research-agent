@@ -1,0 +1,102 @@
+{
+  "ua-002": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not contain the specific weight decay value and declines to answer."
+  },
+  "ua-005": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not mention the COCO benchmark or any mAP score for MIRAGE."
+  },
+  "ua-011": {
+    "behaviour": "refuse",
+    "reason": "The agent says the provided text does not contain the CIFAR accuracy and declines to provide a value."
+  },
+  "ua-003": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided context does not contain the LibriSpeech word error rate and declines to provide a value."
+  },
+  "ua-006": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not mention the ablation study or component removals and therefore declines to identify the largest accuracy drop."
+  },
+  "ua-008": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that the model has no optimization process or learning rate, rather than refusing or asking for clarification."
+  },
+  "ua-007": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not mention or evaluate a random baseline and therefore provides no exact metric."
+  },
+  "ua-010": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the paper does not report the requested exact wall-clock convergence time."
+  },
+  "ut-003": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that OmegaFold is used for protein 3D structure prediction and reports that no specific structure-prediction performance metrics are given."
+  },
+  "ut-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the papers report no click-through rate prediction results."
+  },
+  "sp-007": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the training iteration budget and declines to answer."
+  },
+  "sp-049": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided context does not mention the second goal or the dataset-dependent fluctuating approach and declines to identify one."
+  },
+  "sp-036": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the text window size for the smaller family of language versions."
+  },
+  "sp-006": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific Top-1 accuracy of 10.97% for the k=2 S-Adam ImageNet configuration."
+  },
+  "sp-017": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that the effective rank measurement for the pretrained RoBERTa baseline is 55.011."
+  },
+  "sp-044": {
+    "behaviour": "refuse",
+    "reason": "The agent does not answer the question and instead gives a generic statement about the topics it can address."
+  },
+  "sp-032": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention a DreamSim score for SleeperMark."
+  },
+  "sp-047": {
+    "behaviour": "refuse",
+    "reason": "The agent says the provided context does not mention the difficult subset or bootstrap confidence intervals and therefore declines to give a number."
+  },
+  "sp-037": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that all datasets use a 0.6/0.2/0.2 train/validation/test split ratio."
+  },
+  "sp-030": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the text does not mention Citeseer or related performance metrics and declines to identify an approach."
+  },
+  "am-009": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that substantially larger image dimensions may require architectural adaptations or scaling strategies, identifying a stated limitation."
+  },
+  "am-002": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific limitation\u2014no explicit mechanism for encoding non-stationarity or anisotropy\u2014and adds a performance-related qualification."
+  },
+  "am-008": {
+    "behaviour": "clarify",
+    "reason": "The answer identifies multiple possible papers and gives different baselines depending on which proposed method is intended, without committing to one referent."
+  },
+  "am-003": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies multiple possible papers and lists different baselines for each rather than selecting one primary baseline."
+  },
+  "am-005": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies multiple possible papers and baselines and explicitly says the answer depends on which method and experiment is intended, without selecting one."
+  }
+}

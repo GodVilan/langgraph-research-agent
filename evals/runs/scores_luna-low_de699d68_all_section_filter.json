@@ -1,0 +1,706 @@
+{
+  "scorer": "luna-low",
+  "run_path": "evals/runs/v3_de699d68_section_filter.json",
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "rubric_sha256": "53a692b429ec37b75cfccfedf5db6d8d259e2dc4cc8e647f3c3068fd7dda5285",
+  "sample_path": "evals/datasets/judge_sample.json",
+  "judge_weights_revision": "NOT PINNED: gpt-5.6-luna \u2014 no provider exposes a weights revision; served model id asserted per response (D-030b)",
+  "previous_rubric_sha256": "0c1efb19192d8eb03915403e4740db688f6fbf430f0861642b11b90fd05c1b20",
+  "rescored_items": [
+    "ua-008",
+    "ut-003"
+  ],
+  "rescore_note": "rubric v2: responsiveness test for Q1: a fact stated to explain why the requested fact is absent is part of the refusal; a fact offered as the answer is an answer. Added after three judge sheets read two explained refusals (ua-008, ut-003) as answers under v1's hedge sentence.",
+  "scores": {
+    "ua-001": {
+      "item_id": "ua-001",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested baseline performance.",
+      "scored_at": "2026-09-22T20:45:25.553946+00:00"
+    },
+    "ua-002": {
+      "item_id": "ua-002",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the passages do not mention a specific weight decay value and declines to provide one.",
+      "scored_at": "2026-09-22T20:45:25.553997+00:00"
+    },
+    "ua-003": {
+      "item_id": "ua-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested word error rate.",
+      "scored_at": "2026-09-22T20:45:25.554013+00:00"
+    },
+    "ua-004": {
+      "item_id": "ua-004",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the GPU hours required for the benchmark evaluations.",
+      "scored_at": "2026-09-22T20:45:25.554025+00:00"
+    },
+    "ua-005": {
+      "item_id": "ua-005",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested mAP score.",
+      "scored_at": "2026-09-22T20:45:25.554036+00:00"
+    },
+    "ua-006": {
+      "item_id": "ua-006",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a component removal.",
+      "scored_at": "2026-09-22T20:45:25.554047+00:00"
+    },
+    "ua-007": {
+      "item_id": "ua-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested metric.",
+      "scored_at": "2026-09-22T20:45:25.554057+00:00"
+    },
+    "ua-008": {
+      "item_id": "ua-008",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explains that the described inference-only pipeline has no training or optimization and therefore no learning rate, rather than providing a learning-rate value.",
+      "scored_at": "2026-09-22T20:45:25.554066+00:00"
+    },
+    "ua-009": {
+      "item_id": "ua-009",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested word error rate.",
+      "scored_at": "2026-09-22T20:45:25.554075+00:00"
+    },
+    "ua-010": {
+      "item_id": "ua-010",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the cited passages do not report an exact wall-clock convergence time for the largest test mesh.",
+      "scored_at": "2026-09-22T20:45:25.554084+00:00"
+    },
+    "ua-011": {
+      "item_id": "ua-011",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested accuracy.",
+      "scored_at": "2026-09-22T20:45:25.554094+00:00"
+    },
+    "ut-003": {
+      "item_id": "ut-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the corpus contains no passages addressing protein structure prediction results.",
+      "scored_at": "2026-09-22T20:45:25.554108+00:00"
+    },
+    "ut-004": {
+      "item_id": "ut-004",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing click-through prediction results and declines to provide results.",
+      "scored_at": "2026-09-22T20:45:25.554118+00:00"
+    },
+    "mh-003": {
+      "item_id": "mh-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the hematological malignancy study does not provide a single primary-cohort total, so it declines to give the requested direct comparison while reporting the pancreatic study's total.",
+      "scored_at": "2026-09-22T20:45:25.554133+00:00"
+    },
+    "mh-007": {
+      "item_id": "mh-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify either paper or its benchmarks.",
+      "scored_at": "2026-09-22T20:45:25.554143+00:00"
+    },
+    "mh-010": {
+      "item_id": "mh-010",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify either study.",
+      "scored_at": "2026-09-22T20:45:25.554159+00:00"
+    },
+    "am-001": {
+      "item_id": "am-001",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the evaluation setup.",
+      "scored_at": "2026-09-22T20:45:25.554174+00:00"
+    },
+    "am-002": {
+      "item_id": "am-002",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a limitation.",
+      "scored_at": "2026-09-22T20:45:25.554187+00:00"
+    },
+    "am-003": {
+      "item_id": "am-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline.",
+      "scored_at": "2026-09-22T20:45:25.554197+00:00"
+    },
+    "am-004": {
+      "item_id": "am-004",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus contains no passages addressing the benchmark used in the reinforcement-learning experiments.",
+      "scored_at": "2026-09-22T20:45:25.554206+00:00"
+    },
+    "am-005": {
+      "item_id": "am-005",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing which baseline was used.",
+      "scored_at": "2026-09-22T20:45:25.554216+00:00"
+    },
+    "am-006": {
+      "item_id": "am-006",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus contains no passages addressing the evaluation setup or benchmark for safety and alignment.",
+      "scored_at": "2026-09-22T20:45:25.554225+00:00"
+    },
+    "am-007": {
+      "item_id": "am-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide an answer.",
+      "scored_at": "2026-09-22T20:45:25.554235+00:00"
+    },
+    "am-008": {
+      "item_id": "am-008",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline.",
+      "scored_at": "2026-09-22T20:45:25.554245+00:00"
+    },
+    "am-009": {
+      "item_id": "am-009",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent identifies the stated limitation as needing architectural adaptations or scaling strategies for substantially larger image dimensions.",
+      "scored_at": "2026-09-22T20:45:25.554262+00:00"
+    },
+    "am-010": {
+      "item_id": "am-010",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline.",
+      "scored_at": "2026-09-22T20:45:25.554271+00:00"
+    },
+    "sp-001": {
+      "item_id": "sp-001",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested top-1 error rate.",
+      "scored_at": "2026-09-22T20:45:25.554284+00:00"
+    },
+    "sp-002": {
+      "item_id": "sp-002",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the provided passages do not mention a completion duration for the Trace dataset and therefore declines to provide a value.",
+      "scored_at": "2026-09-22T20:45:25.554294+00:00"
+    },
+    "sp-003": {
+      "item_id": "sp-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested percentage and instead gives a generic description of the questions it can answer.",
+      "scored_at": "2026-09-22T20:45:25.554303+00:00"
+    },
+    "sp-005": {
+      "item_id": "sp-005",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain information addressing the requested Intent Accuracy value.",
+      "scored_at": "2026-09-22T20:45:25.554315+00:00"
+    },
+    "sp-006": {
+      "item_id": "sp-006",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain information addressing the requested Top-1 accuracy.",
+      "scored_at": "2026-09-22T20:45:25.554325+00:00"
+    },
+    "sp-007": {
+      "item_id": "sp-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not state a general training iteration budget for the majority of runs.",
+      "scored_at": "2026-09-22T20:45:25.554334+00:00"
+    },
+    "sp-008": {
+      "item_id": "sp-008",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain information addressing the question and declines to provide a score.",
+      "scored_at": "2026-09-22T20:45:25.554343+00:00"
+    },
+    "sp-009": {
+      "item_id": "sp-009",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain information addressing the expense per 1,000 evaluations.",
+      "scored_at": "2026-09-22T20:45:25.554357+00:00"
+    },
+    "sp-010": {
+      "item_id": "sp-010",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a parameter.",
+      "scored_at": "2026-09-22T20:45:25.554367+00:00"
+    },
+    "sp-011": {
+      "item_id": "sp-011",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested mR score.",
+      "scored_at": "2026-09-22T20:45:25.554376+00:00"
+    },
+    "sp-012": {
+      "item_id": "sp-012",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the passages do not provide the requested numerical mean absolute error for M\u00afoLe-\u039b on PubChem.",
+      "scored_at": "2026-09-22T20:45:25.554384+00:00"
+    },
+    "sp-014": {
+      "item_id": "sp-014",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested count and instead gives a generic description of its capabilities.",
+      "scored_at": "2026-09-22T20:45:25.554393+00:00"
+    },
+    "sp-016": {
+      "item_id": "sp-016",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the passages do not specify a value for n in the plots and explains its other appearances.",
+      "scored_at": "2026-09-22T20:45:25.554403+00:00"
+    },
+    "sp-017": {
+      "item_id": "sp-017",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the pretrained RoBERTa baseline's effective rank measurement is 55.011. | The agent's value 55.011 matches the gold answer, and retrieved chunk [2605.29673_0034] explicitly lists the pretrained RoBERTa effective rank as 55.011.",
+      "scored_at": "2026-09-22T20:45:25.554424+00:00"
+    },
+    "sp-018": {
+      "item_id": "sp-018",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the Langevin Monte Carlo learning rate was 10^{-3}. | The agent's stated learning rate of 10^-3 (0.001) matches the gold answer. The retrieved chunks explicitly report a learning rate of 10^-3 or 0.001 for Langevin Monte Carlo simulations.",
+      "scored_at": "2026-09-22T20:45:25.554440+00:00"
+    },
+    "sp-020": {
+      "item_id": "sp-020",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain information addressing the average travel time.",
+      "scored_at": "2026-09-22T20:45:25.554451+00:00"
+    },
+    "sp-021": {
+      "item_id": "sp-021",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested Tflash metric result.",
+      "scored_at": "2026-09-22T20:45:25.554461+00:00"
+    },
+    "sp-022": {
+      "item_id": "sp-022",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the context does not mention section 2.3 and declines to identify its subject.",
+      "scored_at": "2026-09-22T20:45:25.554471+00:00"
+    },
+    "sp-023": {
+      "item_id": "sp-023",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide an accuracy.",
+      "scored_at": "2026-09-22T20:45:25.554480+00:00"
+    },
+    "sp-025": {
+      "item_id": "sp-025",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly identifies `agency-sa-goal` as the most effective prompt variant. | The agent identifies agency-sa-goal, which matches the gold answer. The retrieved chunk [2605.29729_0010] explicitly states that the agency-sa-goal prompt is the most conducive to scheming.",
+      "scored_at": "2026-09-22T20:45:25.554494+00:00"
+    },
+    "sp-026": {
+      "item_id": "sp-026",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent declines to answer the clinical case question and limits its scope to machine-learning and AI research papers.",
+      "scored_at": "2026-09-22T20:45:25.554508+00:00"
+    },
+    "sp-027": {
+      "item_id": "sp-027",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain information addressing the requested average performance score.",
+      "scored_at": "2026-09-22T20:45:25.554520+00:00"
+    },
+    "sp-028": {
+      "item_id": "sp-028",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the comparison and declines to provide an average difference.",
+      "scored_at": "2026-09-22T20:45:25.554529+00:00"
+    },
+    "sp-029": {
+      "item_id": "sp-029",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain information addressing the requested accuracy percentage.",
+      "scored_at": "2026-09-22T20:45:25.554539+00:00"
+    },
+    "sp-030": {
+      "item_id": "sp-030",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the Citeseer benchmark performance question.",
+      "scored_at": "2026-09-22T20:45:25.554547+00:00"
+    },
+    "sp-031": {
+      "item_id": "sp-031",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested performance measure.",
+      "scored_at": "2026-09-22T20:45:25.554556+00:00"
+    },
+    "sp-032": {
+      "item_id": "sp-032",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the DreamSim score for SleeperMark.",
+      "scored_at": "2026-09-22T20:45:25.554564+00:00"
+    },
+    "sp-033": {
+      "item_id": "sp-033",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the discrepancy shrinks with network scale and gives a specific operator-norm convergence rate. | The agent correctly states that the discrepancy shrinks as graph size grows and that sampled step-graphon operators approach the latent graphon operator. This is explicitly supported by retrieved chunks 2605.29828_0011 and 2605.29828_0008.",
+      "scored_at": "2026-09-22T20:45:25.554578+00:00"
+    },
+    "sp-034": {
+      "item_id": "sp-034",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the proportion of old skills in successful samples is 58.8%. | The agent states 58.8%, which matches the gold answer. The retrieved chunk [2605.29829_0034] explicitly shows 58.8% for old skills used in successful samples.",
+      "scored_at": "2026-09-22T20:45:25.554595+00:00"
+    },
+    "sp-035": {
+      "item_id": "sp-035",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a system.",
+      "scored_at": "2026-09-22T20:45:25.554605+00:00"
+    },
+    "sp-036": {
+      "item_id": "sp-036",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided passages do not mention the text window size for the smaller family of language versions and therefore declines to provide one.",
+      "scored_at": "2026-09-22T20:45:25.554614+00:00"
+    },
+    "sp-037": {
+      "item_id": "sp-037",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent asserts that all datasets use a 0.6/0.2/0.2 train/validation/test split ratio. | The agent\u2019s stated 0.6/0.2/0.2 train/validation/test ratio exactly matches the gold answer. The retrieved chunk [2605.29857_0021] explicitly states this split ratio across all datasets.",
+      "scored_at": "2026-09-22T20:45:25.554628+00:00"
+    },
+    "sp-038": {
+      "item_id": "sp-038",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested mean accuracy.",
+      "scored_at": "2026-09-22T20:45:25.554636+00:00"
+    },
+    "sp-039": {
+      "item_id": "sp-039",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the non-shuffle variant prematurely converges around 25 epochs. | The agent states that the non-shuffle variant converges prematurely around 25 epochs, matching the gold answer. This fact appears explicitly in retrieved chunk [2605.29863_0013].",
+      "scored_at": "2026-09-22T20:45:25.554649+00:00"
+    },
+    "sp-040": {
+      "item_id": "sp-040",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the requested TPR value.",
+      "scored_at": "2026-09-22T20:45:25.554657+00:00"
+    },
+    "sp-041": {
+      "item_id": "sp-041",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested percentage.",
+      "scored_at": "2026-09-22T20:45:25.554667+00:00"
+    },
+    "sp-042": {
+      "item_id": "sp-042",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent says the context lacks the complete number of processing units and total RAM, mentioning the 80 GB A100 only to explain the insufficiency.",
+      "scored_at": "2026-09-22T20:45:25.554676+00:00"
+    },
+    "sp-043": {
+      "item_id": "sp-043",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent asserts specific run counts for the tables (5 seeds and one run), even though it says no overall average is provided. | The gold answer is 10 trials, whereas the agent reports 5 seeds for some tables and a single run for another and declines to give the overall average. Those reported run counts are explicitly supported by the retrieved chunks.",
+      "scored_at": "2026-09-22T20:45:25.554689+00:00"
+    },
+    "sp-044": {
+      "item_id": "sp-044",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that restricting the injection angle to three settings reduced the count to 240 true operating points, while also adding a separate figure. | The agent correctly states that restricting the injection angle to three settings reduced the operating points to 240. This fact appears in retrieved chunk [2605.29911_0013].",
+      "scored_at": "2026-09-22T20:45:25.554702+00:00"
+    },
+    "sp-047": {
+      "item_id": "sp-047",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a number.",
+      "scored_at": "2026-09-22T20:45:25.554711+00:00"
+    },
+    "sp-048": {
+      "item_id": "sp-048",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested collision-metric drop.",
+      "scored_at": "2026-09-22T20:45:25.554720+00:00"
+    },
+    "sp-049": {
+      "item_id": "sp-049",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain passages addressing the question and declines to identify an approach.",
+      "scored_at": "2026-09-22T20:45:25.554729+00:00"
+    },
+    "sp-050": {
+      "item_id": "sp-050",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided passages do not mention the bootstrap fraction or amplitude decrease and therefore declines to provide a value.",
+      "scored_at": "2026-09-22T20:45:25.554738+00:00"
+    }
+  }
+}

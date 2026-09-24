@@ -9,6 +9,7 @@ from __future__ import annotations
 import time
 
 from src.agent.state import (
+    AgentState,
     RetrievedChunk,
     Usage,
     initial_state,
@@ -103,32 +104,23 @@ class TestUsageDeadline:
 
 
 class TestInitialState:
-    def test_populates_every_key(self) -> None:
-        """total=False is for partial updates, not partial state — nodes never guard."""
+    def test_populates_every_declared_key(self) -> None:
+        """total=False is for partial updates, not partial state — nodes never guard.
+
+        Derived from ``AgentState``'s annotations rather than a hand-listed set. The list
+        version had to be edited every time a field was added, which means it asserted "the
+        keys are the ones I remembered" — the same drift as any hand-maintained enumeration in
+        this project (see `REMEDIES`, `by_reason`). Adding a field to the state now fails this
+        test until `initial_state` populates it, which is the property worth having.
+        """
         state = initial_state("What is LoRA?", "thread-1")
-        expected = {
-            "thread_id",
-            "question",
-            "request",
-            "messages",
-            "plan",
-            "plan_cursor",
-            "retrieved",
-            "retrieval_events",
-            "tool_calls",
-            "draft_answer",
-            "critique",
-            "refinement_count",
-            "guardrail_events",
-            "refused",
-            "refusal_reason",
-            "usage",
-            "truncated",
-            "truncation_reason",
-            "answer",
-            "sources",
-        }
-        assert set(state.keys()) == expected
+
+        declared = set(AgentState.__annotations__)
+        missing = declared - set(state.keys())
+        extra = set(state.keys()) - declared
+
+        assert not missing, f"initial_state does not populate {sorted(missing)}"
+        assert not extra, f"initial_state sets keys AgentState does not declare: {sorted(extra)}"
 
     def test_deadline_is_set_when_requested(self) -> None:
         state = initial_state("q", "t", deadline_s=30.0)

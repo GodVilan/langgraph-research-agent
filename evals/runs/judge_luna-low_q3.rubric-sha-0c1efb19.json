@@ -1,0 +1,17 @@
+{
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's stated 10.97% matches the gold answer. The retrieved chunks explicitly report 10.97% for S-Adam (k=2) on ImageNet (8-bit QAT)."
+  },
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 55.011, which matches the gold answer. The retrieved Table 6 chunk explicitly lists the pretrained effective rank as 55.011."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states the split ratio as 0.6/0.2/0.2, matching the gold answer. This fact is explicitly stated in retrieved chunk [2605.29857_0021]."
+  }
+}

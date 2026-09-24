@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+from evals.matching import first_term_present, mentions_name
 from src.config import get_settings
 
 # Method names too generic to identify a paper. "Gram" matches "n-gram", "program", and
@@ -114,9 +115,108 @@ def paper_handles() -> dict[str, frozenset[str]]:
     return handles
 
 
+# Absence is a property of the *concept*, not the string. A question asking what batch size
+# a paper used is not made unanswerable by the paper writing "global batch 16" instead of
+# "batch size" — the agent retrieves on meaning, and the corpus does contain the answer.
+# This is Hazard 1 recurring one level down: absence checked at a finer granularity than the
+# agent searches. Each term therefore carries the surface forms that mean the same thing,
+# and *all* of them are screened across all 5,401 chunks.
+TERM_PARAPHRASES: dict[str, tuple[str, ...]] = {
+    "batch size": (
+        "batch size",
+        "batch-size",
+        "minibatch",
+        "mini-batch",
+        "global batch",
+        "batch of",
+        "bsz",
+        "per-device batch",
+    ),
+    "learning rate": (
+        "learning rate",
+        "learning-rate",
+        "lr schedule",
+        "step size",
+        "base lr",
+        "peak lr",
+    ),
+    "weight decay": ("weight decay", "l2 regularization", "l2 regularisation", "wd "),
+    "warmup": ("warmup", "warm-up", "warm up", "linear ramp"),
+    "flops": (
+        "flops",
+        "flop",
+        "floating-point operations",
+        "floating point operations",
+        "macs",
+        "multiply-accumulate",
+        "petaflop",
+        "teraflop",
+    ),
+    "gpu hours": (
+        "gpu hours",
+        "gpu-hours",
+        "gpu time",
+        "device hours",
+        "a100 hours",
+        "compute hours",
+    ),
+    "wall-clock": ("wall-clock", "wall clock", "wallclock", "elapsed time", "runtime"),
+    "a100": ("a100", "a-100", "nvidia a100"),
+    "throughput": ("throughput", "tokens per second", "samples per second", "images/sec", "qps"),
+    "ablation": ("ablation", "ablate", "ablated", "leave-one-out", "component analysis"),
+    "ablation study": ("ablation study", "ablation experiment", "ablations"),
+    "leave-one-out": ("leave-one-out", "leave one out", "loo"),
+    "random baseline": ("random baseline", "random chance", "chance level", "random guess"),
+    "zero-shot baseline": ("zero-shot baseline", "zero shot baseline", "zeroshot baseline"),
+    "majority class": ("majority class", "majority baseline", "most frequent class"),
+    "wikitext": ("wikitext", "wiki-text", "wikitext-103", "wikitext103"),
+    "librispeech": ("librispeech", "libri-speech", "libri speech"),
+    "openwebtext": ("openwebtext", "open web text", "owt"),
+    "laion": ("laion", "laion-5b", "laion-400m"),
+    "pile": ("the pile", "pile dataset"),
+    "imagenet": ("imagenet", "image-net", "ilsvrc", "in-1k", "in1k"),
+    "cifar": ("cifar", "cifar-10", "cifar-100", "cifar10", "cifar100"),
+    "mnist": ("mnist", "fashion-mnist", "fashionmnist"),
+    "gsm8k": ("gsm8k", "gsm-8k", "grade school math"),
+    "mmlu": ("mmlu", "massive multitask"),
+    "humaneval": ("humaneval", "human-eval", "human eval"),
+    "coco": ("coco", "ms-coco", "mscoco", "common objects in context"),
+    "curriculum learning": (
+        "curriculum learning",
+        "curriculum-based",
+        "easy-to-hard",
+        "easy to hard",
+        "curriculum schedule",
+        "self-paced learning",
+    ),
+    "capsule networks": (
+        "capsule network",
+        "capsnet",
+        "routing-by-agreement",
+        "routing by agreement",
+        "dynamic routing",
+    ),
+    "alphafold": ("alphafold", "alpha-fold", "protein structure prediction", "protein folding"),
+    "click-through rate": ("click-through", "clickthrough", "ctr prediction", "\bctr\b"),
+}
+
+
+def paraphrases_of(term: str) -> tuple[str, ...]:
+    """Surface forms that would answer a question about ``term``."""
+    return TERM_PARAPHRASES.get(term.lower().strip(), (term,))
+
+
+# Both delegate to the shared policy in `evals/matching.py`. They had two different
+# hand-rolled boundaries here — one correct, one with no trailing boundary at all, so
+# `cifar-10` matched inside `cifar-100` in the check gating every unanswerable item.
+def _mentions_any(text: str, needles: tuple[str, ...]) -> str | None:
+    """The first surface form the text discusses, or None."""
+    return first_term_present(text, needles)
+
+
 def _mentions(text: str, needle: str) -> bool:
-    """Word-boundary match. Substring matching is what produced the false eliminations."""
-    return re.search(rf"(?<![A-Za-z0-9]){re.escape(needle)}(?![A-Za-z0-9])", text) is not None
+    """Exact-name match, for identifying a paper by handle."""
+    return mentions_name(text, needle)
 
 
 @dataclass
@@ -128,24 +228,31 @@ class AbsenceResult:
 
 
 def verify_topic_absent(term: str) -> AbsenceResult:
-    """Rule 1: the term appears nowhere in any chunk of the corpus."""
+    """Rule 1: no surface form of the term appears in any chunk of the corpus."""
     corpus = load_corpus()
-    hits = [
-        str(c["chunk_id"]) for c in corpus.chunks if _mentions(str(c["text"]).lower(), term.lower())
-    ]
+    forms = paraphrases_of(term)
+    hits, found = [], None
+    for c in corpus.chunks:
+        hit = _mentions_any(str(c["text"]).lower(), forms)
+        if hit:
+            hits.append(str(c["chunk_id"]))
+            found = found or hit
     if hits:
         return AbsenceResult(
             absent=False,
             reason=(
-                f"{term!r} appears in {len(hits)} chunks. It is discussed in the corpus, so "
-                f"a refusal would be the wrong answer."
+                f"{term!r} appears in {len(hits)} chunks (as {found!r}). It is discussed in "
+                f"the corpus, so a refusal would be the wrong answer."
             ),
             chunks_scanned=corpus.n_chunks,
             mentioning_chunk_ids=hits[:10],
         )
     return AbsenceResult(
         absent=True,
-        reason=f"{term!r} appears in none of the {corpus.n_chunks} chunks",
+        reason=(
+            f"{term!r} and its {len(forms)} surface forms appear in none of the "
+            f"{corpus.n_chunks} chunks"
+        ),
         chunks_scanned=corpus.n_chunks,
     )
 
@@ -161,10 +268,15 @@ def verify_attribute_absent(anchor_paper_id: str, term: str) -> AbsenceResult:
             chunks_scanned=corpus.n_chunks,
         )
 
-    if _mentions(own, term.lower()):
+    forms = paraphrases_of(term)
+    own_hit = _mentions_any(own, forms)
+    if own_hit:
         return AbsenceResult(
             absent=False,
-            reason=f"{anchor_paper_id} does mention {term!r} in its own text",
+            reason=(
+                f"{anchor_paper_id} does report {term!r} in its own text, as {own_hit!r} — "
+                f"the question is answerable and a refusal would be wrong"
+            ),
             chunks_scanned=corpus.n_chunks,
         )
 
@@ -174,7 +286,7 @@ def verify_attribute_absent(anchor_paper_id: str, term: str) -> AbsenceResult:
         if str(chunk["paper_id"]) == anchor_paper_id:
             continue
         text = str(chunk["text"])
-        if not _mentions(text.lower(), term.lower()):
+        if not _mentions_any(text.lower(), forms):
             continue
         for handle in handles:
             if _mentions(text, handle):

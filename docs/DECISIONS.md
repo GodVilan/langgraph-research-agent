@@ -109,7 +109,9 @@ understate `gemini-3.5-flash-lite` by roughly 3.6x. The ceiling was therefore ca
 against figures about 4x too low. Corrected observed costs still sit an order of magnitude
 below it ($0.00335 for a single-hop query against a $0.05 ceiling), so no change was made —
 but the ceiling is a round number chosen against wrong inputs, not a derived one, and Phase
-4 should reset it from measured per-query distributions.
+4 should reset it from measured per-query distributions. **Reset 2026-09-11 to $0.025** =
+`max_llm_calls × max observed per-call notional` (16 × $0.00156) over the 69-query Phase 4
+run; observed per-query max $0.0057. Derivation in docs/BUDGET.md.
 
 **Prices** (re-verify against provider docs with a date before editing, never from memory):
 
@@ -769,6 +771,103 @@ is not a member of the enum it groups by, and a `TOPIC_NOT_ABSENT` reason now ex
 "the term turned out to be present" had been borrowing `BANNED_PHRASING` as well — the same
 bug twice in one function.
 
+**A seventh instance, and the first where one function held three variants at once.**
+`prompt_decision` in the verification CLI:
+
+1. `default=ACCEPT` — an empty line, or a stray line from a paste, silently became "accept".
+2. `answer.strip().lower()[:1]` — free text was truncated to its first character, so
+   *"reject this"* was recorded as `r` and *"absolutely not"* as `a`. A verifier typing a
+   sentence got a decision they never made.
+3. No echo of the parsed decision, so neither of the above was visible while it happened.
+
+Underneath all three, a fourth: multi-line notes were consumed one line per subsequent
+prompt, shifting every answer after a paste one slot early — decisions filed as notes, notes
+read as decisions, and the overflow falling through to the shell after the process exited.
+
+A session recorded **22 accepts and 2 rejects against an intent of roughly 17 and 7**, which
+turns a 28% disagreement rate into 8% — on the one number the exercise exists to produce.
+The whole session was discarded; a partial re-run against a corrupted record is not
+recoverable.
+
+What makes this the family's worst case is not the count. Every earlier instance was a check
+that failed to *observe* something. This one **manufactured observations that never
+happened** and reported them with confidence. A detector that cannot fire under-reports; an
+input handler that invents decisions produces a number that is precisely wrong and looks
+precisely right.
+
+Fixed: no default, strict membership against exactly `{a, e, r, s, q}` with re-prompting,
+the parsed decision echoed back before advancing, notes read multi-line to an explicit
+terminator, and the input buffer drained before every decision so nothing typed in answer to
+one question can be read as the answer to another.
+
+**An eighth instance, and it is the family closing a loop.** The two integration tests were
+*failing* when Langfuse was down, because `get_client` constructs lazily and a stopped stack
+looked healthy until the first request. Making them skip was the right local fix — an
+unreachable backend is a missing precondition, not a failure of the code under test.
+
+But it converted a noisy failure into a silent absence. Those two tests are the **only**
+automated coverage of the trace path, in the layer where all four Phase 3 bugs were found by
+running the agent rather than by the suite. `449 passed, 2 skipped` reads as green, and the
+2 were the only thing testing the thing that has broken most.
+
+So skipping beat failing and was still not enough: a test that never runs is a check that
+never fires. CI now stands Langfuse up as a service and **fails if the integration suite did
+not actually execute** — a skip in that job is an error. The local skip stays, because a
+developer without Docker running should not be blocked; the enforcement belongs where the
+claim is made, not where the code is written.
+
+**A ninth instance, and a distinct class: the check ran on the wrong property.**
+
+Every earlier instance was a check that *could not fire*, *skipped its own failure*, *gated
+nothing*, *was applied to one stratum only*, or *reported uninterpretably*. Two failures found
+in human verification were none of those. They fired, passed, and were wrong, because what
+they measured was not what the item needed.
+
+**Containment measured digits; multi-hop answers are qualitative.** The figure `2` appears in
+3,772 of 5,401 chunks — 70%. `mh-006` asserted a *"lightweight 2D U-Net"* and a *"Graph
+Convolutional Network"* against four gold chunks that were **entirely bibliography**, and
+passed, because its only figure was `2`. Four of five rejected items had reference lists,
+acknowledgements, coordinate plots or an XML prompt template as gold.
+
+**The mutual reinforcement is more instructive than either defect alone.** Two components
+independently chose the same wrong property, and each then concealed the other's error:
+
+* the **selector** ranked candidate chunks by how many of the answer's *figures* they
+  contained;
+* the **check** validated gold chunks by whether they contained the answer's *figures*.
+
+Neither is absurd in isolation. Together they form a closed loop that actively seeks out the
+worst possible gold chunk. A reference list is among the most figure-dense text in a paper —
+bracketed numerals, years, page numbers — so the selector *preferred* bibliographies, and the
+check then confirmed them, because the very property that made them attractive to the selector
+was the only property the check inspected. The measurement that exposed it: **the figure `2`
+appears in 3,772 of 5,401 chunks — 70%.** A check requiring a gold chunk to contain `2` is not
+a weak check; it is close to no check, and the selector was optimising to satisfy it.
+
+The general lesson: when a selector and its validator share a scoring property, the validator
+cannot audit the selector. They agree by construction, and their agreement looks like
+confirmation. Any two components on the same axis need a third property to check against —
+here, structural eligibility (a bibliography cannot support an architecture claim regardless
+of what it contains) and per-paper contribution, neither of which is expressible in the
+figure-density terms both original components used.
+
+A third instance of the same defect surfaced while fixing these two: `unsupported_chunks`
+measured figures while selection had moved to claims, so a chunk chosen for containing `CLAP`
+was reported as contributing nothing and flagged five sound items. Same file, same wrong
+property, found only because the artifact gate ran after the selector changed.
+
+**Necessity measured answerability; the item needed truth.** `mh-009` stated that a paper used
+a Franka arm in MuJoCo locomotion simulation; the paper used one in real-world experiments
+only. Necessity returned "no single paper answers it, and the papers together do" for a claim
+neither paper makes. Answerability and truth are different properties. Claim-level attribution
+does not close it either, because every *entity* in that answer appears somewhere in the
+papers — the falsehood is in the relation between them, which is why grounding is a model call
+and not a regex.
+
+**What this class costs to find.** Nothing automated found either one. Both required a human
+reading gold chunks against answers, and `gold_chunks_exist: all present` passed every one —
+that check reports id resolution, not containment, and its name invited the wrong reading.
+
 **The general rule this family points at:** every detector needs a case that makes it fire,
 written at the same time as the detector — *and* a case that makes its report readable. A
 clean run proves nothing on its own; neither does a correct number nobody can act on; and a
@@ -782,3 +881,651 @@ committer and runs `make check` locally, but it is a real weakness and is named 
 much weaker claim than a gate that blocks, and the eval gate is the first check where the
 difference genuinely matters — a silent regression is exactly what it exists to stop.
 Revisit then, with pull requests and branch protection on both jobs.
+
+
+
+---
+
+## D-024 — A test of a reimplementation proves the reimplementation works
+
+**Decided:** the item check chain exists once, as ``evals.verify_items.classify_candidate``.
+Every builder, the artifact gate, and the defect matrix delegate to it. A test asserts that
+each caller does, and asserts *delegation* rather than the presence of reason names in
+source — the earlier version looked for strings and broke the moment the checks were
+correctly extracted into one function.
+
+**Why:** the chain was written four times and diverged four ways.
+
+* `draft_multi_hop` ran five checks.
+* `build_factual` ran two, then four — never `banned_phrasing` or `false_premises`.
+* `verify_dataset` ran a superset, and each side reported itself complete.
+* `tests/test_check_matrix.py` ran **its own copy**, written in the test file.
+
+The consequence is the part worth remembering: **the matrix passed green while the builder it
+spoke for was missing two checks.** It could not have failed. A test of a copy establishes
+that the copy works, and says nothing about the code in production — which is the same defect
+as a source-inspecting test, one level subtler, because it looks like a behavioural test.
+
+Three defects reached a written artifact through that gap and were found by the artifact gate
+rather than by the matrix.
+
+**Cost:** callers pass six arguments to one function instead of inlining the checks they care
+about, and two of those arguments (`banned`, `leaked`) must be computed by the caller because
+they need the drafter's own gold passage. That awkwardness is the price of there being one
+chain.
+
+**Reverse if:** never. The alternative is a convention that four implementations already
+failed to follow.
+
+---
+
+## D-025 — A solved problem that fails to propagate is its own defect class
+
+**Decided:** string matching happens in exactly one place, `evals/matching.py`, with two
+named modes. Every call site delegates; none re-derives a boundary. `make audit-entities`
+prints the whole surface the premise check asserts so borderline cases are reviewed as a
+list rather than discovered one rejection at a time.
+
+**Why:** `absence._mentions` learned word boundaries in Phase 4 after `Gram` matched inside
+"n-gram" and falsely eliminated two candidate items. The lesson was written down. It did not
+travel. Months later `false_premises` was still matching substrings, so **`cifar-10` matched
+inside `cifar-100`** — a question asking what a paper reports on CIFAR-10, of a corpus that
+only uses CIFAR-100, was not flagged as a false premise. It had been passing all 93 items.
+
+Auditing every other matching site found a third: `_mentions_any`, the paraphrase screen
+gating *all thirteen* unanswerable items, had a left boundary and no right one at all.
+
+This is not the D-023 family. Those are checks that could not fire, skipped their own
+failure, gated nothing, or reported uninterpretably. **This one fired correctly, in one
+place, and the correctness stayed there.** Two correct implementations in two places is a
+coincidence; three sites with three different boundary rules is what a convention produces
+when it is written in prose rather than in one function.
+
+**The audit also showed the sites were not simply right and wrong.** They answer different
+questions, and the difference had never been stated:
+
+| | preceding | trailing | because |
+|---|---|---|---|
+| `mentions_term` — "is this concept discussed?" | no alphanumeric | no **digit** | "minibatches" *is* batch size; `cifar-100` is not `cifar-10` |
+| `mentions_name` — "is this exact thing named?" | no alphanumeric **or hyphen** | no alphanumeric | a question naming `Gram` is not satisfied by "n-gram" |
+
+Each errs in the direction that is safe for its own question. In an absence check,
+over-matching rejects an item — recoverable, visible as a shortfall. Under-matching
+certifies a term absent that the corpus discusses, producing a **backwards item** whose
+expected answer is a refusal while the corpus holds the answer. So term mode deliberately
+permits hyphenated compounds; name mode forbids them, because there over-matching is what
+lets a false premise through.
+
+**Cost:** one more module, and two mode names a caller must choose between. That choice is
+the point — it was previously made implicitly by whoever wrote each regex.
+
+**Reverse if:** never. The alternative is a convention, and a convention is what failed.
+
+---
+
+## D-026 — A check written in response to a rejection is not a fix until it is called
+
+**Decided:** the shared chain takes the clause-scoped inputs (`source_paper_ids`,
+`gold_by_paper`), the drafter passes the drafted answer to the necessity check, and
+`tests/test_check_matrix.py` asserts the *reason* each defect class produces. A check that
+nothing calls fails the matrix rather than sitting in the module looking like coverage.
+
+**Why:** the previous round's five multi-hop rejections produced two checks, each documented
+in its own docstring as the fix for a named item. Neither ran.
+
+- **`papers_contributing_nothing` was called from nowhere.** It was written to catch `mh-005`
+  and `mh-011`, whose gold came from one of their two papers. It was imported by no builder,
+  no verifier, and not by the chain. Dead code, described in prose as a guarantee.
+- **The grounding check ran with an empty answer.** `MultiHopCheck.grounded`,
+  `GROUNDING_SYSTEM` and `is_admissible` were added after necessity certified a hallucinated
+  Franka/MuJoCo relation. `draft_multi_hop` then called
+  `check_single_paper_sufficiency(question, [a, b])` — no answer — so `answer.strip()` was
+  always empty and `grounded` always defaulted to `True`. It fired only in its own fixtures.
+
+Both were reported to a human as closed. The next verification round found the same defect
+rate on the set they were supposed to have protected, which is what a fix that does not run
+predicts.
+
+**Why it is not simply D-023's tenth and eleventh instances:** those are checks that ran and
+measured the wrong thing. These never executed on real input at all, and the reason they
+looked fine is that each had a *fixture* proving it worked. A passing fixture plus an
+unreferenced function reads exactly like a passing fixture plus a wired-up one.
+
+**Cost:** the chain now takes eight arguments, two of them only meaningful for multi-hop
+items, and every caller must supply them. The alternative — a builder deciding which checks
+apply to it — is what D-024 was written about.
+
+**Third instance (2026-09-22): a submit that reported success without happening.** During the
+account outage, two batch submissions (`section_filter` q1, `v21` q1) received a 401, wrote no
+receipt file, and left the driver log reading "SUBMITTED". Nothing downstream would have
+noticed: both arms would simply have been absent from the results, with a log line saying they
+were queued. Same shape as the two checks above — the report and the reality diverged, and the
+report was the optimistic one. The distinction worth keeping is that the 401 was external and
+the false "SUBMITTED" was ours; only the second is a defect.
+
+The fix is structural, not a log message: `write_receipt` refuses an info dict with no
+`batch_id`, writes the receipt, then **re-reads it and compares the id**, raising if either
+step fails. A submit that cannot produce a readable receipt cannot report success, because the
+receipt is the handle a later `collect` needs — no receipt means the work is unaddressable even
+if the provider queued it. `tests/test_judge.py::TestASubmitCannotReportSuccessWithoutHappening`
+simulates a rejected submit and asserts it raises and leaves no receipt behind.
+
+**Reverse if:** never.
+
+---
+
+## D-027 — A structural exclusion needs the same evidence as a metric
+
+**Decided:** a chunk is a reference list when at least half its `[n]` markers are followed by
+whitespace and a capital — the shape of an author name beginning an entry. Marker *counts* and
+URL density are not used. The criterion's separation is measured and recorded: 318 chunks at
+share 0.0, 218 at 1.0, 36 in between.
+
+**Why:** `is_ineligible_gold` was introduced to stop bibliographies being selected as gold,
+after four of five rejected multi-hop items had reference lists or an XML template as gold.
+It worked, and it barred **670 chunks — 11.6% of the corpus — of which the majority were
+ordinary prose, results tables and a license table.** Three of the false positives were named
+by a human as the correct gold for items whose selector had been forbidden to see them:
+
+| chunk | what it holds | why it was barred |
+|---|---|---|
+| `29628_0021` | "reduce the dimensionality from 1024 to 100" — the only chunk in its paper stating 1024 | 35 mid-sentence citations |
+| `30232_0100` | "Language models used as starting checkpoints for maze training" | 4 markers in a Citation column |
+| `29601_0047` | "Claude Haiku 4.5 costs 19.746 per 1,000 evaluations" | 8 pricing URLs |
+
+So the fix for "gold selection picks bibliographies" *caused* "gold selection cannot pick the
+right chunk", and the second failure was invisible because a chunk that is never a candidate
+never appears in any report. The corrected rule excludes 290 chunks (5.4%).
+
+**The URL rule is deleted rather than retuned, and measurement is the reason.** It survived one
+round longer than the bracket rule on the grounds that no observed item had been harmed by it;
+`sp-009` then lost the only chunk stating its answer. Marker density cannot separate the
+classes either — a real bibliography runs 1.23 URL markers per 100 words and that results
+paragraph runs 1.43 — so there was no threshold to move. A rule that cannot be made to
+discriminate is removed, not tuned.
+
+**The general form.** An exclusion is a check whose *rejections are never reviewed*, because
+what it rejects leaves the pipeline before anything reports on it. That makes it the easiest
+place in a system to be confidently wrong, and it needs a stated criterion, a measured
+separation, and a fixture on each side — the same evidence a metric needs.
+
+**Cost:** a bibliography keyed `[CJS12]` rather than `[8]` is no longer excluded. It would
+still have to support one of the answer's claims to be selected.
+
+**Reverse if:** a reviewer finds a bibliography chosen as gold. Then the criterion is wrong,
+not the threshold.
+
+---
+
+## D-028 — What counts as evidence is a corpus measurement, not a shape
+
+**Decided:** a figure is a claim when it appears in at most 91 of the corpus's 5,401 chunks.
+The ceiling is derived from a stated coincidence budget — a pruned gold set holds at most three
+chunks, and the chance that any one of them contains the figure by accident must stay under
+5%: `1 - (1 - p)**3 < 0.05` gives `df <= 91`. `GOLD_SET_CEILING` is a premise, and
+`make verify-dataset` fails an item whose gold exceeds it rather than letting the budget widen
+silently.
+
+**Why:** "a decimal, or three or more digits" was a guess at rarity and wrong by an order of
+magnitude. It admitted `100` (581 chunks, 10.8%) as evidence on the same footing as `183,098`
+(0 chunks). Three multi-hop items were grounded on figures of that kind: `0.1` (240 chunks)
+matched Algorithm 1 pseudocode containing neither quantity the answer stated; `2.5` came from
+the model name "Qwen 2.5 7B"; `3.2` came from "Llama 3.2" and matched a *section number* in the
+other paper. This is the figure `2` appearing in 70% of chunks (D-023, ninth), one notch less
+obvious and therefore live for a round longer.
+
+**Rarity also subsumes the name problem without a stop list.** Version digits were excluded
+only for single-token names like `Qwen3-4B-Instruct-2507`; the spaced form no pattern caught.
+Both "Llama 3.2" and "Section 3.2" fail a rarity test for the same reason.
+
+**This loosens claim extraction, which is the dangerous direction**, so it is paired with three
+tightenings rather than shipped alone: parameter scales (`405B`, `1B`) become claims of their
+own kind, attribution is scoped to the clause naming each paper instead of pooled across the
+answer, and a clause left with no groundable value is a rejection.
+
+**Cost, stated plainly.** Nine of 46 figures in the set stop being claims, and `0.001` is a
+plausible learning rate rather than a commonplace. Four factual answers are a bare common
+figure and nothing else — "0.001", "0.07", "1,000", "0.6/0.2/0.2" — which the first version
+rejected as "nothing checkable at all". That is the short-answer failure a second time, aimed
+at vacuous multi-hop support and landing on the most precise answers in the factual stratum.
+Containment on a common figure is now required and reported as **weak**, not discarded.
+
+**Reverse if:** the corpus changes. The threshold is a function of it and must be recomputed,
+not carried forward.
+
+**Addendum (2026-09-10) — the guard, and what it found on its first run.**
+`tests/test_no_orphan_checks.py` asserts that every public function in
+`evals/verify_items.py` has a call site in `evals/` or `scripts/` — tests excluded, because
+a call from a test is exactly the false comfort this removes — and that `draft_multi_hop`
+passes the drafted answer to the necessity check. The first run failed on two more orphans:
+`claims_as_lists` (never used) and **`gold_chunk_supports`, the single-chunk containment
+check, which six tests in `test_evals_gold_chunks.py` proved "can reject" while every builder
+and the gate called `gold_chunks_support_jointly`.** The class of tests titled *the gold-chunk
+check must be able to reject* was asserting it of dead code. Both deleted; the six tests now
+run against the function that runs.
+
+---
+
+## D-029 — One rule, three surfaces: the paraphrase requirement fails the classifier, the retriever and the generator
+
+**Decided:** nothing is changed in the drafter, the input guardrail, the retriever or the
+generator before Phase 4's metrics are reported. The interaction is recorded here, measured on
+each surface, and reserved for the post-mortem as its own class: **a failure that no component
+produces alone, that each component's own validation could not see, and that only real
+paraphrased input exposes — on three components at once.**
+
+**The rule.** Eval construction (Phase 4, amendment 2) requires the drafter to paraphrase away
+distinctive ML vocabulary — model names, dataset names, multi-word phrases — so that retrieval
+cannot succeed on string matching. That is correct: without it Recall@k measures lexical
+overlap, not retrieval.
+
+**The three surfaces it failed on.** Every component downstream of the question keys on the
+vocabulary the rule removes, and each was validated in isolation on input that still had it.
+
+| surface | validated on | what the paraphrased question did to it | evidence |
+|---|---|---|---|
+| **Input scope classifier** (Phase 2) | 36 adversarial probes + 8 hand-written benign questions, 0 false refusals | refused it as off-topic before retrieval ran — *"What is the age of the female patient described in the clinical case example?"* | 5 of 43 factual items (11.6%, n=43); **17.9% of the 28 the LLM classifier judged** (15 were keyword-fast-pathed); `make run-report` |
+| **Retriever** (v2.1, frozen, D-002) | 500 probes, top-5/10 rankings identical to v2.1 | did not return the gold chunk at k=10; often not the gold paper | 5 of the 7 hallucinated refusals in the human-scored 25, plus 3 of the 5 guardrail cases probed with the guard bypassed; `make bypass-probe` |
+| **Generator** (Phase 1) | live runs, critique loop | had the fact in context, *quoted it*, and refused: *"The text discusses context lengths (such as 8192 for Llama 3.2 …) but does not provide information regarding text window sizes for smaller language versions."* Gold answer: 8192. | **1 item, sp-036**, found by hand-scoring; no automated check saw it |
+
+**Why the split was measured, not argued.** It was possible that the refused items are simply
+under-anchored — a question with no paper named and no ML term is arguably not a corpus
+question — and that reading makes the headline smaller, so it could not be decided after
+seeing the number. The five guardrail-blocked items were retrieved with the guard bypassed at
+k=5 and k=10: two find the gold chunk at rank 2 (pure guardrail failures, floor 2/43 = 4.7%),
+three fail retrieval (under-anchored). Then the seven human-labelled hallucinated refusals
+were bucketed **by the rubric's own grounding criterion — was the gold fact in what the agent
+retrieved** — not by gold-chunk-retrieved. That distinction is the whole finding on the third
+surface: by the stricter criterion sp-036 is a retrieval failure and the only generation
+failure in the set disappears. Coincidental figures (sp-047's gold `1,000` appears as `n =
+1000` in two *other* papers' bootstraps) are reported with their source papers so they cannot
+masquerade as grounding. `evals/runs/bypass_probe_hallucinated_refusals.json`.
+
+**What this is not.** It is not a reason to loosen the paraphrase rule, the guardrail, or the
+generator prompt before the metrics run; any change now tunes the eval to the system. It is a
+Phase 5 input on all three surfaces: the scope check needs a benign set drawn from *the eval's
+own questions* rather than written by hand; the drafter needs an anchor rule — paraphrase the
+terms, keep a referent; and the generator's refusal has to be checked against its own context
+before it is emitted, since it refused with the answer in its quotation.
+
+**v2.1 refuses the same questions (2026-09-19).** Run on the same set and generator, v2.1's
+own scope check short-circuited `sp-003`, `sp-014` and `sp-026` before retrieval — three of
+the five v3 blocked. The surface is the paraphrased question, not one system's classifier.
+And on retrieval the two systems miss the gold chunk on the same 30 of 43 factual items:
+Recall@5 0.267 (v3, spread 0.000 over three runs) vs 0.233 (v2.1) is the paraphrase rule's
+retrieval surface measured across the whole set, belonging to neither system.
+
+**Both denominators, always.** "5 refusals" reads differently over 69 items than over the 44
+the classifier actually judged (11.4%, n=44; 7.2%, n=69). On factual items: 17.9% of the 28
+judged.
+
+**Reversal condition:** if the judge-validated scores on the 25 show these items scored as
+anything other than `hallucinated_refusal`, the rubric is wrong, not this record.
+
+---
+
+## D-030 — The judge decides Q1 blind, in a separate call; and the open-weights arm does not deliver the reproducibility it was chosen for
+
+**Decided (a):** each judge arm scores an item in two calls. Stage `q1` carries the rubric's
+Q1 section and the question plus agent answer — nothing else, asserted by
+`tests/test_judge.py` the way the human's view is asserted: the payload contains no stratum,
+no gold answer, no "expected behaviour", no chunk text. Stage `q3` runs only where the scoring
+CLI asked Q3 — the judge said `answer` and the item expects one — and carries the full rubric
+and the complete scorer's view with the judge's own Q1 verdict restated. The label is computed
+by `rubric.outcome_for` in both cases; the judge never names one.
+
+**Why:** a single call shows the stratum alongside the answer, and the rubric's Q2 table maps
+expected x observed straight onto a label. A judge that reads "expected: answer" and sees a
+refusal can emit `hallucinated_refusal` off a lookup without judging what the agent did — and
+that pair, 17 of the 25 human labels, is the thing the experiment exists to measure. It would
+score high while measuring nothing. The human scored Q1 blind; giving the judge an easier
+task and comparing the two would measure the task difference, not the judge.
+
+**Measured, not assumed (2026-09-18, `luna-low`).** On the cell the split was built to
+protect — the seven items the human labelled `hallucinated_refusal` — the judge agreed on
+**7 of 7**, having decided the behaviour from the answer text alone before the stratum fixed
+the label. The two disagreements it did have (`ua-008`, `ut-003`) were the *other* direction:
+explained refusals it read as answers under the rubric's own hedge sentence, a rubric
+ambiguity rather than a lookup. The extra call earned itself.
+
+**Cost:** two stages, sequenced — q3 cannot be submitted until q1 is collected — and a
+second batch round-trip per arm. Not 2x the tokens: q1 is small and q3 runs on at most the 10
+answerable items. `make judge-estimate`: 35 requests per arm, ~47K input tokens, ~$0.045 for
+both paid arms together.
+
+**Decided (b): the reproducibility argument for choosing `gpt-oss-120b` did not survive
+contact with the API, and is struck — not softened.** Amendment 4 chose it on two grounds:
+$0, and permanent reproducibility through a pinned weights revision (open weights over
+deprecable API snapshots). Neither holds. What the Hugging Face router actually exposes
+(`GET /v1/models/openai/gpt-oss-120b`, 2026-09-18): the model id, eleven serving providers
+each with its own price and stack, and **no revision, commit or checkpoint field anywhere in
+the response**. Which provider serves a call is a routing decision; the served model id is
+recorded per response and asserted to match the request (`assert_served_model`), which
+prevents silent substitution but does not identify the weights revision or the provider's
+quantisation. **The arm runs anyway**, because the comparative question — does a cheaper
+judge agree with the human as well as the reasoning one — survives intact and is the one
+worth answering. The original wording ("free, pinned revision") is struck wherever it stood;
+what stands is the limitation below.
+
+**The unpinnable-judge limitation, stated in the form the artifact carries it.** Every other
+input to a Phase 4 number is pinned: corpus `e1be96d1`, eval set `de699d68`, rubric sha
+(stamped on every score sheet), prompt version, and the full per-item scoring record
+(question, gold, agent answer, retrieved chunk text, every judge answer). **The judge's
+weights revision is the single link that is not**, because no provider exposes one — not the
+HF router for `gpt-oss-120b`, and not OpenAI for `gpt-5.6-luna`, which has no dated snapshot
+alias in this account. Contrast with the Phase 0 finding about v2.1: those numbers were
+unreproducible *and unlabelled* — a deleted dataset, zero paper overlap, no record of what
+was measured. This one is reproducible on every dimension except one, and the artifact names
+the dimension. That contrast is the point; without it the limitation reads as the same
+disease.
+
+Two further facts from the same probe, stated plainly:
+
+* **No provider on the router lists this model as free.** Every one of the eleven carries a
+  per-token price (from $0.037/$0.17 to $0.35/$0.75 per 1M). "Free" rests on Hugging Face's
+  monthly inference credit, an account allowance, not on the model. Billed to HF, not to the
+  $5 OpenAI cap; at the cheapest listed rate the 35 requests are ~$0.005.
+* **Quota exhaustion fails loudly.** The router returns an HTTP error rather than routing to
+  a different model, and `assert_served_model` would reject a response naming any other model
+  regardless. The arm could not be run on 2026-09-18: the account's token returned
+  `403 … does not have sufficient permissions to call Inference Providers` — a scope the
+  token owner has to grant. That is the failure mode working as intended.
+
+**The guard fired on real input (2026-09-18).** With the correctly scoped token the arm ran
+seven stage-q1 items, then every call returned `402: You have depleted your monthly included
+credits`. An HTTP error, no reroute, nothing scored by a model that was not asked for; the
+seven verdicts were kept and the run resumes from the eighth. That is the fail-loudly
+assertion proving itself in production use rather than in a fixture — the third guard in
+this record to do so, after the orphan guard (`test_no_orphan_checks.py`, two orphans on its
+first run) and the D-021 bound check (`make budget` refusing a table whose blended rate sat
+outside the rate card). The arm is **paused at 7 of 25, reported as a partial, and no
+agreement rate is computed from it**: the seven are all `unanswerable_attribute`, so the
+`hallucinated_refusal` cell — the discriminating one — has 0 of 7 coverage and the arm has
+not yet tested what it exists to test.
+
+**Two facts from the successful responses.** Default routing selected **cerebras** at
+$0.35/$0.75 per 1M — the most expensive input rate of the eleven providers, against a
+cheapest of $0.037/$0.17 — so the router's default landed on the wrong side of a ~10x
+spread. And the response carries a `system_fingerprint` (`fp_b546658c8e93d2e57ef2`), which is
+a serving-stack fingerprint and not a weights revision; recorded as such. If the arm is
+finished, the provider is pinned first (`openai/gpt-oss-120b:deepinfra`) and the spend record
+names the serving stack, since pinning the provider changes it.
+
+**The self-preference control, run before any further spend (2026-09-18).**
+`gemini-3.5-flash-lite` — the generator itself — scored its own 25 answers under the same
+two-stage prompt, $0. Result: **agreed with the human on 23 of 25**, `hallucinated_refusal`
+**7 of 7**, `correct_refusal` 8 of 10 — and **agreed with `luna-low` on 25 of 25 with each other**, both arms
+disagreeing with the human identically on `ua-008` and `ut-003`. Three consequences, stated
+as measurements:
+
+1. **Agreement in the 90s does not demonstrate independence on this sample.** A judge with
+   maximal reason to favour the generator scored exactly as the third-vendor reasoning judge
+   did. The 25 items are mostly easy to score once the rubric is applied; the experiment
+   cannot separate an independent judge from a self-preferring one on them.
+2. **No self-preference effect is visible at Q1.** The generator labelled all seven of its
+   own hallucinated refusals as refusals. If same-model bias exists here it is smaller than
+   one item in 25, which is the resolution of the sample.
+3. **The two disagreements belong to the rubric, not to any model.** Two unrelated models
+   read the hedge sentence the same way against the human. That settles where the amendment
+   goes: the text, once, with a responsiveness criterion — after all arms land.
+
+Reported as a **control**, not an arm; it is not counted toward the independence question,
+because it cannot bear on it.
+
+**`luna-medium` landed the same day: 23 of 25, `hallucinated_refusal` 7 of 7, the same two
+misses.** All three complete sheets — the control, `luna-low`, `luna-medium` — agree with
+each other on **25 of 25**. Reasoning effort at `medium` changed no label at ~1.6x the
+output tokens of `low`; Amendment 4's low-vs-medium question is answered on this sample,
+and the answer is that the sample cannot distinguish them. OpenAI spend for the whole
+experiment so far: ≈$0.0057 billed at batch rates.
+
+**And on the paid arms:** `gpt-5.6-luna` has **no dated snapshot alias** in the account's model
+list (`gpt-5.5` has `gpt-5.5-2026-04-23`; the 5.6 variants do not), so "pin snapshot IDs" cannot
+be satisfied for it either. The served id is recorded per batch and asserted per response.
+
+**A D-023 recurrence inside a D-023 fix (2026-09-18).** The rewrite of
+`test_necessity_fixtures.py` for N repeats — itself a fix for a D-023-family defect, a test
+asserting one draw of a nondeterministic instrument — shipped with a `pytest.skip` that
+swallowed "Event loop is closed" as "could not reach the model": a test skipping its own
+failure, inside the fix for a test that could not fail honestly. Removed; the except is
+narrowed to provider unreachability. One line, because the recurrence is the point.
+
+**Reverse (a) if:** never — the asymmetry is structural. **Revisit (b) if:** the router or the
+provider starts exposing a weights revision, or the weights are served from a pinned local
+checkpoint, at which point the original rationale holds and this caveat is deleted.
+
+
+---
+
+## D-031 — Verify absence of what the question asks about, not of the seed term
+
+**Decided:** an `unanswerable_topic` item's absence is verified against the *question's*
+topic, not the term the item was drafted from. The transferable rule: **verify absence of what
+the question asks about, not of the seed term.** Applied to the next set, not this one — the
+frozen set is not edited, and `ut-003` stays in it with this record attached.
+
+**Why:** `ut-003` was built on the verified-absent term *AlphaFold*. Its question asks *"What
+protein structure prediction results are reported in this corpus?"* The corpus contains
+OmegaFold predicting protein 3D structures as a feature extractor for drug–target interaction
+(`2605.29926_0004`). The absence screen verified the seed term — correctly: AlphaFold appears
+nowhere — and the question generalised above it to a topic that is partly present. The agent
+answered: *"protein 3D structures are predicted using OmegaFold as part of a feature
+extraction process … the retrieved passages do not report specific performance metrics."*
+**The agent was right and the item was wrong.** The human scorer labelled it `correct_refusal`
+on the second half of that sentence; the judge labelled it `hallucinated_answer` on the first
+half; both were scoring an item whose expected behaviour was mis-specified.
+
+**Same family as Hazard 1, inverted.** The false-absence hazard is a question paraphrased
+*below* the verified term — "easy to hard" for "curriculum learning" — so the corpus has it
+under a surface form the screen missed. This is a question generalised *above* the verified
+term, so the corpus has the topic under a different name. In both, the screen verified a
+string and the question asked about a concept, and the gap between them is where the item
+broke.
+
+**Consequence for reporting:** `unanswerable_topic` is now **effectively n=1 clean**
+(`ut-004`, click-through rate). It was already a case study rather than a rate at n=2; every
+place that framing appears now says n=1 clean of 2, and the stratum's result is reported per
+item by name.
+
+**It is the second time hand-scoring caught what automated checking passed.** `sp-036` (the
+generator refusing with the answer quoted in its own refusal) and `ut-003` (an item whose
+expected behaviour was wrong) each survived the full check chain, the artifact gate, the
+defect matrix, and the freeze — eight rounds of automated verification — and each was found
+by a human reading the agent's words against the corpus. That is not an argument against the
+checks; it is the measured size of what they cannot see.
+
+**Reverse if:** never; the rule is a strict strengthening of the absence screen.
+
+---
+
+## D-032 — The judge experiment closed: the question was answered as unanswerable on this sample, and `gpt-5.6-luna` at `low` ships because cost and pinnability decide
+
+**Decided:** the judge is `gpt-5.6-luna`, `reasoning_effort=low`, via the OpenAI Batch API,
+two-stage prompt (D-030a). **It did not win.** Agreement is undetermined among the arms —
+three complete sheets agree with each other on 25 of 25 — so cost and pinnability decide,
+and `low` is the cheapest of three indistinguishable options. `oss120b` and `gemma-4-31b` were
+not finished: a fourth and fifth arm would confirm rather than inform.
+
+**What the experiment was designed to measure, and what it measured instead.** Amendment 4
+asked whether a free open judge is competitive with a paid one — judge independence from the
+generator. What it measured is that **25 items scorable by a fixed rubric do not distinguish
+any judge from any other, including one with maximal incentive to favour the system under
+test**: the generator scoring its own answers (the control) produced the same 25 labels as
+`luna-low` and `luna-medium`. That is a finding about the instrument, not a failure of the
+experiment. The sample's resolution is one item in 25, and no judge differed from another by
+even that.
+
+**Two numbers, stated prominently.**
+
+1. **Reasoning effort `medium` spent ~1.6x the output tokens of `low` and moved zero labels**
+   (q1: 1,051 vs 1,000 tokens; q3: 267 vs 177; 25 of 25 labels identical with each other). A plausible
+   assumption — more reasoning, better judging — measured and refuted at this sample size.
+   Most people never test it.
+2. **Total experiment spend: ≈$0.0057 billed against the $5 ceiling** (42,538 input / 2,495
+   output tokens across four batches, plus two 2-request rescoring batches). Stated beside
+   BUDGET.md's allocation table, whose line for this work had reserved $0.05.
+
+**The rubric amendment, and what it cost.** All three judge sheets missed the same two items
+(`ua-008`, `ut-003`) the same way — explained refusals read as answers under v1's hedge
+sentence. Rubric v2 replaces the gloss with a criterion: *a fact stated in service of
+explaining why the requested fact is absent is part of the refusal; a fact offered as the
+answer is an answer; the test is responsiveness to the question asked.* Every sheet is
+sha-stamped; the v1 sheets are archived beside the v2 ones; the two items were re-judged by
+every arm under v2 (the human's labels were unchanged — v2 codifies the reading the scorer
+applied). **A post-amendment agreement figure is never printed without the amendment in the
+same line**, and `make judge-agreement` enforces that: a perfect cell containing a rescored
+item carries "(after rubric v2 amendment; rescored […])" on the line itself. Before/after per
+arm is in the report and in EVALS.md. A rubric that visibly changed and cost something is a
+stronger record than one that was always right.
+
+**Cost:** the shipping judge has no dated snapshot alias (D-030b); the served id is asserted
+per response. **Reverse if:** a larger or harder human-scored slice separates the arms —
+then this decision is remade on that evidence, and the control is run again first.
+
+---
+
+## D-033 — A tool in scope for the repo is not in scope for a directory the brief declares read-only
+
+**Decided:** the v2.1 baseline harness refuses to run unless the clone is at the pinned commit
+(`8d3e67f`) with a clean tree, checked on every run, with the check recorded in the run's
+`arm_config`. `evals/baselines/` is excluded from ruff and mypy by configuration, not by
+convention.
+
+**Why:** the first `ruff --fix` after the clone existed rewrote **38 files** of published
+`main` — import order, formatting, fixable lint — because the clone sat under `evals/`, which
+ruff was configured to fix. Caught by a file count in the same command's output and reverted
+before anything ran. Had it not been caught: a reformatted v2.1 still runs and still produces
+numbers, and nothing in the output would have shown that the baseline compared v3 against a
+modified system. The first constraint in the brief — v2.1 is read-only — would have been
+violated silently by a tool doing exactly what it was configured to do.
+
+**Not a D-023 instance.** Those are checks that ran and did not block, or measured the wrong
+property. This is a *correct* tool with a *correct* configuration applied to a directory that
+was never in its scope, with a consequence no output reports. The class is: scope declared
+in prose (a brief, a README) is not scope enforced by the tools that act on the tree. Every
+tool that rewrites files needs the read-only directory in its exclude list, and every consumer
+of that directory needs to assert it is unmodified — because the exclusion can be forgotten
+and the assertion cannot be.
+
+**The guard fired on demand:** one comment appended to the clone's `rag/config.py` made the
+harness exit with `v2.1 clone has local modifications; refusing to run a baseline against a
+modified system: M rag/config.py`. Reverted; tree clean.
+
+**Cost:** a run of the baseline cannot start with any local experiment in the clone, even a
+harmless one. That is the point. **Reverse if:** never.
+
+---
+
+## D-034 — Five external dependencies changed under this project; the pattern is the finding
+
+**Decided:** recorded as one pattern, not five incidents, and reserved for the post-mortem.
+Nothing is changed in response — the point is that each was absorbed, and *why* each was
+absorbable is the transferable part.
+
+**The five, in order of occurrence.**
+
+| # | What changed | How it surfaced | What it cost |
+|---|---|---|---|
+| 1 | **v2.1's benchmark corpus was swapped.** Its README reported `MRR@5 = 0.990` from 100 QA pairs whose `paper_id`s are all `2604.*`; the corpus that ships is `2605.*` — zero overlap, and the dataset was deleted in v2.1's HEAD commit | Phase 0 audit, reading the numbers against the data | v3 carries no v2.1 numbers forward and claims no improvement over them (AUDIT §5) |
+| 2 | **`gemini-2.5-flash-lite` was retired for new API keys** mid-project, returning 404 | the first live run (D-012) | a model swap, and a ~3.6x pricing correction; every `PRICING` entry now carries `verified` and a source |
+| 3 | **Cerebras pruned its free catalog** — a model the plan named was no longer served free | availability check before use | the judge experiment's arm list was re-costed |
+| 4 | **Hugging Face's included inference credit was exhausted**, `402`, mid-arm at 7 of 25 | the fail-loudly guard, on real input (D-030b) | that arm paused as a partial; no rate computed from it |
+| 5 | **The OpenAI account was deactivated** (`401 account_deactivated`) with ≈$0.022 total spend and no policy issue identified | every call after 2026-09-19 00:40Z | **four days blocked** on a third-party action; judging resumed 2026-09-22 |
+
+**The pattern:** in a project whose whole value is reproducible numbers, the provider surface
+is the least reproducible part of it — five distinct changes in one build, none of them caused
+by anything in the repo, none foreseeable from the code. "Pin the version" does not cover it:
+two of the five were the *provider* withdrawing something, one was the *account*, one was
+credit, one was a dataset someone else deleted.
+
+**What made the fifth survivable, specifically.** Worth naming because it is the part that
+generalises:
+
+* **Batch ids and submission times were archived** to `evals/runs/batch_<arm>_<stage>.json` at
+  submit time, so four days later the work was addressable rather than lost. Of the three
+  stranded batches, two were `completed` and one `expired` at 67 of 69 — and **all three output
+  files were still retrievable**; the collector now reads an `expired` batch's partial output
+  instead of refusing it, which recovered 67 paid verdicts.
+* **The runs themselves were provider-independent.** Everything the judge scores — questions,
+  gold, agent answers, full retrieved chunk text — is persisted by the Gemini-side run, so all
+  the judge-free work (three repeat runs, `dense_only`, `section_filter`, the embedding arm,
+  the v2.1 baseline) completed *during* the outage.
+* **The judge had a measured substitute ready.** The `flash-lite-self` control had already
+  scored the same 25 items and agreed with the human on 25 of 25 after the rubric v2 amendment
+  — so a Gemini fallback was available and its agreement was known rather than assumed. It was
+  not needed; having measured it is what made that a decision rather than a gamble.
+
+**Reverse if:** never — it is a record, not a policy.
+
+**Not in this record: the invisible failed submit.** Two submissions issued after 00:40Z
+(`section_filter` q1, `v21` q1) 401'd, wrote no batch file, and left the driver log reading
+"SUBMITTED". That is not an external-dependency failure — it is a step reporting success
+without having happened, which is **D-026's class**, and it is recorded there.
+
+---
+
+## D-026, fourth instance — never infer an effect from a status code
+
+**What happened.** Re-pushing eval scores to Langfuse required clearing the previous push
+first, because `create_score` is not idempotent. The delete endpoint answers
+**`202 Score deletion queued successfully`**. The code counted `202` as success, reported
+"deleted 125 existing score(s)", and pushed immediately — producing **239 scores where 115
+were intended**, with the dashboard averaging two generations of scores together. Nothing had
+been deleted; Langfuse's worker drains that queue at roughly one score every two minutes.
+
+**Why this instance is the instructive one.** It was committed **one turn after** the third
+instance was recorded — the batch submit that 401'd, wrote no receipt, and left the log
+reading "SUBMITTED". The lesson was written down, in this file, by the same author, about the
+same class of mistake, and it did not prevent the next one. The reason is mechanical rather
+than careless: **a 2xx reads like success at the call site.** `if resp.status_code in (200,
+202, 204): removed += 1` looks like careful error handling. It is an inference about an effect
+drawn from an acknowledgement of a request.
+
+**The rule, stated so it can be applied rather than remembered: never infer an effect from a
+status code — assert the effect.** A delete is done when the thing is gone. A submit is done
+when the receipt is readable. A score is pushed when the server returns it.
+
+**The audit this triggered**, over every place in the codebase that reads a status code or
+calls `raise_for_status`:
+
+| site | verdict |
+|---|---|
+| `judge.assert_model_available` (200 on `GET /models`) | a **read**, not an effect; the effect is separately asserted per response by `assert_served_model` |
+| `judge.submit` file upload / batch create | the effect is asserted downstream: `write_receipt` re-reads the receipt, and `collect` reads the batch back by id |
+| `judge.collect` / `judge_spend` / `push_scores` list calls | reads |
+| `judge.run` chat completions | the response **body** is the effect and is parsed |
+| `arxiv_client` fetch | a read |
+| **`push_scores` → `lf.record_score`** | **the same defect, still live.** `create_score` not raising means the SDK accepted it, not that Langfuse ingested it — ingestion is asynchronous too. Fixed: the push now reads the scores back from the server and reports `verified N of M`, exiting non-zero when they disagree. |
+
+That last row is the point of doing the audit: the class was present in a second place, in the
+same file, and inferring from "no exception raised" is the same mistake as inferring from
+`202`.
+
+**Cost:** every push and delete now pays a read-back and up to 120s of polling.
+**Reverse if:** never.
+
+---
+
+## D-021, applied to a metric — `retrieval_recall5` on the dashboard was not `Recall@5` in the docs
+
+**What happened.** `scripts/push_scores.py` pushed a `retrieval_recall5` score for every item
+except the two refusal strata — **56 items**. `evals/metrics.py` computes Recall@5 over items
+whose gold chunks are *answer support*, which also excludes `ambiguous` — **46 items**, and the
+published factual figure is over **43**. So the dashboard would have displayed a number named
+"recall" over a different population from the one `docs/EVALS.md` calls Recall@5 (0.267), with
+nothing on either surface saying they were different.
+
+This is **D-021's rule one level up**: that decision was about never dividing two numbers that
+describe different populations, in a cost table. This is the same error in a metric — two
+populations under one name, on two surfaces, where a reader would reasonably compare them.
+Ambiguous gold chunks are *competing referents*, not answer support; recall over them asks a
+different question.
+
+**Fix:** one predicate, `evals.metrics.has_answer_gold(stratum)`, used by the metrics report
+and the score pusher. It cannot diverge again without failing both.
+
+**How it was caught, which is the part worth keeping.** By checking a screenshot against the
+documentation before committing it — the same artifact-verification discipline that produced
+the D-021 reconciliation and the judge-format check in `docs/PHASE4.md` §4. **Third defect
+found by that practice.** In each case the number was already in hand and looked fine; the
+check was performed because publishing it was the next step.

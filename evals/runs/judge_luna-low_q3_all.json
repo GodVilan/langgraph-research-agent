@@ -1,0 +1,102 @@
+{
+  "mh-003": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The pancreatic cohort figure is correct, but the hematological study is mischaracterized: the gold reports 1,634 pretraining patients and 189 AML patients, not primarily 43 held-out and 146 aligned patients. The asserted 43, 146, and 183,098 figures all appear in the retrieved chunks."
+  },
+  "mh-007": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The answer incorrectly identifies the second paper as 2605.29782 and omits the six alternative benchmarks used by 2605.30085. However, the retrieved chunks do support the asserted claim that 2605.29782 uses MATH-500."
+  },
+  "mh-010": {
+    "fact_matches": false,
+    "grounded": false,
+    "reason": "The 405B attribution is correct, but the 1B models are from paper 2605.30162, not the MarginGate study (2605.30218). The retrieved chunks do not support the claim that MarginGate tests a 1B model."
+  },
+  "sp-001": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 21.92%, matching the gold answer. The retrieved chunk [2605.29525_0010] explicitly reports that LPA (mean + varied) with ResNet-110 on CIFAR-100 achieves a 21.92% error rate."
+  },
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated Top-1 accuracy, 10.97%, matches the gold answer. The retrieved chunk explicitly reports 10.97% for S-Adam (k=2) on ImageNet (8-bit QAT)."
+  },
+  "sp-009": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent gives $19.746 per 1,000 evaluations, matching the gold answer. The retrieved chunk explicitly states that Claude Haiku 4.5 costs 19.746 per 1,000 evaluations."
+  },
+  "sp-010": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies the confidence threshold \u03c4, matching the gold answer. This fact is explicitly stated in retrieved chunk [2605.29607_0020]."
+  },
+  "sp-011": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The agent gives 15.2 / 16.2, but the gold PredCls mR@50/100 score is 8.7 / 9.3. The retrieved chunk contains both values in the Motifs row, so the asserted fact is grounded despite being the wrong evaluation column."
+  },
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's value, 55.011, matches the gold answer. Retrieved chunk [2605.29673_0034] explicitly lists the pretrained RoBERTa effective rank as 55.011."
+  },
+  "sp-018": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated learning rate of 0.001 matches the gold answer. The retrieved chunks explicitly report an LMC learning rate of \u03b7 = 10^-3 (0.001), including chunks 2605.29684_0087 and 2605.29684_0035."
+  },
+  "sp-023": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent gives 96.26, matching the gold answer. This value appears in the retrieved Table 1 chunk [2605.29720_0011], and the additional proxy-backbone figures are also supported by retrieved chunk [2605.29720_0016]."
+  },
+  "sp-025": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies agency-sa-goal, which matches the gold answer. The retrieved chunk [2605.29729_0010] explicitly states that this prompt is the most conducive to scheming."
+  },
+  "sp-027": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's stated average performance score of 21.2 matches the gold answer. The retrieved chunk [2605.29782_0014] explicitly lists 21.2 for the 0.5B + Hista configuration."
+  },
+  "sp-033": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The answer correctly states that the discrepancy shrinks as graph size grows and that sampled step-graphons become closer to the underlying graphon in operator norm. These claims are directly supported by the retrieved chunks, including the stated concentration and shrinking discrepancy."
+  },
+  "sp-034": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 58.8%, which matches the gold answer. The retrieved chunk [2605.29829_0034] explicitly shows 58.8% for old skills in successful samples."
+  },
+  "sp-035": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The agent identified PAR, but the gold answer is Minas, so the asserted fact does not match. The PAR claim is explicitly stated in retrieved chunk [2605.29983_0047], making it grounded."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states the same 0.6/0.2/0.2 train/validation/test ratio as the gold answer. This fact is explicitly supported by retrieved chunk [2605.29857_0021]."
+  },
+  "sp-039": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's answer matches the gold answer of epoch 25. The retrieved chunk [2605.29863_0013] explicitly states that the non-shuffle version converges prematurely around 25 epochs."
+  },
+  "sp-041": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states that TP accuracy dropped to 6.02%, matching the gold answer. This fact is explicitly supported by retrieved chunk [2605.29901_0013]."
+  },
+  "sp-048": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states the same drop, from 0.071 to 0.016, as the gold answer. This fact appears directly in retrieved chunk [2605.29937_0013]."
+  }
+}

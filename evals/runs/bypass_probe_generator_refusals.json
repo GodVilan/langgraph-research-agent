@@ -1,0 +1,276 @@
+[
+  {
+    "item_id": "sp-007",
+    "question": "What is the training iteration budget utilized for the majority of the training runs?",
+    "gold_chunk_ids": [
+      "2605.29548_0051"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.30232_0100",
+      "2605.30198_0055",
+      "2605.30190_0098",
+      "2605.30003_0024",
+      "2605.30003_0015"
+    ],
+    "gold_rank": {
+      "2605.29548_0051": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-049",
+    "question": "Which specific approach displayed fluctuating results depending on the dataset for the second goal?",
+    "gold_chunk_ids": [
+      "2605.29943_0018"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29547_0026",
+      "2605.29834_0009",
+      "2605.30336_0011",
+      "2605.29547_0013",
+      "2605.30116_0005"
+    ],
+    "gold_rank": {
+      "2605.29943_0018": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-036",
+    "question": "What text window size was utilized for the smaller family of language versions?",
+    "gold_chunk_ids": [
+      "2605.29843_0012"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29843_0013",
+      "2605.30148_0034",
+      "2605.29843_0010",
+      "2605.30126_0047",
+      "2605.29543_0036"
+    ],
+    "gold_rank": {
+      "2605.29843_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-032",
+    "question": "What is the DreamSim score for the SleeperMark approach?",
+    "gold_chunk_ids": [
+      "2605.29809_0016"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29920_0012",
+      "2605.29601_0068",
+      "2605.29809_0019",
+      "2605.29634_0036",
+      "2605.29634_0016"
+    ],
+    "gold_rank": {
+      "2605.29809_0016": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-047",
+    "question": "How many times were resamples performed for the bootstrap confidence intervals on the difficult subset?",
+    "gold_chunk_ids": [
+      "2605.29927_0012"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29634_0031",
+      "2605.30315_0012",
+      "2605.30315_0022",
+      "2605.29908_0013",
+      "2605.29908_0058"
+    ],
+    "gold_rank": {
+      "2605.29927_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-030",
+    "question": "Which specific approach achieves the highest performance metric on the Citeseer benchmark according to the provided text?",
+    "gold_chunk_ids": [
+      "2605.29803_0024",
+      "2605.29803_0025"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.30120_0033",
+      "2605.30337_0011",
+      "2605.30120_0007",
+      "2605.30120_0004",
+      "2605.29796_0028"
+    ],
+    "gold_rank": {
+      "2605.29803_0024": null,
+      "2605.29803_0025": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-007",
+    "question": "What is the training iteration budget utilized for the majority of the training runs?",
+    "gold_chunk_ids": [
+      "2605.29548_0051"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.30232_0100",
+      "2605.30198_0055",
+      "2605.30190_0098",
+      "2605.30003_0024",
+      "2605.30003_0015",
+      "2605.29601_0080",
+      "2605.30232_0099",
+      "2605.30198_0054",
+      "2605.30198_0053",
+      "2605.30213_0040"
+    ],
+    "gold_rank": {
+      "2605.29548_0051": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-049",
+    "question": "Which specific approach displayed fluctuating results depending on the dataset for the second goal?",
+    "gold_chunk_ids": [
+      "2605.29943_0018"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29547_0026",
+      "2605.29834_0009",
+      "2605.30336_0011",
+      "2605.29547_0013",
+      "2605.30116_0005",
+      "2605.30198_0049",
+      "2605.29937_0010",
+      "2605.29807_0002",
+      "2605.30198_0053",
+      "2605.30198_0055"
+    ],
+    "gold_rank": {
+      "2605.29943_0018": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-036",
+    "question": "What text window size was utilized for the smaller family of language versions?",
+    "gold_chunk_ids": [
+      "2605.29843_0012"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29843_0013",
+      "2605.30148_0034",
+      "2605.29843_0010",
+      "2605.30126_0047",
+      "2605.29543_0036",
+      "2605.30218_0020",
+      "2605.30148_0033",
+      "2605.29843_0027",
+      "2605.30348_0024",
+      "2605.29543_0022"
+    ],
+    "gold_rank": {
+      "2605.29843_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-032",
+    "question": "What is the DreamSim score for the SleeperMark approach?",
+    "gold_chunk_ids": [
+      "2605.29809_0016"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29920_0012",
+      "2605.29601_0068",
+      "2605.29809_0019",
+      "2605.29634_0036",
+      "2605.29634_0016",
+      "2605.29607_0019",
+      "2605.30195_0011",
+      "2605.29607_0018",
+      "2605.29908_0014",
+      "2605.29744_0031"
+    ],
+    "gold_rank": {
+      "2605.29809_0016": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-047",
+    "question": "How many times were resamples performed for the bootstrap confidence intervals on the difficult subset?",
+    "gold_chunk_ids": [
+      "2605.29927_0012"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29634_0031",
+      "2605.30315_0012",
+      "2605.30315_0022",
+      "2605.29908_0013",
+      "2605.29908_0058",
+      "2605.30315_0025",
+      "2605.30189_0008",
+      "2605.30315_0011",
+      "2605.30315_0014",
+      "2605.29908_0059"
+    ],
+    "gold_rank": {
+      "2605.29927_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-030",
+    "question": "Which specific approach achieves the highest performance metric on the Citeseer benchmark according to the provided text?",
+    "gold_chunk_ids": [
+      "2605.29803_0024",
+      "2605.29803_0025"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.30120_0033",
+      "2605.30337_0011",
+      "2605.30120_0007",
+      "2605.30120_0004",
+      "2605.29796_0028",
+      "2605.30237_0010",
+      "2605.30120_0003",
+      "2605.30237_0006",
+      "2605.30120_0015",
+      "2605.29698_0020"
+    ],
+    "gold_rank": {
+      "2605.29803_0024": null,
+      "2605.29803_0025": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  }
+]

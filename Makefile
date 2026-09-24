@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-fast test-integration graph index index-verify compare-index verify-corpus corpus-info corpus-diversity verify-evals select-attributes readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
+.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -21,11 +21,17 @@ fmt:  ## ruff format
 type:  ## mypy strict
 	$(PY) -m mypy src evals
 
-test:  ## full test suite
+test:  ## the suite minus live-model and live-Langfuse tests (those are test-all)
+	$(PY) -m pytest -q -m "not network and not integration"
+
+test-all:  ## everything, including tests that call Gemini and Langfuse; slow under backoff
 	$(PY) -m pytest -q
 
 test-fast:  ## skip tests that load the embedding model or hit the network
 	$(PY) -m pytest -q -m "not slow and not network and not integration"
+
+test-necessity:  ## the multi_hop_necessity fixtures (needs GOOGLE_API_KEY, 27 calls: 3 cases x 3 repeats)
+	$(PY) -m pytest -q tests/test_necessity_fixtures.py -m "integration and network"
 
 test-integration:  ## one real trace against a live local Langfuse (needs make langfuse-up)
 	$(PY) -m pytest -q -m integration
@@ -61,8 +67,77 @@ select-attributes:  ## deterministic, stratified pick of the 11 absent-attribute
 draft-evals:  ## draft the whole eval set (~180 model calls, ~15 min at the free-tier 15 RPM)
 	$(PY) -m evals.build_set
 
-verify-evals:  ## verify eval items by hand (FILE=evals/datasets/draft.json)
+audit-entities:  ## every entity the premise check asserts, across the whole set
+	$(PY) scripts/audit_entities.py
+
+verify-dataset:  ## re-verify the frozen artifact independently of the builder (freeze gate)
+	$(PY) -m evals.verify_dataset evals/datasets/phase4.json
+
+verify-evals:  ## verify eval items by hand (FILE=evals/datasets/phase4.json)
 	$(PY) -m evals.verify_cli $(FILE)
+
+prune-gold:  ## prune gold to the minimal jointly-supporting set (DROP=id,id to remove items)
+	$(PY) -m evals.prune_gold --drop "$(DROP)"
+
+gold-report:  ## print gold chunks in full with every claim located (AGAINST=rev to diff gold)
+	$(PY) scripts/gold_report.py --minimal $(if $(AGAINST),--against $(AGAINST),)
+
+rubric:  ## write docs/RUBRIC.md from evals/rubric.py — the one scoring rubric
+	$(PY) -m evals.rubric
+
+judge-sample:  ## the seeded 25-item judge-validation draw from the frozen set
+	$(PY) -m evals.judge_sample
+
+run-set:  ## run v3 over the frozen set on Gemini free tier; resumable; ~75 min at 15 RPM
+	$(PY) -m evals.run_set
+
+run-report:  ## every number the run report states, from evals/runs/v3_<sha8>.json
+	$(PY) -m evals.run_set --report
+
+bypass-probe:  ## retrieval vs generation vs guardrail for refused items (SCORES=path to a score sheet)
+	$(PY) scripts/bypass_probe.py $(if $(SCORES),--from-scores $(SCORES),)
+
+score:  ## score the 25 sampled agent answers by hand under docs/RUBRIC.md (human-first)
+	$(PY) -m evals.score_cli
+
+judge-print:  ## one judge request body, verbatim (ARM=luna-low ITEM=sp-036)
+	$(PY) -m evals.judge print-one --arm $(or $(ARM),luna-low) --item $(or $(ITEM),sp-036)
+
+judge-estimate:  ## request count and estimated cost per judge arm; submits nothing
+	$(PY) -m evals.judge estimate
+
+judge-agreement:  ## per-arm agreement with the human sheet, refusal labels never pooled
+	$(PY) -m evals.judge agreement
+
+metrics-report:  ## Phase 4 metrics per stratum with n (SHEET=path to a score sheet for outcomes)
+	$(PY) -m evals.metrics $(if $(SHEET),--sheet $(SHEET),)
+
+metrics-compare:  ## judge-free retrieval across runs and arms, with the repeat-run spread
+	$(PY) -m evals.metrics --compare r1,r2,r3,dense_only,section_filter,embedding_small,v21
+
+metrics-spread:  ## the three-draw outcome spread, and each arm measured against it
+	$(PY) -m evals.metrics --spread dense_only,section_filter,v21
+
+judge-spend:  ## total OpenAI judge spend, summed from the batches themselves
+	$(PY) scripts/judge_spend.py
+
+push-scores:  ## attach judge scores to the traces of the judged run (RUN=... SHEET=... [REPLACE=1])
+	$(PY) scripts/push_scores.py --run $(RUN) --sheet $(SHEET) $(if $(REPLACE),--replace,)
+
+gate:  ## the regression gate against evals/baseline_metrics.json (RUN=path [SHEET=path])
+	$(PY) -m evals.gate --run $(RUN) $(if $(SHEET),--sheet $(SHEET),)
+
+run-v21:  ## v2.1 (published main, pinned) over the frozen set on the same generator; 6h timebox
+	$(PY) -m evals.run_baseline_v21
+
+integrity:  ## the forbidden-phrase grep over our own prose
+	@# data/, evals/runs/ and evals/baselines/ hold verbatim paper text or published v2.1 code, which says "at scale" and "high-throughput"
+	@# in the papers' own words; excluding them is not a loophole, it is the boundary of "our prose".
+	@! grep -rn --include='*.md' --include='*.py' --include='*.yml' --include='*.toml' \
+	  -E 'production-grade|production-ready|enterprise-scale|at scale|high-throughput' \
+	  --exclude-dir=.venv --exclude-dir=data --exclude-dir=runs --exclude-dir=baselines --exclude=CLAUDE.md . \
+	  || (echo "forbidden phrase in our prose (CLAUDE.md §3)"; exit 1)
+	@echo "integrity: no forbidden phrases in our prose"
 
 readme-stats:  ## regenerate the README statistics block from the repo
 	$(PY) scripts/readme_stats.py

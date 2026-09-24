@@ -1,0 +1,87 @@
+{
+  "mh-003": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The response does not provide the required comparison or the pancreatic cohort size, and it omits the hematology study\u2019s 1,634-patient pretraining dataset. Its stated figure of 189 patients is supported by retrieved chunk 2605.29980_0002."
+  },
+  "mh-007": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The answer incorrectly identifies paper 2605.29782 as the MATH500 paper; the gold answer identifies 2605.30327 and gives six different benchmarks for paper 2605.30085. The claimed MATH-500 evaluation and listed benchmarks for 2605.29782 do appear in the retrieved chunk 2605.29782_0015."
+  },
+  "mh-010": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The 405B study is identified correctly, but the gold answer identifies paper 2605.30162\u2014not 2605.29548\u2014as the study evaluating a 1B model. The retrieved chunks support that 2605.29548 includes a 1B model, so the asserted claim is grounded despite being the wrong paper for the comparison."
+  },
+  "sp-001": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's stated value, 21.92%, matches the gold answer. The retrieved chunk [2605.29525_0010] explicitly reports that LPA (mean + varied) with ResNet-110 on CIFAR-100 achieves 21.92% error."
+  },
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated Top-1 accuracy, 10.97%, matches the gold answer. Retrieved chunk [2605.29547_0012] explicitly reports 10.97% for S-Adam (k=2) on ImageNet."
+  },
+  "sp-009": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states $19.746, matching the gold answer of 19.746. The retrieved chunk [2605.29601_0047] explicitly says Claude Haiku 4.5 costs 19.746 per 1,000 evaluations."
+  },
+  "sp-010": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies the confidence threshold \u03c4, exactly matching the gold answer. The retrieved chunks explicitly describe \u03c4 as CLAD\u2019s confidence threshold and tunable parameter."
+  },
+  "sp-022": {
+    "fact_matches": false,
+    "grounded": false,
+    "reason": "The agent\u2019s answer does not match the gold subject, which is \u201cLearning PPCA: Three Optimisation Perspectives.\u201d The retrieved chunks do not establish what section 2.3 covers in the cited LoRA paper."
+  },
+  "sp-025": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The answer lists several prompting variants but does not identify agency-sa-goal as the most effective variant. The listed variants and their purpose are supported by retrieved chunk 2605.29729_0005."
+  },
+  "sp-031": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The gold answer is F1-macro, whereas the agent identifies benchmark scores and latent metrics such as entropy as the primary measures. These asserted measures are supported by the retrieved chunks, including the LPP paper's discussion of entropy and extrinsic benchmark performance."
+  },
+  "sp-033": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The answer discusses a decreasing train\u2013test token-distribution discrepancy and stable constants, rather than stating that the graph-induced step-graphon approaches the underlying graphon in operator norm. The retrieved chunk supports that sampling discrepancies typically shrink with graph size, so the asserted trend is grounded."
+  },
+  "sp-037": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The agent does not provide the corpus-wide 0.6/0.2/0.2 ratio and instead gives unrelated dataset-specific splits. Its cited IU X-Ray and chess split details are supported by the retrieved chunks."
+  },
+  "sp-041": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly states that true positive accuracy dropped to 6.02%. This exact figure appears in the retrieved chunk [2605.29901_0013]."
+  },
+  "sp-042": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The answer omits the required 32 CPU cores and 256GB system RAM, so it does not match the full gold answer. The retrieved chunk [2605.30190_0077] supports the statement about a single retention window fitting in 80GB GPU memory."
+  },
+  "sp-043": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The gold answer is 10 trials, whereas the agent states 5 runs. However, the retrieved chunk explicitly reports results as the mean and standard deviation over 5 seeds, grounding the agent\u2019s stated figure."
+  },
+  "sp-048": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent includes the gold comparison for the proposed approach with TG, stating that the collision metric drops from 0.071 to 0.016. Both values and this comparison are explicitly present in the retrieved chunk [2605.29937_0013]."
+  },
+  "sp-049": {
+    "fact_matches": false,
+    "grounded": false,
+    "reason": "The gold answer is MOPSO, but the agent identifies goal-prompting variants instead. The retrieved chunks list those variants but do not support the claimed dataset-dependent fluctuations."
+  }
+}

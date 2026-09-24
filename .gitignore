@@ -232,3 +232,11 @@ data/*.pdf
 
 # CLAUDE.md
 CLAUDE.md
+
+# The v2.1 baseline is a clone of published `main`, run unmodified (D-033). It is 836M and it
+# is not ours; `evals/run_baseline_v21.py` clones it on demand and asserts it is pristine.
+evals/baselines/
+
+# Checkpointer databases for eval runs — rebuildable, 9M each, carry no published number.
+evals/runs/threads*.sqlite
+

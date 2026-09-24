@@ -1,0 +1,102 @@
+{
+  "ua-002": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided text does not contain information about the specific weight decay value and declines to answer."
+  },
+  "ua-005": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the retrieved context does not contain information about the COCO benchmark or the requested mAP score."
+  },
+  "ua-011": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided passages do not contain information about CIFAR classification accuracy and declines to answer based on the corpus."
+  },
+  "ua-003": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the retrieved context does not contain the requested information about the LibriSpeech test set."
+  },
+  "ua-006": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the text does not contain an ablation study and declines to answer the question based on the lack of information in the corpus."
+  },
+  "ua-008": {
+    "behaviour": "answer",
+    "reason": "The agent asserts as a fact that the model operates in an inference-only setting without an optimization process or learning rate."
+  },
+  "ua-007": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not contain information about a random baseline or its performance metric."
+  },
+  "ua-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the paper does not mention or report the requested wall-clock time in seconds."
+  },
+  "ut-003": {
+    "behaviour": "answer",
+    "reason": "The agent asserts the specific fact that OmegaFold is used for protein structure prediction within the corpus while clarifying that performance metrics are not reported."
+  },
+  "ut-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided papers do not contain any results regarding click-through rate prediction."
+  },
+  "sp-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided passages do not mention the training iteration budget and declines to answer."
+  },
+  "sp-049": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the retrieved context does not contain information to answer the question regarding a 'second goal' or fluctuating results."
+  },
+  "sp-036": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided retrieved passages do not contain information regarding a text window size for the smaller family of language versions."
+  },
+  "sp-006": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific Top-1 accuracy figure (10.97%) for the requested configuration, which qualifies as an answer under the rubric."
+  },
+  "sp-017": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific figure (55.011) as the effective rank measurement for the pretrained baseline based on the retrieved paper."
+  },
+  "sp-044": {
+    "behaviour": "refuse",
+    "reason": "The agent declines to answer the question by stating its scope and capabilities related to machine-learning and AI research papers."
+  },
+  "sp-032": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain the requested DreamSim score for the SleeperMark approach."
+  },
+  "sp-047": {
+    "behaviour": "refuse",
+    "reason": "The agent declines to answer because the provided passages do not contain the requested information about a difficult subset or bootstrap confidence intervals."
+  },
+  "sp-037": {
+    "behaviour": "answer",
+    "reason": "The agent provides a specific split ratio (0.6 / 0.2 / 0.2) as a factual answer based on the retrieved context."
+  },
+  "sp-030": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not contain the necessary information to answer the question about the Citeseer benchmark."
+  },
+  "am-009": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific fact from the corpus regarding the model's limitations with high-resolution image synthesis."
+  },
+  "am-002": {
+    "behaviour": "answer",
+    "reason": "The agent asserts specific facts from the corpus regarding the method's limitations and how it addresses non-stationarity."
+  },
+  "am-008": {
+    "behaviour": "clarify",
+    "reason": "The agent asks which specific method and paper the user is referring to before committing to a single baseline."
+  },
+  "am-003": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies that multiple papers are discussed in the corpus and breaks down the competing baselines for each distinct method without committing to a single referent."
+  },
+  "am-005": {
+    "behaviour": "clarify",
+    "reason": "The agent asks which specific method and experiment is meant by laying out the competing readings across multiple papers without committing to a single baseline."
+  }
+}

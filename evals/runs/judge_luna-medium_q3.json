@@ -1,0 +1,17 @@
+{
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's answer matches the gold answer of 10.97%. The retrieved chunk [2605.29547_0012] explicitly states that S-Adam with k=2 achieves 10.97% Top-1 accuracy on ImageNet (8-bit QAT)."
+  },
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s value, 55.011, matches the gold answer and is explicitly listed for the pretrained RoBERTa baseline in retrieved chunk [2605.29673_0034]."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states the gold split ratio of 0.6/0.2/0.2, and the retrieved chunk [2605.29857_0021] explicitly supports it."
+  }
+}

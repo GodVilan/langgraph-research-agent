@@ -115,7 +115,13 @@ class BudgetLimits(BaseModel):
 
     max_input_tokens: int = 120_000
     max_output_tokens: int = 12_000
-    max_notional_cost_usd: float = 0.05
+    # A pathological-case bound, not observed behaviour: max_llm_calls (16) x the largest
+    # per-call notional cost seen over the 69-item Phase 4 run ($0.00156, `make run-report`)
+    # = $0.0249 — every permitted call at the largest size ever seen, which no real query
+    # does. It binds on call *size*, the one thing the call ceiling cannot bound, and never
+    # on an ordinary run (observed per-query max $0.0057, 4.4x headroom). Previous $0.05 was
+    # calibrated against placeholder rates understating cost ~3.6x (DECISIONS D-004 note).
+    max_notional_cost_usd: float = 0.025
     max_wall_clock_s: float = 120.0
     max_tool_calls: int = 12
     max_llm_calls: int = 16
@@ -148,6 +154,13 @@ class RetrievalSettings(BaseModel):
     # classifier's precision is unvalidated; it stays off until Phase 4 measures it.
     enable_section_filter: bool = False
     classify_sections_on_load: bool = True
+    # The embedding model, index name and query prefix default to the FROZEN constants above
+    # and are settable only so the Phase 4 embedding-comparison arm can point the same graph
+    # at a second index (`RETRIEVAL__EMBEDDING_MODEL=…`). The shipping values are the frozen
+    # ones; `tests/test_retrieval_defaults.py` asserts that.
+    embedding_model: str = EMBEDDING_MODEL
+    index_name: str = INDEX_NAME
+    query_prefix: str = BGE_QUERY_PREFIX
 
 
 class Settings(BaseSettings):

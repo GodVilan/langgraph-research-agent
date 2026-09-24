@@ -1,0 +1,80 @@
+{
+  "scorer": "oss120b",
+  "run_path": "evals/runs/v3_de699d68.json",
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "rubric_sha256": "0c1efb19192d8eb03915403e4740db688f6fbf430f0861642b11b90fd05c1b20",
+  "sample_path": "evals/datasets/judge_sample.json",
+  "judge_weights_revision": "NOT PINNED: openai/gpt-oss-120b — no provider exposes a weights revision; served model id asserted per response (D-030b)",
+  "scores": {
+    "ua-002": {
+      "item_id": "ua-002",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the corpus does not contain the specific weight decay value, thus refusing to provide an answer.",
+      "scored_at": "2026-09-18T14:37:58.789491+00:00"
+    },
+    "ua-005": {
+      "item_id": "ua-005",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states the corpus contains no mention of the COCO benchmark or mAP score, thus refusing to provide the answer.",
+      "scored_at": "2026-09-18T14:37:58.789533+00:00"
+    },
+    "ua-011": {
+      "item_id": "ua-011",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states the retrieved text does not contain any information about CIFAR classification accuracy, indicating the corpus lacks the requested data.",
+      "scored_at": "2026-09-18T14:37:58.789544+00:00"
+    },
+    "ua-003": {
+      "item_id": "ua-003",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the paper does not contain information about the LibriSpeech word error rate, effectively refusing to provide the answer.",
+      "scored_at": "2026-09-18T14:37:58.789555+00:00"
+    },
+    "ua-006": {
+      "item_id": "ua-006",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the provided passages do not mention an ablation study, thus refusing to answer the question.",
+      "scored_at": "2026-09-18T14:37:58.789564+00:00"
+    },
+    "ua-008": {
+      "item_id": "ua-008",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the paper describes an inference-only model with no training or optimization, thus refusing to provide a learning rate.",
+      "scored_at": "2026-09-18T14:37:58.789573+00:00"
+    },
+    "ua-007": {
+      "item_id": "ua-007",
+      "scorer": "oss120b",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the corpus does not contain any mention of a random baseline or its performance metric, thus refusing to provide the requested information.",
+      "scored_at": "2026-09-18T14:37:58.789581+00:00"
+    }
+  }
+}

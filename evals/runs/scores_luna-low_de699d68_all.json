@@ -1,0 +1,706 @@
+{
+  "scorer": "luna-low",
+  "run_path": "evals/runs/v3_de699d68.json",
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "rubric_sha256": "53a692b429ec37b75cfccfedf5db6d8d259e2dc4cc8e647f3c3068fd7dda5285",
+  "sample_path": "evals/datasets/judge_sample.json",
+  "judge_weights_revision": "NOT PINNED: gpt-5.6-luna — no provider exposes a weights revision; served model id asserted per response (D-030b)",
+  "previous_rubric_sha256": "0c1efb19192d8eb03915403e4740db688f6fbf430f0861642b11b90fd05c1b20",
+  "rescored_items": [
+    "ua-008",
+    "ut-003"
+  ],
+  "rescore_note": "rubric v2: responsiveness test for Q1: a fact stated to explain why the requested fact is absent is part of the refusal; a fact offered as the answer is an answer. Added after three judge sheets read two explained refusals (ua-008, ut-003) as answers under v1's hedge sentence.",
+  "scores": {
+    "ua-002": {
+      "item_id": "ua-002",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the provided text does not contain the specific weight decay value and declines to provide one.",
+      "scored_at": "2026-09-19T00:37:23.489037+00:00"
+    },
+    "ua-001": {
+      "item_id": "ua-001",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the provided text does not contain a reported zero-shot baseline performance and declines to give a numerical value.",
+      "scored_at": "2026-09-19T00:37:23.489071+00:00"
+    },
+    "ua-003": {
+      "item_id": "ua-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the provided context contains no LibriSpeech word error rate and declines to provide a value.",
+      "scored_at": "2026-09-19T00:37:23.489084+00:00"
+    },
+    "ua-004": {
+      "item_id": "ua-004",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly says the passages do not report the GPU-hour cost, while giving experiment counts only to explain the absence.",
+      "scored_at": "2026-09-19T00:37:23.489095+00:00"
+    },
+    "ua-005": {
+      "item_id": "ua-005",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the retrieved context contains no COCO benchmark or mAP score and explains that MIRAGE was evaluated with Pearson r on different datasets.",
+      "scored_at": "2026-09-19T00:37:23.489105+00:00"
+    },
+    "ua-006": {
+      "item_id": "ua-006",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the provided text does not mention an ablation study or component removals and therefore declines to identify the largest accuracy drop.",
+      "scored_at": "2026-09-19T00:37:23.489114+00:00"
+    },
+    "ua-007": {
+      "item_id": "ua-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the paper contains no random baseline or associated exact performance metric, declining to provide the requested value.",
+      "scored_at": "2026-09-19T00:37:23.489123+00:00"
+    },
+    "ua-008": {
+      "item_id": "ua-008",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the pipeline is inference-only and therefore no optimization process or learning rate exists, declining to provide a learning-rate value.",
+      "scored_at": "2026-09-19T00:37:23.489138+00:00"
+    },
+    "ua-009": {
+      "item_id": "ua-009",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the retrieved passages contain no LibriSpeech or WER result and explains that the paper does not evaluate speech recognition.",
+      "scored_at": "2026-09-19T00:37:23.489155+00:00"
+    },
+    "ua-010": {
+      "item_id": "ua-010",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the paper does not report the requested wall-clock convergence time.",
+      "scored_at": "2026-09-19T00:37:23.489169+00:00"
+    },
+    "ua-011": {
+      "item_id": "ua-011",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the provided text does not contain the requested CIFAR accuracy and explains that the paper instead concerns STaRK retrieval benchmarks.",
+      "scored_at": "2026-09-19T00:37:23.489180+00:00"
+    },
+    "ut-003": {
+      "item_id": "ut-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The answer explains that OmegaFold is used but explicitly says the corpus does not report specific protein structure prediction results or evaluation metrics.",
+      "scored_at": "2026-09-19T00:37:23.489191+00:00"
+    },
+    "ut-004": {
+      "item_id": "ut-004",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the papers do not report any click-through rate prediction results and explains the corpus topics supporting that absence.",
+      "scored_at": "2026-09-19T00:37:23.489201+00:00"
+    },
+    "mh-003": {
+      "item_id": "mh-003",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent asserts specific cohort counts and compares them, despite noting that the hematological study has task-specific subsets rather than one aggregate total. | The pancreatic cohort figure is correct, but the hematological study is mischaracterized: the gold reports 1,634 pretraining patients and 189 AML patients, not primarily 43 held-out and 146 aligned patients. The asserted 43, 146, and 183,098 figures all appear in the retrieved chunks.",
+      "scored_at": "2026-09-19T00:37:23.489222+00:00"
+    },
+    "mh-007": {
+      "item_id": "mh-007",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent asserts that both papers evaluate on MATH500 and concludes there is no other paper using different benchmarks, rather than declining or clarifying. | The answer incorrectly identifies the second paper as 2605.29782 and omits the six alternative benchmarks used by 2605.30085. However, the retrieved chunks do support the asserted claim that 2605.29782 uses MATH-500.",
+      "scored_at": "2026-09-19T00:37:23.489250+00:00"
+    },
+    "mh-010": {
+      "item_id": "mh-010",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent directly identifies which study evaluates checkpoints up to 405 billion parameters and which tests models as small as 1 billion parameters. | The 405B attribution is correct, but the 1B models are from paper 2605.30162, not the MarginGate study (2605.30218). The retrieved chunks do not support the claim that MarginGate tests a 1B model.",
+      "scored_at": "2026-09-19T00:37:23.489265+00:00"
+    },
+    "am-001": {
+      "item_id": "am-001",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent directly specifies the datasets, metrics, baselines, and training protocols as the evaluation setup.",
+      "scored_at": "2026-09-19T00:37:23.489279+00:00"
+    },
+    "am-002": {
+      "item_id": "am-002",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent asserts a specific limitation—no explicit mechanism for encoding non-stationarity or anisotropy—and adds how the method compensates for it.",
+      "scored_at": "2026-09-19T00:37:23.489290+00:00"
+    },
+    "am-003": {
+      "item_id": "am-003",
+      "scorer": "luna-low",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The answer identifies multiple possible papers and lists different baselines for each without determining which proposed method the question refers to.",
+      "scored_at": "2026-09-19T00:37:23.489303+00:00"
+    },
+    "am-004": {
+      "item_id": "am-004",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent directly identifies MuJoCo v3 tasks and lists the specific benchmark environments used.",
+      "scored_at": "2026-09-19T00:37:23.489315+00:00"
+    },
+    "am-005": {
+      "item_id": "am-005",
+      "scorer": "luna-low",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent identifies multiple possible papers and baseline sets without committing to which specific alignment method the question refers to.",
+      "scored_at": "2026-09-19T00:37:23.489325+00:00"
+    },
+    "am-006": {
+      "item_id": "am-006",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent directly specifies the evaluation setup, benchmarks, datasets, task, and metrics used to measure the model's safety and alignment performance.",
+      "scored_at": "2026-09-19T00:37:23.489337+00:00"
+    },
+    "am-007": {
+      "item_id": "am-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the provided context does not mention why the method struggles with jailbreaks in low-resource languages.",
+      "scored_at": "2026-09-19T00:37:23.489350+00:00"
+    },
+    "am-008": {
+      "item_id": "am-008",
+      "scorer": "luna-low",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent identifies multiple possible papers and lays out their respective baselines without selecting which method the question refers to.",
+      "scored_at": "2026-09-19T00:37:23.489362+00:00"
+    },
+    "am-009": {
+      "item_id": "am-009",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The response asserts a specific limitation: substantially larger image dimensions may require architectural adaptations or scaling strategies to preserve accuracy and efficiency.",
+      "scored_at": "2026-09-19T00:37:23.489373+00:00"
+    },
+    "am-010": {
+      "item_id": "am-010",
+      "scorer": "luna-low",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent identifies multiple papers and presents the different baselines for each rather than selecting a single proposed method.",
+      "scored_at": "2026-09-19T00:37:23.489385+00:00"
+    },
+    "sp-001": {
+      "item_id": "sp-001",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly states a specific top-1 error rate for the requested method, architecture, and dataset. | The agent states 21.92%, matching the gold answer. The retrieved chunk [2605.29525_0010] explicitly reports that LPA (mean + varied) with ResNet-110 on CIFAR-100 achieves a 21.92% error rate.",
+      "scored_at": "2026-09-19T00:37:23.489406+00:00"
+    },
+    "sp-002": {
+      "item_id": "sp-002",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the retrieved context does not mention a completion duration for the Trace dataset with both parameters.",
+      "scored_at": "2026-09-19T00:37:23.489418+00:00"
+    },
+    "sp-003": {
+      "item_id": "sp-003",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested percentage and instead gives a generic statement about the topics it can address.",
+      "scored_at": "2026-09-19T00:37:23.489428+00:00"
+    },
+    "sp-005": {
+      "item_id": "sp-005",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the retrieved context does not mention Intent Accuracy or Table 8 and therefore declines to provide a value.",
+      "scored_at": "2026-09-19T00:37:23.489439+00:00"
+    },
+    "sp-006": {
+      "item_id": "sp-006",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent asserts a specific Top-1 accuracy value, 10.97%, for the requested configuration. | The agent’s stated Top-1 accuracy, 10.97%, matches the gold answer. The retrieved chunk explicitly reports 10.97% for S-Adam (k=2) on ImageNet (8-bit QAT).",
+      "scored_at": "2026-09-19T00:37:23.489455+00:00"
+    },
+    "sp-007": {
+      "item_id": "sp-007",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the retrieved passages do not mention the training iteration budget and declines to provide an answer.",
+      "scored_at": "2026-09-19T00:37:23.489467+00:00"
+    },
+    "sp-008": {
+      "item_id": "sp-008",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the passages do not provide an average score for Gemini-3-Flash and declines to answer.",
+      "scored_at": "2026-09-19T00:37:23.489477+00:00"
+    },
+    "sp-009": {
+      "item_id": "sp-009",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts a specific expense figure for Claude Haiku 4.5 per 1,000 evaluations. | The agent gives $19.746 per 1,000 evaluations, matching the gold answer. The retrieved chunk explicitly states that Claude Haiku 4.5 costs 19.746 per 1,000 evaluations.",
+      "scored_at": "2026-09-19T00:37:23.489491+00:00"
+    },
+    "sp-010": {
+      "item_id": "sp-010",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly identifies the confidence threshold τ as the primary tunable hyperparameter and explains its role in CLAD. | The agent identifies the confidence threshold τ, matching the gold answer. This fact is explicitly stated in retrieved chunk [2605.29607_0020].",
+      "scored_at": "2026-09-19T00:37:23.489506+00:00"
+    },
+    "sp-011": {
+      "item_id": "sp-011",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent directly asserts the mR@50/100 scores for Motifs under the PredCls setting. | The agent gives 15.2 / 16.2, but the gold PredCls mR@50/100 score is 8.7 / 9.3. The retrieved chunk contains both values in the Motifs row, so the asserted fact is grounded despite being the wrong evaluation column.",
+      "scored_at": "2026-09-19T00:37:23.489523+00:00"
+    },
+    "sp-012": {
+      "item_id": "sp-012",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly says the passages do not contain the specific numerical mean absolute error and only provide a qualitative comparison.",
+      "scored_at": "2026-09-19T00:37:23.489535+00:00"
+    },
+    "sp-014": {
+      "item_id": "sp-014",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested number or address the taxonomy question, instead giving a generic description of its capabilities.",
+      "scored_at": "2026-09-19T00:37:23.489551+00:00"
+    },
+    "sp-016": {
+      "item_id": "sp-016",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the passages do not specify a value for n in the plots and explains where n appears instead.",
+      "scored_at": "2026-09-19T00:37:23.489562+00:00"
+    },
+    "sp-017": {
+      "item_id": "sp-017",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the pretrained RoBERTa baseline's effective rank measurement is 55.011. | The agent's value, 55.011, matches the gold answer. Retrieved chunk [2605.29673_0034] explicitly lists the pretrained RoBERTa effective rank as 55.011.",
+      "scored_at": "2026-09-19T00:37:23.489576+00:00"
+    },
+    "sp-018": {
+      "item_id": "sp-018",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the Langevin Monte Carlo learning rate was fixed at 10^{-3}. | The agent’s stated learning rate of 0.001 matches the gold answer. The retrieved chunks explicitly report an LMC learning rate of η = 10^-3 (0.001), including chunks 2605.29684_0087 and 2605.29684_0035.",
+      "scored_at": "2026-09-19T00:37:23.489595+00:00"
+    },
+    "sp-020": {
+      "item_id": "sp-020",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the passages do not provide a specific numerical average travel time for the momentum-based approach.",
+      "scored_at": "2026-09-19T00:37:23.489608+00:00"
+    },
+    "sp-021": {
+      "item_id": "sp-021",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested Tflash result and instead gives a generic statement about the topics it can address.",
+      "scored_at": "2026-09-19T00:37:23.489617+00:00"
+    },
+    "sp-022": {
+      "item_id": "sp-022",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that section 2.3 is not mentioned in the available context and declines to identify its subject.",
+      "scored_at": "2026-09-19T00:37:23.489628+00:00"
+    },
+    "sp-023": {
+      "item_id": "sp-023",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly states that Table 1 reports an accuracy of 96.26 for WebFace42M. | The agent gives 96.26, matching the gold answer. This value appears in the retrieved Table 1 chunk [2605.29720_0011], and the additional proxy-backbone figures are also supported by retrieved chunk [2605.29720_0016].",
+      "scored_at": "2026-09-19T00:37:23.489642+00:00"
+    },
+    "sp-025": {
+      "item_id": "sp-025",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly identifies the agency-sa-goal prompt variant as the most effective for encouraging strategic plotting. | The agent identifies agency-sa-goal, which matches the gold answer. The retrieved chunk [2605.29729_0010] explicitly states that this prompt is the most conducive to scheming.",
+      "scored_at": "2026-09-19T00:37:23.489662+00:00"
+    },
+    "sp-026": {
+      "item_id": "sp-026",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent declines to address the clinical case question and only offers help with machine-learning and AI research papers.",
+      "scored_at": "2026-09-19T00:37:23.489678+00:00"
+    },
+    "sp-027": {
+      "item_id": "sp-027",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the 0.5B configuration paired with Hista achieves an average performance score of 21.2. | The agent's stated average performance score of 21.2 matches the gold answer. The retrieved chunk [2605.29782_0014] explicitly lists 21.2 for the 0.5B + Hista configuration.",
+      "scored_at": "2026-09-19T00:37:23.489697+00:00"
+    },
+    "sp-028": {
+      "item_id": "sp-028",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the passages do not report an average performance difference and declines to provide a quantitative comparison.",
+      "scored_at": "2026-09-19T00:37:23.489710+00:00"
+    },
+    "sp-029": {
+      "item_id": "sp-029",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the requested approach, model, and accuracy are not mentioned in the retrieved passages and declines to provide a percentage.",
+      "scored_at": "2026-09-19T00:37:23.489722+00:00"
+    },
+    "sp-030": {
+      "item_id": "sp-030",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided text does not mention the Citeseer benchmark or related metrics and therefore declines to identify an approach.",
+      "scored_at": "2026-09-19T00:37:23.489734+00:00"
+    },
+    "sp-031": {
+      "item_id": "sp-031",
+      "scorer": "luna-low",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent identifies multiple possible studies and their different performance measures without selecting which one answers the question.",
+      "scored_at": "2026-09-19T00:37:23.489746+00:00"
+    },
+    "sp-032": {
+      "item_id": "sp-032",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided passages do not mention a DreamSim score for SleeperMark.",
+      "scored_at": "2026-09-19T00:37:23.489758+00:00"
+    },
+    "sp-033": {
+      "item_id": "sp-033",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the discrepancy shrinks with network size and provides a specific convergence rate and bound. | The answer correctly states that the discrepancy shrinks as graph size grows and that sampled step-graphons become closer to the underlying graphon in operator norm. These claims are directly supported by the retrieved chunks, including the stated concentration and shrinking discrepancy.",
+      "scored_at": "2026-09-19T00:37:23.489775+00:00"
+    },
+    "sp-034": {
+      "item_id": "sp-034",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts a specific proportion—58.8%—for old skills in successful samples. | The agent states 58.8%, which matches the gold answer. The retrieved chunk [2605.29829_0034] explicitly shows 58.8% for old skills in successful samples.",
+      "scored_at": "2026-09-19T00:37:23.489794+00:00"
+    },
+    "sp-035": {
+      "item_id": "sp-035",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": false,
+      "grounded": false,
+      "outcome": "wrong_answer",
+      "reason": "The agent directly identifies PAR as attaining the lowest sensitivity score and adds a supporting comparison. | The agent identified PAR, but the gold answer is Minas, so the asserted fact does not match. The PAR claim is explicitly stated in retrieved chunk [2605.29983_0047], making it grounded.",
+      "scored_at": "2026-09-19T00:37:23.489811+00:00"
+    },
+    "sp-036": {
+      "item_id": "sp-036",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent says the provided passages do not mention the text window size for the smaller family of language versions.",
+      "scored_at": "2026-09-19T00:37:23.489822+00:00"
+    },
+    "sp-037": {
+      "item_id": "sp-037",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the train/validation/test split ratio is 0.6/0.2/0.2 across all datasets. | The agent states the same 0.6/0.2/0.2 train/validation/test ratio as the gold answer. This fact is explicitly supported by retrieved chunk [2605.29857_0021].",
+      "scored_at": "2026-09-19T00:37:23.489840+00:00"
+    },
+    "sp-038": {
+      "item_id": "sp-038",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the context lacks the requested 7-billion-parameter size and evaluation metrics, so it declines to provide the mean accuracy.",
+      "scored_at": "2026-09-19T00:37:23.489853+00:00"
+    },
+    "sp-039": {
+      "item_id": "sp-039",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that the non-shuffle variant prematurely converges around 25 epochs. | The agent's answer matches the gold answer of epoch 25. The retrieved chunk [2605.29863_0013] explicitly states that the non-shuffle version converges prematurely around 25 epochs.",
+      "scored_at": "2026-09-19T00:37:23.489869+00:00"
+    },
+    "sp-040": {
+      "item_id": "sp-040",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the requested TPR value is not mentioned in the provided text.",
+      "scored_at": "2026-09-19T00:37:23.489877+00:00"
+    },
+    "sp-041": {
+      "item_id": "sp-041",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent directly asserts that removing the eleventh layer reduced true positive accuracy to 6.0% (6.02%). | The agent states that TP accuracy dropped to 6.02%, matching the gold answer. This fact is explicitly supported by retrieved chunk [2605.29901_0013].",
+      "scored_at": "2026-09-19T00:37:23.489892+00:00"
+    },
+    "sp-042": {
+      "item_id": "sp-042",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent says the passages do not provide a complete accounting of the total processing units or RAM used, while only giving contextual hardware mentions.",
+      "scored_at": "2026-09-19T00:37:23.489905+00:00"
+    },
+    "sp-043": {
+      "item_id": "sp-043",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent reports run counts for specific experiments but explicitly says the passages do not provide an overall average across all tables.",
+      "scored_at": "2026-09-19T00:37:23.489917+00:00"
+    },
+    "sp-044": {
+      "item_id": "sp-044",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent does not provide the requested count and instead gives a generic statement about the kinds of questions it can answer.",
+      "scored_at": "2026-09-19T00:37:23.489934+00:00"
+    },
+    "sp-047": {
+      "item_id": "sp-047",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided passages do not mention the difficult subset or bootstrap confidence intervals, so it declines to provide a number.",
+      "scored_at": "2026-09-19T00:37:23.489946+00:00"
+    },
+    "sp-048": {
+      "item_id": "sp-048",
+      "scorer": "luna-low",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent asserts specific collision metric values and quantifies the drop for the proposed approach. | The agent states the same drop, from 0.071 to 0.016, as the gold answer. This fact appears directly in retrieved chunk [2605.29937_0013].",
+      "scored_at": "2026-09-19T00:37:23.489964+00:00"
+    },
+    "sp-049": {
+      "item_id": "sp-049",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not mention the second goal or the approach with dataset-dependent fluctuating results.",
+      "scored_at": "2026-09-19T00:37:23.489976+00:00"
+    },
+    "sp-050": {
+      "item_id": "sp-050",
+      "scorer": "luna-low",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the provided passages do not mention the requested bootstrap fraction or amplitude decrease and declines to provide a value.",
+      "scored_at": "2026-09-19T00:37:23.489988+00:00"
+    }
+  }
+}

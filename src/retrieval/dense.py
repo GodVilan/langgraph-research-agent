@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from src.config import DEFAULT_CHUNK, INDEX_NAME
+from src.config import DEFAULT_CHUNK, get_settings
 from src.retrieval.chunker import Chunk
 from src.retrieval.embeddings import EmbeddingModel
 from src.retrieval.vector_store import VectorStore
@@ -43,7 +43,8 @@ class DenseRetriever:
 
     @classmethod
     def load(cls, index_dir: Path, emb_model: EmbeddingModel | None = None) -> DenseRetriever:
-        return cls(emb_model or EmbeddingModel(), VectorStore.load(index_dir, name=INDEX_NAME))
+        name = get_settings().retrieval.index_name
+        return cls(emb_model or EmbeddingModel(), VectorStore.load(index_dir, name=name))
 
     def retrieve(
         self,

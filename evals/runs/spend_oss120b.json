@@ -1,0 +1,19 @@
+{
+  "arm": "oss120b",
+  "model_served": "openai/gpt-oss-120b",
+  "responses_named": [
+    "gpt-oss-120b@cerebras#fp_b546658c8e93d2e57ef2"
+  ],
+  "providers": [
+    "cerebras"
+  ],
+  "prompt_tokens": 0,
+  "completion_tokens": 0,
+  "billed_to": "Hugging Face inference credit \u2014 outside the $5 OpenAI ceiling",
+  "note": "price per provider from GET /v1/models/<id>; no provider lists this model free",
+  "status": "INCOMPLETE \u2014 HF monthly included credit depleted (HTTP 402) after 7 of 25 stage-q1 verdicts; loud failure, no substitution",
+  "provider_note": "x-inference-provider: cerebras on every successful response \u2014 the router chose the $0.35/$0.75 per 1M provider, not the cheapest listed ($0.037/$0.17)",
+  "tokens_note": "per-call usage from one measured q1 response: 400 prompt (384 cached) / 132 completion (87 reasoning); the 7 verdicts' usage was not captured because the run raised before the spend record was written \u2014 approx 2.8K in / 0.9K out",
+  "system_fingerprint": "fp_b546658c8e93d2e57ef2 \u2014 a serving-stack fingerprint, not a weights revision",
+  "verdicts_obtained": 7
+}

@@ -80,6 +80,24 @@ class Provenance(BaseModel):
     source_paper_ids: list[str] = Field(default_factory=list)
 
 
+class GoldSupport(StrEnum):
+    """How well the gold chunks support the answer they are gold for.
+
+    Recall@k and MRR@k are dominated by the factual stratum, and 10 of its 43 items pass
+    containment only on the token fallback — no quoted span, no named entity, no precise
+    figure, just the answer's words appearing in the chunk. Those are legitimate items
+    ("up to 54%", "75 years old", "agency-sa-goal" are real answers) but their gold is
+    established more weakly than an item whose chunk contains a verbatim figure.
+
+    Pooled into one Recall@5 that difference is invisible. Broken out, a material gap between
+    the strong and weak subsets is a finding about the **gold set** rather than about the
+    retriever — which is the kind of thing a single number hides by construction.
+    """
+
+    STRONG = "strong"  # a quoted span, named entity, or discriminating figure is contained
+    WEAK = "weak"  # only the answer's content words appear; verified, but weakly
+
+
 class AnchorClass(StrEnum):
     """How reliably the cross-citation check can recognise an item's anchor paper.
 
@@ -174,6 +192,9 @@ class EvalItem(BaseModel):
     absence_shape: AbsenceShape | None = None
     anchor_paper_id: str = ""
     anchor_class: AnchorClass | None = None
+    # How strongly the gold chunks establish the answer. Every retrieval metric is reported
+    # with the weak subset broken out; never pooled.
+    gold_support: GoldSupport | None = None
     absent_term: str = ""
     # Papers this item shares with items in *other* strata. Empty when the strata are
     # disjoint, which they are here — one paper feeding several metrics means a quirk in
@@ -197,6 +218,15 @@ class EvalItem(BaseModel):
                 raise ValueError(f"{self.item_id}: unanswerable items must record absent_term")
         elif not self.gold_chunk_ids:
             raise ValueError(f"{self.item_id}: an answerable item needs at least one gold chunk")
+        elif not self.gold_answer.strip():
+            # Every multi-hop item reached human review with "(none recorded)". Without a
+            # gold answer the judge has nothing to grade against, and the gold chunks cannot
+            # be checked for containing the fact they supposedly support — so the item is
+            # unusable in both directions. It fails at construction rather than at review.
+            raise ValueError(
+                f"{self.item_id}: an answerable item needs a gold answer — the judge has "
+                f"nothing to grade against without one"
+            )
 
         if self.stratum is Stratum.UNANSWERABLE_ATTRIBUTE:
             if not self.anchor_paper_id:
@@ -312,6 +342,19 @@ class EvalSet(BaseModel):
                 if shared:
                     overlaps[(first, second)] = shared
         return overlaps
+
+    def gold_support_counts(self) -> dict[str, int]:
+        """Strong vs weak gold, per stratum. Retrieval metrics must be reported this way."""
+        counts: dict[str, int] = {}
+        for item in self.items:
+            if item.gold_support is None:
+                continue
+            key = f"{item.stratum.value}/{item.gold_support.value}"
+            counts[key] = counts.get(key, 0) + 1
+        return counts
+
+    def items_by_gold_support(self, support: GoldSupport) -> list[EvalItem]:
+        return [i for i in self.items if i.gold_support is support]
 
     def anchor_class_counts(self) -> dict[str, int]:
         counts: dict[str, int] = {}

@@ -59,6 +59,8 @@ include = ["src*"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+# The v2.1 clone is published code, run unmodified as a baseline; it is not ours to lint.
+extend-exclude = ["evals/baselines"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF", "ANN", "ASYNC"]
@@ -76,10 +78,11 @@ python_version = "3.13"
 strict = true
 warn_unreachable = true
 plugins = ["pydantic.mypy"]
+exclude = ["evals/baselines/"]
 
 [[tool.mypy.overrides]]
 # These ship no type information.
-module = ["faiss.*", "rank_bm25.*", "fitz.*", "arxiv.*", "sentence_transformers.*"]
+module = ["faiss.*", "rank_bm25.*", "fitz.*", "arxiv.*", "sentence_transformers.*", "rag.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

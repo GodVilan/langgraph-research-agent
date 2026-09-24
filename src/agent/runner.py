@@ -75,6 +75,7 @@ async def run_query(
         model=s.model_name(),
         prompt_version=options.prompt_version,
     ) as root:
+        state = AgentState(**{**state, "trace_id": lf.current_trace_id()})
         try:
             # ainvoke's overloads are keyed on stream_mode literals and do not admit a
             # TypedDict input; the call is correct, the overload set cannot express it.
@@ -101,6 +102,9 @@ async def run_query(
             lf.flush()
             raise
 
+        # The graph's reducers do not carry `trace_id` through, so restore it onto the final
+        # state: it was set before the invoke and is a property of the run, not of any node.
+        final = AgentState(**{**final, "trace_id": state["trace_id"]})
         lf.record_state(root, dict(final))
 
     metrics.record_run(dict(final), time.monotonic() - started)

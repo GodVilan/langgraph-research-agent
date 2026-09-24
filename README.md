@@ -159,8 +159,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 380, all passing | `make test` |
-| First-party Python | 38 files, 4,523 lines under `src/` | `make readme-stats` |
+| Tests | 573, all passing | `make test` |
+| First-party Python | 38 files, 4,583 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -169,7 +169,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-08-25.*
+*Measured 2026-09-24.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
@@ -318,26 +318,22 @@ injected one never reached the model.
 
 ![Langfuse home dashboard](docs/img/langfuse-dashboard.png)
 
-The project dashboard at the time of capture: volume by trace name, cost by model, and both
-over time. Langfuse's `$0.02776` here is *its* estimate at *its* rate card, over every trace
-in the window; `make budget` reports `$0.00000` billed and `$0.01248` notional from our own
-instrumentation. The two are never merged into one number.
+The project dashboard over the Phase 4 eval window: **69 traces**, one per item of the frozen
+eval set, `$0.236004` notional at the verified `$0.30`/`$2.50` rates, and **115 evaluation
+scores** — `outcome_correct` on all 69 and `retrieval_recall5` on the 46 whose gold chunks are
+answer support. Every figure on it is regenerable: `make run-set`, `make budget`,
+`make push-scores`.
 
-**The gap between them is fully accounted for**, and the accounting found two real bugs. Of
-Langfuse's total, `$0.01528` sits on five duplicate root traces of runs already counted —
-residue of a since-fixed double-trace bug. The rest, `$0.01248`, agrees with our figure
-*exactly*, and agrees again when recomputed from those traces' own tokens at the verified
-`$0.30`/`$2.50` rates: three derivations, one number.
-
-The second bug was ours. The trace count on this dashboard is mostly **synthetic** — the
-test suite was writing to the same Langfuse project, so 187 of 214 traces were fake runs
-carrying real-looking token counts and no cost. The spend table summed tokens over all of
-them and cost over the 6 real ones, yielding a blended rate *below* the input-only price,
-which no token mix can produce. `make reconcile-cost` reproduces the whole diagnosis, and
-`make budget` now refuses to write a table whose blended rate falls outside the rate card.
-
-Restated on the 6 priced traces alone — a deliberately thin base, widened by Phase 4's eval
-runs — the blend is `$0.4056` per 1M, where a mostly-input workload belongs.
+**The three surfaces agree.** Langfuse's own total, our stored notional, and a recomputation
+from those traces' tokens all give `$0.236004`; `make reconcile-cost` reports **0 unpriced
+traces, 0 duplicate roots, and a blended `$0.3433` per 1M** — inside the `$0.30`–`$2.50` card,
+where a mostly-input workload belongs. That check exists because an earlier window failed it:
+the spend table once summed tokens over 214 traces and cost over the 6 that were priced,
+yielding a blend *below* the input-only price, which no token mix can produce. 187 of those
+214 were synthetic — the test suite was writing to the same project. Both bugs are fixed at
+the root (`conftest` disables observability suite-wide; `make budget` refuses to write a table
+whose blended rate falls outside the card), and `make reconcile-d021` reproduces the original
+diagnosis from a frozen trace fixture rather than from a window that no longer exists.
 
 Full detail, including two Langfuse setup traps that fail with errors that do not name their
 cause, is in [OBSERVABILITY.md](docs/OBSERVABILITY.md).
@@ -399,14 +395,54 @@ manifest fails there instead of on someone else's first clone
 
 ---
 
+## The one item where the whole chain is visible
+
+Everything below is verbatim from `evals/runs/v3_de699d68.json` (`make run-set`) and the
+human score sheet. It is **one item**, reported as one item — never as a rate — because it is
+the only place in the project where retrieval, generation and refusal can all be seen at once.
+
+**Item `sp-036`** (`single_paper_factual`, gold answer **8192**):
+
+> **Question:** What text window size was utilized for the smaller family of language versions?
+
+The agent retrieved five chunks. The third, `2605.29843_0010`, from the gold paper, says:
+
+> *Evaluation protocol. We report perplexity (PPL, ↓) on Wikitext2 and C4. For Llama 3.2
+> models, we use context length 8192. For Llama 2 models in the main QuIP#-style table, we
+> use context length 4096 …*
+
+The agent's answer, in full:
+
+> Based on the provided retrieved passages, there is no mention of a text window size utilized
+> for a smaller family of language versions. The text discusses context lengths (such as 8192
+> for Llama 3.2, 4096 for Llama 2, and 2048) [2605.29843_0010], but does not provide
+> information regarding text window sizes for smaller language versions.
+
+The fact was retrieved. The agent quoted it, with the correct citation, inside its refusal.
+It then declared the question unanswerable, because *"the smaller family of language
+versions"* did not resolve to *Llama 3.2* for it — the question had been paraphrased, by
+construction, to remove the model name. Under the [rubric](docs/RUBRIC.md) this is
+`hallucinated_refusal`; grounded against the retrieved chunks, an answer of 8192 would have
+been `correct_answer`.
+
+**It was found by hand-scoring, not by any automated check.** The gold-chunk containment
+check cannot see it (the gold chunk `_0012` was not retrieved; its neighbour `_0010` was), the
+critique loop passed it, and the run reports it as `completed`. It surfaced only because a
+human read the agent's words against the retrieved text. The same paraphrase rule produced
+two other failure surfaces — the input scope classifier and the retriever — recorded together
+as [DECISIONS D-029](docs/DECISIONS.md).
+
+---
+
 ## What is not built yet
 
 Stated plainly, because a reader should not have to infer it:
 
 | | Phase | Status |
 |---|---|---|
-| Eval dataset, metrics, baseline, CI regression gate | 4 | Not built. **No answer quality number exists for v3.** |
-| v2.1-vs-v3 comparison | 4 | Not run. |
+| Eval dataset | 4 | **Frozen: 69 items** (43 factual / 3 multi-hop / 2 unanswerable-topic / 11 unanswerable-attribute / 10 ambiguous), `evals/datasets/phase4.json`, `make verify-dataset`. Why 69 and not 100: [EVALS.md](docs/EVALS.md). |
+| Metrics, baseline, CI regression gate | 4 | Not built. **No judge-validated answer quality number exists for v3.** One human-scored slice exists (25 of 69, [EVALS.md](docs/EVALS.md)): refusal accuracy **10/10 (n=13)** *and* hallucinated-refusal rate **7/10 (n=10)** — read as a pair, that is an agent that refuses readily, not one that knows what is absent; the first number alone would be the near-perfect-metric trap. |
+| v2.1-vs-v3 comparison | 4 | **Run.** Same frozen 69 items, same corpus, same generator, v2.1 pinned at `8d3e67f`, retriever frozen identical. **Retrieval: no gain for v3** — Recall@5 0.267 (v3, three runs, spread 0.000) vs 0.233 (v2.1), and v2.1 is *ahead* on MRR (0.196 vs 0.175) and on finding the gold paper (28 vs 21–22 of 43), with the same 30 of 43 items missed by both; the number belongs to the eval set's paraphrasing, not to either system. **Outcomes: v3 ahead outside the spread** — 15 correct of 46 answerable vs 6, and 5 wrong vs 11 (7 of v2.1's 11 answered from the wrong paper). v3's justification is orchestration, checkpointing and observability — **not retrieval quality**. Detail and the places v3 is worse: [EVALS.md](docs/EVALS.md). |
 | FastAPI service, Docker, deployment, load figures | 5 | Not built. |
 
 Deferred design choices and their reasons are in [BACKLOG.md](docs/BACKLOG.md).

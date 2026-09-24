@@ -17,13 +17,14 @@ Design constraints that are not negotiable:
   between them can be reported instead of silently resolved in the generator's favour.
 
 Usage:
-    python -m evals.verify_cli evals/datasets/draft.json
-    python -m evals.verify_cli evals/datasets/draft.json --stratum multi_hop
-    python -m evals.verify_cli evals/datasets/draft.json --report
+    python -m evals.verify_cli evals/datasets/phase4.json
+    python -m evals.verify_cli evals/datasets/phase4.json --stratum multi_hop
+    python -m evals.verify_cli evals/datasets/phase4.json --report
 """
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -159,27 +160,107 @@ def reveal(item: EvalItem) -> None:
         )
 
 
+VALID_DECISIONS = {ACCEPT: "ACCEPT", EDIT: "EDIT", REJECT: "REJECT", SKIP: "SKIP", QUIT: "QUIT"}
+NOTES_TERMINATOR = "."
+
+
+def _drain_pending_input() -> None:
+    """Discard anything already sitting in the terminal buffer.
+
+    This is the fix for the defect that corrupted a whole verification session. Notes pasted
+    as several lines were consumed one line per subsequent prompt, so every answer after the
+    paste landed one slot early: decisions were stored as notes and notes were read as
+    decisions. A session recorded 22 accepts and 2 rejects against an intent of roughly 17
+    and 7 — turning a 28% disagreement rate into 8%, on the single number the exercise
+    exists to produce. Anything left in the buffer when a decision is requested was not
+    typed in answer to that question, so it is dropped rather than interpreted.
+    """
+    if not sys.stdin.isatty():
+        return
+    with contextlib.suppress(Exception):
+        import termios
+
+        termios.tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
+
+
 def prompt_decision() -> str:
-    typer.echo("")
-    answer: str = typer.prompt(
-        typer.style("[a]ccept  [e]dit  [r]eject  [s]kip  [q]uit", fg=typer.colors.YELLOW),
-        default=ACCEPT,
-    )
-    return answer.strip().lower()[:1]
+    """Read one decision. No default, strict validation, echoed back before proceeding.
+
+    A default meant an empty line — or a stray line from a paste — silently became "accept".
+    Nothing here advances until the verifier has typed one of the five keys.
+    """
+    _drain_pending_input()
+    while True:
+        typer.echo("")
+        raw: str = typer.prompt(
+            typer.style("[a]ccept  [e]dit  [r]eject  [s]kip  [q]uit", fg=typer.colors.YELLOW),
+            default="",
+            show_default=False,
+        )
+        answer = str(raw)
+        choice = answer.strip().lower()
+        if choice in VALID_DECISIONS:
+            typer.echo(_c(f"  -> recorded as {VALID_DECISIONS[choice]}", typer.colors.CYAN))
+            return choice
+        typer.echo(
+            _c(
+                f"  {answer.strip()!r} is not a decision. Type exactly one of a, e, r, s, q.",
+                typer.colors.RED,
+            )
+        )
+
+
+def prompt_notes(label: str) -> str:
+    """Read notes that may span several lines, terminated explicitly.
+
+    Multi-line input is the thing that desynchronised the session, so it is handled rather
+    than forbidden: lines are collected until a lone "." so that no line can escape into the
+    next prompt, and pasted text ending without the terminator cannot silently consume the
+    following decision.
+    """
+    typer.echo(_c(f"  {label} (end with a single '.' on its own line):", typer.colors.YELLOW))
+    lines: list[str] = []
+    while True:
+        try:
+            line = input("  | ")
+        except EOFError:
+            break
+        if line.strip() == NOTES_TERMINATOR:
+            break
+        lines.append(line)
+    return "\n".join(lines).strip()
 
 
 def edit(item: EvalItem) -> EvalItem:
-    """Edit the question or gold answer in place. The stratum is never editable.
+    """Edit the question, gold answer, and — for refusal items — the absent term.
 
-    Changing an item's stratum would silently move it between reporting groups — and the two
-    unanswerable sub-strata must stay separate (schema docstring). Reject it and draft a new
-    one instead.
+    The stratum is never editable: changing it would move the item between reporting groups,
+    and the two unanswerable sub-strata must stay separate.
+
+    ``absent_term`` *is* editable, and must be. A question rewritten past the term it was
+    built around leaves the absence check certifying something the question no longer asks,
+    which is how an item ended up carrying `absent_term="warmup"` after being rewritten into
+    a question about confidence thresholds.
     """
-    question = typer.prompt("question", default=item.question)
+    typer.echo(_c("  editing — the stratum cannot change; reject and redraft instead", "yellow"))
+    question = typer.prompt("  question", default=item.question)
     updated = item.model_copy(update={"question": question})
-    if not item.stratum.expects_refusal:
+
+    if item.stratum.expects_refusal:
+        if question.strip() != item.question.strip():
+            typer.echo(
+                _c(
+                    f"  the question changed; confirm the term whose absence it tests "
+                    f"(was {item.absent_term!r})",
+                    typer.colors.YELLOW,
+                )
+            )
         updated = updated.model_copy(
-            update={"gold_answer": typer.prompt("gold answer", default=item.gold_answer)}
+            update={"absent_term": typer.prompt("  absent term", default=item.absent_term)}
+        )
+    else:
+        updated = updated.model_copy(
+            update={"gold_answer": typer.prompt("  gold answer", default=item.gold_answer)}
         )
     return updated
 
@@ -254,14 +335,18 @@ def main(
         if choice == EDIT:
             item = edit(item)
             decisions["edited"] += 1
-            choice = ACCEPT
+            choice = prompt_decision()
+            if choice in {QUIT, SKIP}:
+                continue
 
         accepted = choice != REJECT
-        prompt_text = "notes (optional)" if accepted else "why rejected"
-        notes = typer.prompt(prompt_text, default="")
+        notes = prompt_notes("notes (optional)" if accepted else "why rejected")
         decisions["accepted" if accepted else "rejected"] += 1
 
-        # Only now. Running the checks earlier would be harmless; *showing* them would not.
+        # Re-run against the *edited* item, not the drafted one. An item rewritten from a
+        # warmup question into a confidence-threshold question kept `absent_term="warmup"`
+        # and was certified against a term the new question never asks about — the checks
+        # had validated a question that no longer existed.
         checks = [
             MachineCheck(name=name, passed=passed, detail=detail)
             for name, passed, detail in run_automated_checks(item)

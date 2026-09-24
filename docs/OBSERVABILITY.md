@@ -136,12 +136,16 @@ and never reached the model.
 
 ![Langfuse home dashboard](img/langfuse-dashboard.png)
 
-70 traces at the time of capture: volume by name, cost by model, and both over time.
+**69 traces, `$0.236004` notional, 115 evaluation scores** — the Phase 4 eval window, one
+trace per item of the frozen 69-item set, with judge scores attached per trace
+(`make push-scores`). The Scores panel is the reason this capture replaced an earlier one: it
+read "No data" until eval scores landed, and a dashboard with an empty Scores panel is not
+evidence of evaluation-driven development.
 
-Read the trace *count* on this dashboard with the caveat below — most of those 70 were
-synthetic traces emitted by the test suite, which is the contamination the next section
-diagnoses. The cost figure and the trace tree are unaffected; the volume is not a measure of
-real usage.
+The trace count here **is** a measure of real usage, which it previously was not. An earlier
+capture of this page showed 70 traces of which most were synthetic — emitted by the test
+suite into the same project, the contamination the next section diagnoses. `make reconcile-cost`
+over this window reports 0 unpriced traces, 0 duplicate roots, and a blended `$0.3433` per 1M.
 
 ### Reconciling the two cost figures
 

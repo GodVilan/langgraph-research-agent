@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.config import INDEX_NAME, get_settings
+from src.config import get_settings
 from src.retrieval.chunker import load_chunks
 from src.retrieval.embeddings import EmbeddingModel
 from src.retrieval.vector_store import VectorStore
@@ -42,9 +42,10 @@ def main() -> int:
     args = parser.parse_args()
 
     settings = get_settings()
+    index_name = settings.retrieval.index_name
     out_dir = args.out or settings.index_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    index_file = out_dir / f"{INDEX_NAME}.faiss"
+    index_file = out_dir / f"{index_name}.faiss"
 
     if index_file.exists() and not args.force:
         log.info("Index already exists at %s (use --force to rebuild)", index_file)
@@ -66,7 +67,7 @@ def main() -> int:
 
     store = VectorStore(dim=model.dim)
     store.add(embeddings, chunks)
-    store.save(out_dir, name=INDEX_NAME)
+    store.save(out_dir, name=index_name)
     log.info("Wrote %s (%d vectors, dim=%d)", index_file, store.size, model.dim)
 
     if args.print_hashes:
@@ -76,7 +77,7 @@ def main() -> int:
 
 def _print_hashes(out_dir: Path) -> None:
     for suffix in (".faiss", "_meta.pkl"):
-        path = out_dir / f"{INDEX_NAME}{suffix}"
+        path = out_dir / f"{get_settings().retrieval.index_name}{suffix}"
         if path.exists():
             print(f"{sha256(path)}  {path}")
 

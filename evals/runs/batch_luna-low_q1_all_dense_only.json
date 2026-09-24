@@ -1,0 +1,9 @@
+{
+  "arm": "luna-low",
+  "stage": "q1",
+  "model_served": "gpt-5.6-luna",
+  "file_id": "file-PCy1wEF3993v9kPoUfHHtE",
+  "batch_id": "batch_6ab2cba84ea48190885328636313524c",
+  "requests": 2,
+  "submitted_at": "2026-09-22T18:40:40Z"
+}

@@ -1,0 +1,260 @@
+{
+  "scorer": "human",
+  "run_path": "evals/runs/v3_de699d68.json",
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "rubric_sha256": "0c1efb19192d8eb03915403e4740db688f6fbf430f0861642b11b90fd05c1b20",
+  "sample_path": "evals/datasets/judge_sample.json",
+  "scores": {
+    "ua-002": {
+      "item_id": "ua-002",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused unanswerable attribute absent from the paper",
+      "scored_at": "2026-09-12T02:34:46.425725+00:00"
+    },
+    "ua-005": {
+      "item_id": "ua-005",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly stated COCO mAP is absent and noted the paper evaluates Pearson r on Algonauts.",
+      "scored_at": "2026-09-12T02:35:42.018422+00:00"
+    },
+    "ua-011": {
+      "item_id": "ua-011",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused absent CIFAR accuracy; noted benchmark is STaRK for SKBs.",
+      "scored_at": "2026-09-12T02:36:29.344313+00:00"
+    },
+    "ua-003": {
+      "item_id": "ua-003",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused LibriSpeech WER absent from chess benchmark paper.",
+      "scored_at": "2026-09-12T02:37:10.605036+00:00"
+    },
+    "ua-006": {
+      "item_id": "ua-006",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correcttly refused unanswerable ablation study absent from paper.",
+      "scored_at": "2026-09-12T02:37:44.378970+00:00"
+    },
+    "ua-008": {
+      "item_id": "ua-008",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused learning rate; identified method is inference-only with no training.",
+      "scored_at": "2026-09-12T02:38:25.992671+00:00"
+    },
+    "ua-007": {
+      "item_id": "ua-007",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused absent random baseline; identified FedAvg and SCAFFOLD as actual baselines.",
+      "scored_at": "2026-09-12T02:39:07.592716+00:00"
+    },
+    "ua-010": {
+      "item_id": "ua-010",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused wall-clock convergence time absent from paper.",
+      "scored_at": "2026-09-12T02:39:36.998610+00:00"
+    },
+    "ut-003": {
+      "item_id": "ut-003",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused; noted OmegaFold is used for feature extraction but no prediction results are reported.",
+      "scored_at": "2026-09-12T02:40:39.926534+00:00"
+    },
+    "ut-004": {
+      "item_id": "ut-004",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "correctly refused CTR prediction results absent from corpus",
+      "scored_at": "2026-09-12T02:41:09.957853+00:00"
+    },
+    "sp-007": {
+      "item_id": "sp-007",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal on factual question; agent failed to retrieve/find the iteration budget.",
+      "scored_at": "2026-09-12T02:42:00.143924+00:00"
+    },
+    "sp-049": {
+      "item_id": "sp-049",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal on factual question; agent failed to find the target paper/fact.",
+      "scored_at": "2026-09-12T02:42:36.176347+00:00"
+    },
+    "sp-036": {
+      "item_id": "sp-036",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal; agent failed to locate window size in context.",
+      "scored_at": "2026-09-12T02:43:08.839814+00:00"
+    },
+    "sp-006": {
+      "item_id": "sp-006",
+      "scorer": "human",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "exact match 10.97% grounded in retrieved chunks 2605.29547_0012 and 0011",
+      "scored_at": "2026-09-12T02:45:06.495933+00:00"
+    },
+    "sp-017": {
+      "item_id": "sp-017",
+      "scorer": "human",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "exact match 55.011 grounded in retrieved chunk 2605.29673_0034",
+      "scored_at": "2026-09-12T02:46:25.948761+00:00"
+    },
+    "sp-044": {
+      "item_id": "sp-044",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "input guardrail false refusal on answerable factual question.",
+      "scored_at": "2026-09-12T02:47:08.974853+00:00"
+    },
+    "sp-032": {
+      "item_id": "sp-032",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal; agent failed to retrieve DreamSim score from context.",
+      "scored_at": "2026-09-12T02:47:53.933584+00:00"
+    },
+    "sp-047": {
+      "item_id": "sp-047",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal; agent failed to find bootstrap resample count in context.",
+      "scored_at": "2026-09-12T02:48:32.646702+00:00"
+    },
+    "sp-037": {
+      "item_id": "sp-037",
+      "scorer": "human",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "exact match 0.6/0.2/0.2 gorunded in retrieved chunk 2605.29857_0021",
+      "scored_at": "2026-09-12T02:49:32.474211+00:00"
+    },
+    "sp-030": {
+      "item_id": "sp-030",
+      "scorer": "human",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "hallucinated refusal; agent failed to find Citeseer benchmark results in context.",
+      "scored_at": "2026-09-12T02:50:39.519617+00:00"
+    },
+    "am-009": {
+      "item_id": "am-009",
+      "scorer": "human",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "silent disambiguation; picked one paer without asking or presenting competiung readings",
+      "scored_at": "2026-09-12T02:51:29.057074+00:00"
+    },
+    "am-002": {
+      "item_id": "am-002",
+      "scorer": "human",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "silent disambiguation; picked paper 2605.30167 without asking which method was meant",
+      "scored_at": "2026-09-12T02:52:28.005617+00:00"
+    },
+    "am-008": {
+      "item_id": "am-008",
+      "scorer": "human",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "correctly clarified by distinguishing the multiple competing papers and their baselines.",
+      "scored_at": "2026-09-12T02:53:25.766954+00:00"
+    },
+    "am-003": {
+      "item_id": "am-003",
+      "scorer": "human",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "correctly clarified by breaking out the multiple competing papers and baselines.",
+      "scored_at": "2026-09-12T02:54:05.210926+00:00"
+    },
+    "am-005": {
+      "item_id": "am-005",
+      "scorer": "human",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "correctly clarified by laying out baselines for the three candidate alignment papers.",
+      "scored_at": "2026-09-12T02:54:47.585116+00:00"
+    }
+  },
+  "judge_weights_revision": "n/a \u2014 human scorer"
+}

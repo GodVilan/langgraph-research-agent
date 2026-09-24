@@ -28,7 +28,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pydantic import BaseModel, Field
 
 from evals.absence import load_corpus, load_eval_corpus_checksum, verify_topic_absent
-from evals.draft import Candidate, ConstructionReport, CullReason, draft_multi_hop
+from evals.draft import (
+    Candidate,
+    ConstructionReport,
+    CullReason,
+    banned_phrases_in,
+    draft_multi_hop,
+)
+from evals.multihop import paper_text
 from evals.ratelimit import limited
 from evals.schema import (
     AbsenceShape,
@@ -39,6 +46,16 @@ from evals.schema import (
     Verification,
 )
 from evals.select_attributes import SEED, TARGET, enumerate_candidates, select
+from evals.verify_items import (
+    claims_in,
+    claims_supported_by,
+    classify_candidate,
+    gold_chunks_support_jointly,
+    is_ineligible_gold,
+    minimal_gold,
+    papers_contributing_nothing,
+    unaddressed_qualifiers,
+)
 from src.agent.llm import call_structured
 from src.config import get_settings
 
@@ -275,12 +292,54 @@ def chunk_index() -> dict[str, list[dict[str, object]]]:
     return by_paper
 
 
-def best_chunk_for(question: str, paper_id: str, index: dict[str, list[dict[str, object]]]) -> str:
-    """The chunk in a paper sharing most content words with the question.
+def chunk_text_by_id(index: dict[str, list[dict[str, object]]], chunk_id: str) -> str:
+    for chunks in index.values():
+        for chunk in chunks:
+            if str(chunk["chunk_id"]) == chunk_id:
+                return str(chunk["text"])
+    return ""
 
-    A heuristic, and labelled as one: it is the gold-chunk *proposal* a human confirms in
-    the verification CLI, not a ground truth. Recall@k and MRR@k depend on these being
-    right, which is why every multi-hop item is hand-verified.
+
+def gold_chunks_for(
+    answer: str, paper_id: str, index: dict[str, list[dict[str, object]]]
+) -> list[str]:
+    """Chunks that support the answer's claims, searched by the claims themselves.
+
+    Two selectors have failed here. The first ranked by word overlap with the *question*,
+    which makes Recall@k measure whether the retriever retrieves what the retriever picked.
+    The second ranked by how many of the answer's *figures* a chunk contained — and since a
+    reference list is dense in bracketed numerals while an answer's only figure is often the
+    numeral "2", it preferentially selected bibliographies. Four of five rejected multi-hop
+    items had reference lists or an XML prompt template as gold.
+
+    Selection now scores quoted spans, named entities and discriminating figures, and skips
+    chunks that are structurally incapable of supporting a claim about a paper's method.
+    A chunk that supports nothing is not returned, which is a finding about the item —
+    usually that the answer asserts something the paper does not.
+    """
+    claims = claims_in(answer)
+
+    scored: list[tuple[int, str]] = []
+    for chunk in index.get(paper_id, []):
+        text = str(chunk["text"])
+        if is_ineligible_gold(text) is not None:
+            continue
+        # The same support test the checks use. Scoring with a private copy is how the
+        # selector came to optimise for digits while containment validated digits, and how
+        # the `scales` claim kind would have been added to the checks and not to selection.
+        hits = sum(len(v) for v in claims_supported_by(text, claims).values())
+        if hits:
+            scored.append((hits, str(chunk["chunk_id"])))
+    scored.sort(reverse=True)
+    return [chunk_id for _, chunk_id in scored[:3]]
+
+
+def best_chunk_for(question: str, paper_id: str, index: dict[str, list[dict[str, object]]]) -> str:
+    """Question-similarity chunk selection. **Do not use for gold chunks.**
+
+    Retained only for the ambiguous stratum, whose gold chunks are the competing *referents*
+    of an under-specified question rather than passages supporting an answer — there is no
+    answer to ground them in. See ``gold_chunks_for`` for every other stratum.
     """
     q = tokens(question)
     best, best_score = "", -1.0
@@ -317,24 +376,42 @@ async def build_factual(
             )
         )
         overlap = phrase_overlap(drafted.question, str(gold["text"]))
-        run = longest_verbatim_run(drafted.question, str(gold["text"]))
-        if leaks(drafted.question, str(gold["text"])):
+
+        gold_ids = gold_chunks_for(drafted.answer, paper_id, index)
+        verdict = classify_candidate(
+            question=drafted.question,
+            answer=drafted.answer,
+            gold_texts=[chunk_text_by_id(index, g) for g in gold_ids],
+            paper_texts=[paper_text(paper_id, 40_000)],
+            banned=banned_phrases_in(drafted.question),
+            leaked=leaks(drafted.question, str(gold["text"])),
+            source_paper_ids=[paper_id],
+        )
+        if verdict is not None:
             report.candidates.append(
                 Candidate(
                     drafted.question,
                     [paper_id],
-                    CullReason.LEXICAL_OVERLAP,
-                    f"phrase overlap {overlap:.2f}, longest verbatim run {run}",
+                    CullReason(verdict[0]),
+                    verdict[1],
+                    answer=drafted.answer,
                 )
             )
             continue
-        report.candidates.append(_kept(drafted.question, [paper_id]))
+
+        report.candidates.append(
+            Candidate(drafted.question, [paper_id], CullReason.KEPT, answer=drafted.answer)
+        )
         items.append(
             EvalItem(
                 item_id=f"sp-{len(items) + 1:03d}",
                 stratum=Stratum.SINGLE_PAPER,
                 question=drafted.question,
-                gold_chunk_ids=[str(gold["chunk_id"])],
+                gold_chunk_ids=minimal_gold(
+                    drafted.answer,
+                    {g: chunk_text_by_id(index, g) for g in gold_ids},
+                    [paper_id],
+                ),
                 gold_answer=drafted.answer,
                 provenance=_prov([paper_id]),
                 verification=Verification(lexical_overlap_with_gold=overlap),
@@ -627,14 +704,58 @@ async def main() -> int:
     pairs = ranked_pairs(used)[: args.pairs]
     hop_report, _ = await run_stratum("multi_hop", partial(_hop_builder, pairs), resume=resume)
     build.reports["multi_hop"] = hop_report
-    for n, candidate in enumerate(hop_report.kept[: args.multihop], start=1):
-        gold = [best_chunk_for(candidate.question, pid, index) for pid in candidate.paper_ids]
+    kept_hops = 0
+    for candidate in hop_report.kept:
+        if kept_hops >= args.multihop:
+            break
+        # Gold chunks come from the answer's claims, never from question similarity, and
+        # the *set* has to carry every claim — a multi-hop answer spans both papers.
+        gold = [
+            g for pid in candidate.paper_ids for g in gold_chunks_for(candidate.answer, pid, index)
+        ]
+        texts = {g: chunk_text_by_id(index, g) for g in gold}
+        supported, why = gold_chunks_support_jointly(candidate.answer, list(texts.values()))
+        if not gold or not supported:
+            candidate.reason = CullReason.GOLD_UNSUPPORTED
+            candidate.detail = why
+            continue
+        barren = papers_contributing_nothing(
+            candidate.answer,
+            {
+                pid: [t for g, t in texts.items() if g.startswith(pid)]
+                for pid in candidate.paper_ids
+            },
+            candidate.paper_ids,
+        )
+        if barren:
+            candidate.reason = CullReason.PAPER_CONTRIBUTES_NOTHING
+            candidate.detail = f"gold for {barren} supports none of that paper's own claims"
+            continue
+        dropped = unaddressed_qualifiers(
+            candidate.question,
+            candidate.answer,
+            {
+                pid: [t for g, t in texts.items() if g.startswith(pid)]
+                for pid in candidate.paper_ids
+            },
+            candidate.paper_ids,
+        )
+        if dropped:
+            candidate.reason = CullReason.UNADDRESSED_QUALIFIER
+            candidate.detail = f"the question's qualifier is absent from the gold: {dropped}"
+            continue
+        # Minimal, not merely non-dead. `unsupported_chunks` drops chunks supporting nothing;
+        # it cannot see three chunks that support the *same* claim, and those dilute Recall@k
+        # by inflating its denominator with interchangeable evidence.
+        kept_gold = minimal_gold(candidate.answer, texts, candidate.paper_ids)
+        kept_hops += 1
         build.items.append(
             EvalItem(
-                item_id=f"mh-{n:03d}",
+                item_id=f"mh-{kept_hops:03d}",
                 stratum=Stratum.MULTI_HOP,
                 question=candidate.question,
-                gold_chunk_ids=[g for g in gold if g],
+                gold_chunk_ids=kept_gold,
+                gold_answer=candidate.answer,
                 provenance=_prov(candidate.paper_ids),
                 verification=Verification(
                     single_paper_sufficiency_checked=True, answerable_by_one_paper=False

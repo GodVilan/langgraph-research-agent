@@ -116,10 +116,11 @@ class TestCullReportIsNeverPooled:
         assert "Healthy" in report.diagnosis()
 
     def test_a_residue_of_unanswerable_questions_is_called_out(self) -> None:
-        """Below the 50% threshold but non-zero: worth inspecting, not worth panicking."""
-        report = self._report(*[CullReason.KEPT] * 8, CullReason.NEITHER_NOR_JOINT)
+        """Below the 50% threshold but non-zero: named, with its remedy, not smoothed over."""
+        diagnosis = self._report(*[CullReason.KEPT] * 8, CullReason.NEITHER_NOR_JOINT).diagnosis()
 
-        assert "neither_nor_joint remain" in report.diagnosis()
+        assert "neither_nor_joint" in diagnosis
+        assert "Healthy" not in diagnosis and "Clean" not in diagnosis
 
     def test_banned_phrasing_is_its_own_reason(self) -> None:
         """Distinct from the necessity culls: it means the prompt leaked, not the pairing."""
@@ -232,8 +233,8 @@ class TestDuplicateDraws:
         """Distinct from every other cull: the prompt is fine, the sampling is not."""
         diagnosis = self._report(*[CullReason.KEPT] * 8, CullReason.DUPLICATE).diagnosis()
 
-        assert "duplicate draws" in diagnosis
-        assert "fewer distinct items than it appears" in diagnosis
+        assert "duplicate" in diagnosis
+        assert "vary the prompt" in diagnosis
 
     def test_a_set_with_duplicates_is_not_reported_as_healthy(self) -> None:
         report = self._report(*[CullReason.KEPT] * 9, CullReason.DUPLICATE)

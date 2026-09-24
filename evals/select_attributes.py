@@ -34,7 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from evals.absence import _mentions, load_corpus, paper_handles
+from evals.absence import _mentions, _mentions_any, load_corpus, paper_handles, paraphrases_of
 from evals.schema import AbsenceShape, AnchorClass
 
 SEED = 20260521
@@ -94,8 +94,13 @@ def enumerate_candidates() -> list[Candidate]:
 
     for shape, terms in SHAPE_TERMS.items():
         for term in terms:
-            needle = term.lower()
-            chunks_with_term = [c for c in corpus.chunks if needle in str(c["text"]).lower()]
+            # Every surface form, not the bare string. Screening on the literal term
+            # certified "batch size" as absent from a paper whose appendix reports
+            # "global batch 16" — the question was answerable and the item was backwards.
+            forms = paraphrases_of(term)
+            chunks_with_term = [
+                c for c in corpus.chunks if _mentions_any(str(c["text"]).lower(), forms)
+            ]
             # A term no paper reports is an absent *topic*; its absence from a specific
             # paper says nothing about that paper.
             if not chunks_with_term:
@@ -113,7 +118,7 @@ def enumerate_candidates() -> list[Candidate]:
                         attributed.add(paper_id)
 
             for paper_id in sorted(corpus.text_by_paper):
-                if needle in corpus.text_by_paper[paper_id] or paper_id in attributed:
+                if _mentions_any(corpus.text_by_paper[paper_id], forms) or paper_id in attributed:
                     continue
                 candidates.append(Candidate(paper_id, term, shape, anchor_class_of(paper_id)))
     return sorted(candidates, key=lambda c: c.sort_key)

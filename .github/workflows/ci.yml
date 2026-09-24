@@ -54,6 +54,79 @@ jobs:
       - name: Tests
         run: pytest -q -m "not slow and not network and not integration"
 
+      # The integration suite is the ONLY automated coverage of the trace path, and every
+      # Phase 3 tracing bug was found by a live run rather than a test. Making it skip when
+      # Langfuse is down beat making it fail, but a permanently skipped test is a check that
+      # never fires — the eighth D-023 instance. So CI stands the stack up and then *fails
+      # if the suite did not actually run*: a skip here is an error, not a pass.
+      - name: Integration tests against a real Langfuse
+        env:
+          LANGFUSE_PUBLIC_KEY: pk-lf-1a1a1a1a-2b2b-4c4c-8d8d-3e3e3e3e3e3e
+          LANGFUSE_SECRET_KEY: sk-lf-4f4f4f4f-5a5a-4b6b-8c7c-6d6d6d6d6d6d
+          LANGFUSE_HOST: http://localhost:3000
+        run: |
+          docker compose -f infra/docker-compose.langfuse.yml up -d
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000/api/public/health && break
+            sleep 5
+          done
+          # -o markers, then assert the run was not silently empty or skipped.
+          pytest -q -m integration --no-header -rs > integration.log 2>&1 || true
+          cat integration.log
+          if grep -qE "^[0-9]+ (skipped|no tests ran)" integration.log || \
+             ! grep -qE "[0-9]+ passed" integration.log; then
+            echo "::error::the integration suite did not run — a permanently skipped test is"
+            echo "::error::no coverage at all, and the trace path has none other than this"
+            exit 1
+          fi
+
+      # Narrow claim, stated in evals/verify_dataset.py: the artifact matches what the
+      # builder claims about it. Both paths now share `classify_candidate`, so this cannot
+      # find a check that is wrong or missing from the chain — the defect matrix carries
+      # that. What it still catches is everything between a correct decision and the bytes
+      # on disk: serialization loss, chunk-id drift, checksum mismatch, hand edits.
+      - name: Re-verify the eval dataset
+        run: |
+          if [ -f evals/datasets/phase4.json ]; then
+            python -m evals.verify_dataset evals/datasets/phase4.json
+          else
+            echo "no dataset committed yet; skipping"
+          fi
+
+      # The regression gate. Tolerances are the max-min spread of three complete runs
+      # (evals/baseline_metrics.json), not a round number — a move smaller than the spread is
+      # not a move. Two assertions, because a gate that has only ever passed has not been
+      # shown to fire: the committed baseline run must pass, and a deliberately regressed
+      # copy of it must fail. The second is what makes the first mean anything.
+      - name: Regression gate — baseline passes
+        run: |
+          if [ ! -f evals/baseline_metrics.json ]; then
+            echo "no baseline committed; the gate refuses to run on an underived tolerance"
+            exit 0
+          fi
+          python -m evals.gate \
+            --run evals/runs/v3_de699d68.json \
+            --sheet evals/runs/scores_luna-low_de699d68_all.json
+
+      - name: Regression gate — an injected regression must fail it
+        run: |
+          if [ ! -f evals/baseline_metrics.json ]; then exit 0; fi
+          python - <<'PY'
+          import json, pathlib
+          run = json.loads(pathlib.Path("evals/runs/v3_de699d68.json").read_text())
+          # The injected regression: every retrieved chunk dropped. Recall@5 and MRR go to
+          # zero; nothing else about the artifact changes.
+          for item in run["items"].values():
+              item["retrieved"] = []
+          pathlib.Path("/tmp/regressed.json").write_text(json.dumps(run))
+          PY
+          if python -m evals.gate --run /tmp/regressed.json \
+               --sheet evals/runs/scores_luna-low_de699d68_all.json; then
+            echo "::error::the gate PASSED an injected regression — it does not gate anything"
+            exit 1
+          fi
+          echo "the gate failed the injected regression, as it must"
+
   clean-install:
     name: install from a clean environment
     runs-on: ubuntu-latest

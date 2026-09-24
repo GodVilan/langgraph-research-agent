@@ -1,0 +1,42 @@
+{
+  "source_set": "evals/datasets/phase4.json",
+  "source_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "seed": 20260910,
+  "quota": {
+    "unanswerable_attribute": 8,
+    "unanswerable_topic": 2,
+    "single_paper_factual": 10,
+    "ambiguous": 5
+  },
+  "factual_strong_weak": [
+    7,
+    3
+  ],
+  "item_ids": [
+    "ua-002",
+    "ua-005",
+    "ua-011",
+    "ua-003",
+    "ua-006",
+    "ua-008",
+    "ua-007",
+    "ua-010",
+    "ut-003",
+    "ut-004",
+    "sp-007",
+    "sp-049",
+    "sp-036",
+    "sp-006",
+    "sp-017",
+    "sp-044",
+    "sp-032",
+    "sp-047",
+    "sp-037",
+    "sp-030",
+    "am-009",
+    "am-002",
+    "am-008",
+    "am-003",
+    "am-005"
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "scorer": "flash-lite-self",
+  "run_path": "evals/runs/v3_de699d68.json",
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "rubric_sha256": "53a692b429ec37b75cfccfedf5db6d8d259e2dc4cc8e647f3c3068fd7dda5285",
+  "sample_path": "evals/datasets/judge_sample.json",
+  "judge_weights_revision": "NOT PINNED: gemini-3.5-flash-lite — no provider exposes a weights revision; served model id asserted per response (D-030b)",
+  "previous_rubric_sha256": "0c1efb19192d8eb03915403e4740db688f6fbf430f0861642b11b90fd05c1b20",
+  "rescored_items": [
+    "ua-008",
+    "ut-003"
+  ],
+  "rescore_note": "rubric v2: responsiveness test for Q1: a fact stated to explain why the requested fact is absent is part of the refusal; a fact offered as the answer is an answer. Added after three judge sheets read two explained refusals (ua-008, ut-003) as answers under v1's hedge sentence.",
+  "scores": {
+    "ua-002": {
+      "item_id": "ua-002",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the provided text does not contain information about the specific weight decay value and declines to answer.",
+      "scored_at": "2026-09-18T23:16:11.764396+00:00"
+    },
+    "ua-005": {
+      "item_id": "ua-005",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the retrieved context does not contain information about the COCO benchmark or the requested mAP score.",
+      "scored_at": "2026-09-18T23:16:11.764533+00:00"
+    },
+    "ua-011": {
+      "item_id": "ua-011",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the provided passages do not contain information about CIFAR classification accuracy and declines to answer based on the corpus.",
+      "scored_at": "2026-09-18T23:16:11.764538+00:00"
+    },
+    "ua-003": {
+      "item_id": "ua-003",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the retrieved context does not contain the requested information about the LibriSpeech test set.",
+      "scored_at": "2026-09-18T23:16:11.764541+00:00"
+    },
+    "ua-006": {
+      "item_id": "ua-006",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the text does not contain an ablation study and declines to answer the question based on the lack of information in the corpus.",
+      "scored_at": "2026-09-18T23:16:11.764545+00:00"
+    },
+    "ua-008": {
+      "item_id": "ua-008",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explains that there is no learning rate because the pipeline is inference-only without model training.",
+      "scored_at": "2026-09-18T23:16:11.764547+00:00"
+    },
+    "ua-007": {
+      "item_id": "ua-007",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the corpus does not contain information about a random baseline or its performance metric.",
+      "scored_at": "2026-09-18T23:16:11.764550+00:00"
+    },
+    "ua-010": {
+      "item_id": "ua-010",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the paper does not mention or report the requested wall-clock time in seconds.",
+      "scored_at": "2026-09-18T23:16:11.764555+00:00"
+    },
+    "ut-003": {
+      "item_id": "ut-003",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent states that the retrieved passages do not report specific performance metrics or evaluation results for protein structure prediction itself, effectively declining to answer the question due to missing information in the corpus.",
+      "scored_at": "2026-09-18T23:16:11.764558+00:00"
+    },
+    "ut-004": {
+      "item_id": "ut-004",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_refusal",
+      "reason": "The agent explicitly states that the provided papers do not contain any results regarding click-through rate prediction.",
+      "scored_at": "2026-09-18T23:16:11.764561+00:00"
+    },
+    "sp-007": {
+      "item_id": "sp-007",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the provided passages do not mention the training iteration budget and declines to answer.",
+      "scored_at": "2026-09-18T23:16:11.764565+00:00"
+    },
+    "sp-049": {
+      "item_id": "sp-049",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the retrieved context does not contain information to answer the question regarding a 'second goal' or fluctuating results.",
+      "scored_at": "2026-09-18T23:16:11.764569+00:00"
+    },
+    "sp-036": {
+      "item_id": "sp-036",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the provided retrieved passages do not contain information regarding a text window size for the smaller family of language versions.",
+      "scored_at": "2026-09-18T23:16:11.764572+00:00"
+    },
+    "sp-006": {
+      "item_id": "sp-006",
+      "scorer": "flash-lite-self",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent asserts a specific Top-1 accuracy figure (10.97%) for the requested configuration, which qualifies as an answer under the rubric. | The agent correctly reports the Top-1 accuracy of S-Adam (k=2) on ImageNet as 10.97%, which matches the gold answer and is directly supported by the retrieved text in chunks [2605.29547_0011] and [2605.29547_0012].",
+      "scored_at": "2026-09-18T23:16:11.764578+00:00"
+    },
+    "sp-017": {
+      "item_id": "sp-017",
+      "scorer": "flash-lite-self",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent asserts a specific figure (55.011) as the effective rank measurement for the pretrained baseline based on the retrieved paper. | The agent correctly reports the effective rank measurement for the pretrained RoBERTa baseline as 55.011, which matches the gold answer and is explicitly supported by retrieved chunk [2605.29673_0034] (Table 6).",
+      "scored_at": "2026-09-18T23:16:11.764583+00:00"
+    },
+    "sp-044": {
+      "item_id": "sp-044",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent declines to answer the question by stating its scope and capabilities related to machine-learning and AI research papers.",
+      "scored_at": "2026-09-18T23:16:11.764586+00:00"
+    },
+    "sp-032": {
+      "item_id": "sp-032",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent explicitly states that the corpus does not contain the requested DreamSim score for the SleeperMark approach.",
+      "scored_at": "2026-09-18T23:16:11.764588+00:00"
+    },
+    "sp-047": {
+      "item_id": "sp-047",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent declines to answer because the provided passages do not contain the requested information about a difficult subset or bootstrap confidence intervals.",
+      "scored_at": "2026-09-18T23:16:11.764591+00:00"
+    },
+    "sp-037": {
+      "item_id": "sp-037",
+      "scorer": "flash-lite-self",
+      "behaviour": "answer",
+      "fact_matches": true,
+      "grounded": true,
+      "outcome": "correct_answer",
+      "reason": "The agent provides a specific split ratio (0.6 / 0.2 / 0.2) as a factual answer based on the retrieved context. | The agent correctly reports the split ratio as 0.6/0.2/0.2, which matches the gold answer and is explicitly stated in retrieved chunk 2605.29857_0021.",
+      "scored_at": "2026-09-18T23:16:11.764597+00:00"
+    },
+    "sp-030": {
+      "item_id": "sp-030",
+      "scorer": "flash-lite-self",
+      "behaviour": "refuse",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "hallucinated_refusal",
+      "reason": "The agent states that the corpus does not contain the necessary information to answer the question about the Citeseer benchmark.",
+      "scored_at": "2026-09-18T23:16:11.764600+00:00"
+    },
+    "am-009": {
+      "item_id": "am-009",
+      "scorer": "flash-lite-self",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent asserts a specific fact from the corpus regarding the model's limitations with high-resolution image synthesis.",
+      "scored_at": "2026-09-18T23:16:11.764603+00:00"
+    },
+    "am-002": {
+      "item_id": "am-002",
+      "scorer": "flash-lite-self",
+      "behaviour": "answer",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "silent_disambiguation",
+      "reason": "The agent asserts specific facts from the corpus regarding the method's limitations and how it addresses non-stationarity.",
+      "scored_at": "2026-09-18T23:16:11.764606+00:00"
+    },
+    "am-008": {
+      "item_id": "am-008",
+      "scorer": "flash-lite-self",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent asks which specific method and paper the user is referring to before committing to a single baseline.",
+      "scored_at": "2026-09-18T23:16:11.764609+00:00"
+    },
+    "am-003": {
+      "item_id": "am-003",
+      "scorer": "flash-lite-self",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent identifies that multiple papers are discussed in the corpus and breaks down the competing baselines for each distinct method without committing to a single referent.",
+      "scored_at": "2026-09-18T23:16:11.764612+00:00"
+    },
+    "am-005": {
+      "item_id": "am-005",
+      "scorer": "flash-lite-self",
+      "behaviour": "clarify",
+      "fact_matches": null,
+      "grounded": null,
+      "outcome": "correct_clarification",
+      "reason": "The agent asks which specific method and experiment is meant by laying out the competing readings across multiple papers without committing to a single baseline.",
+      "scored_at": "2026-09-18T23:16:11.764614+00:00"
+    }
+  }
+}

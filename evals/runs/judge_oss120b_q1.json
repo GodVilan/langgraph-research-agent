@@ -1,0 +1,30 @@
+{
+  "ua-002": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not contain the specific weight decay value, thus refusing to provide an answer."
+  },
+  "ua-005": {
+    "behaviour": "refuse",
+    "reason": "The agent states the corpus contains no mention of the COCO benchmark or mAP score, thus refusing to provide the answer."
+  },
+  "ua-011": {
+    "behaviour": "refuse",
+    "reason": "The agent states the retrieved text does not contain any information about CIFAR classification accuracy, indicating the corpus lacks the requested data."
+  },
+  "ua-003": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the paper does not contain information about the LibriSpeech word error rate, effectively refusing to provide the answer."
+  },
+  "ua-006": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention an ablation study, thus refusing to answer the question."
+  },
+  "ua-008": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the paper describes an inference-only model with no training or optimization, thus refusing to provide a learning rate."
+  },
+  "ua-007": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not contain any mention of a random baseline or its performance metric, thus refusing to provide the requested information."
+  }
+}

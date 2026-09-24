@@ -1,0 +1,15 @@
+{
+  "arm": "flash-lite-self",
+  "model_served": "models/gemini-3.5-flash-lite",
+  "responses_named": [
+    "gemini-3.5-flash-lite@provider-not-reported#no-fingerprint"
+  ],
+  "providers": [
+    "provider-not-reported"
+  ],
+  "prompt_tokens": 23429,
+  "completion_tokens": 1336,
+  "billed_to": "Google AI free tier \u2014 $0, rate-limited (15 RPM)",
+  "establishes": "the self-preference control: the generator judging its own answers. Measures same-model bias; establishes nothing about independence.",
+  "note": "25-item run (22,480 in / 1,244 out) + 2-item rescore under rubric v2 (949 in / 92 out)"
+}

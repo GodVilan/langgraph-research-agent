@@ -1,0 +1,17 @@
+{
+  "sp-006": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly reports the Top-1 accuracy of S-Adam (k=2) on ImageNet as 10.97%, which matches the gold answer and is directly supported by the retrieved text in chunks [2605.29547_0011] and [2605.29547_0012]."
+  },
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly reports the effective rank measurement for the pretrained RoBERTa baseline as 55.011, which matches the gold answer and is explicitly supported by retrieved chunk [2605.29673_0034] (Table 6)."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly reports the split ratio as 0.6/0.2/0.2, which matches the gold answer and is explicitly stated in retrieved chunk 2605.29857_0021."
+  }
+}

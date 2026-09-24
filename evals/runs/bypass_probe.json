@@ -1,0 +1,231 @@
+[
+  {
+    "item_id": "sp-003",
+    "question": "What percentage of estimates are within a quarter of a second?",
+    "gold_chunk_ids": [
+      "2605.29531_0006"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.30315_0012",
+      "2605.30046_0010",
+      "2605.29695_0015",
+      "2605.29796_0012",
+      "2605.29535_0014"
+    ],
+    "gold_rank": {
+      "2605.29531_0006": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-014",
+    "question": "How many Level 2 subcategories exist within the complete taxonomy?",
+    "gold_chunk_ids": [
+      "2605.29659_0011"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29659_0026",
+      "2605.29659_0011",
+      "2605.30213_0041",
+      "2605.30289_0007",
+      "2605.30179_0013"
+    ],
+    "gold_rank": {
+      "2605.29659_0011": 2
+    },
+    "gold_chunk_retrieved": true,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-021",
+    "question": "What is the numerical result for the Tflash metric of the random split using the first architecture listed under that category?",
+    "gold_chunk_ids": [
+      "2605.29698_0027"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29863_0014",
+      "2605.29863_0016",
+      "2605.30220_0012",
+      "2605.30337_0030",
+      "2605.29809_0019"
+    ],
+    "gold_rank": {
+      "2605.29698_0027": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-026",
+    "question": "What is the age of the female patient described in the clinical case example?",
+    "gold_chunk_ids": [
+      "2605.29744_0040",
+      "2605.29744_0041"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29744_0039",
+      "2605.29744_0041",
+      "2605.29744_0028",
+      "2605.30275_0030",
+      "2605.29744_0037"
+    ],
+    "gold_rank": {
+      "2605.29744_0040": null,
+      "2605.29744_0041": 2
+    },
+    "gold_chunk_retrieved": true,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-044",
+    "question": "What was the final count of true operating points after restricting the injection angle to three options?",
+    "gold_chunk_ids": [
+      "2605.29911_0012"
+    ],
+    "top_k": 5,
+    "hits": [
+      "2605.29634_0036",
+      "2605.29911_0014",
+      "2605.29911_0013",
+      "2605.29744_0035",
+      "2605.29748_0039"
+    ],
+    "gold_rank": {
+      "2605.29911_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-003",
+    "question": "What percentage of estimates are within a quarter of a second?",
+    "gold_chunk_ids": [
+      "2605.29531_0006"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.30315_0012",
+      "2605.30046_0010",
+      "2605.29695_0015",
+      "2605.29796_0012",
+      "2605.29535_0014",
+      "2605.29908_0059",
+      "2605.30292_0004",
+      "2605.30213_0037",
+      "2605.30190_0097",
+      "2605.30292_0002"
+    ],
+    "gold_rank": {
+      "2605.29531_0006": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-014",
+    "question": "How many Level 2 subcategories exist within the complete taxonomy?",
+    "gold_chunk_ids": [
+      "2605.29659_0011"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29659_0026",
+      "2605.29659_0011",
+      "2605.30213_0041",
+      "2605.30289_0007",
+      "2605.30179_0013",
+      "2605.30315_0015",
+      "2605.30289_0016",
+      "2605.29819_0033",
+      "2605.29801_0012",
+      "2605.30237_0032"
+    ],
+    "gold_rank": {
+      "2605.29659_0011": 2
+    },
+    "gold_chunk_retrieved": true,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-021",
+    "question": "What is the numerical result for the Tflash metric of the random split using the first architecture listed under that category?",
+    "gold_chunk_ids": [
+      "2605.29698_0027"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29863_0014",
+      "2605.29863_0016",
+      "2605.30220_0012",
+      "2605.30337_0030",
+      "2605.29809_0019",
+      "2605.29941_0036",
+      "2605.29863_0002",
+      "2605.29727_0008",
+      "2605.29863_0004",
+      "2605.30337_0013"
+    ],
+    "gold_rank": {
+      "2605.29698_0027": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": false
+  },
+  {
+    "item_id": "sp-026",
+    "question": "What is the age of the female patient described in the clinical case example?",
+    "gold_chunk_ids": [
+      "2605.29744_0040",
+      "2605.29744_0041"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29744_0039",
+      "2605.29744_0041",
+      "2605.29744_0028",
+      "2605.30275_0030",
+      "2605.29744_0037",
+      "2605.30275_0029",
+      "2605.30275_0032",
+      "2605.29744_0016",
+      "2605.29744_0034",
+      "2605.30315_0011"
+    ],
+    "gold_rank": {
+      "2605.29744_0040": null,
+      "2605.29744_0041": 2
+    },
+    "gold_chunk_retrieved": true,
+    "gold_paper_retrieved": true
+  },
+  {
+    "item_id": "sp-044",
+    "question": "What was the final count of true operating points after restricting the injection angle to three options?",
+    "gold_chunk_ids": [
+      "2605.29911_0012"
+    ],
+    "top_k": 10,
+    "hits": [
+      "2605.29634_0036",
+      "2605.29911_0014",
+      "2605.29911_0013",
+      "2605.29744_0035",
+      "2605.29748_0039",
+      "2605.30166_0012",
+      "2605.30189_0025",
+      "2605.29829_0039",
+      "2605.30337_0027",
+      "2605.30119_0012"
+    ],
+    "gold_rank": {
+      "2605.29911_0012": null
+    },
+    "gold_chunk_retrieved": false,
+    "gold_paper_retrieved": true
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "set_sha256": "de699d68b9c48397de7731d41ed47cfc6ac73e481ae9115d9ee8c11124486609",
+  "corpus_sha256": "e1be96d1abb6ba3ecc1a7e20ef15ead9674c739b135388936af41a36d4152110",
+  "judge": "gpt-5.6-luna @ low, two-stage (D-030a)",
+  "rubric_version": 2,
+  "derivation": "value = mean of three complete runs; tolerance = their max-min spread. A drop larger than the tolerance is a regression. Three draws, no confidence interval (docs/EVALS.md).",
+  "runs": [
+    "r1",
+    "r2",
+    "r3"
+  ],
+  "metrics": {
+    "factual_recall@5": {
+      "value": 0.267,
+      "tolerance": 0.0,
+      "runs": [
+        0.267,
+        0.267,
+        0.267
+      ]
+    },
+    "factual_mrr": {
+      "value": 0.175,
+      "tolerance": 0.0,
+      "runs": [
+        0.175,
+        0.175,
+        0.175
+      ]
+    },
+    "hallucinated_refusals": {
+      "value": 25.333333333333332,
+      "tolerance": 2.0,
+      "runs": [
+        26,
+        26,
+        24
+      ]
+    },
+    "correct_answers": {
+      "value": 15.666666666666666,
+      "tolerance": 1.0,
+      "runs": [
+        15,
+        16,
+        16
+      ]
+    },
+    "attribute_correct_refusals": {
+      "value": 11.0,
+      "tolerance": 0.0,
+      "runs": [
+        11,
+        11,
+        11
+      ]
+    }
+  }
+}

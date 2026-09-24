@@ -1,0 +1,278 @@
+{
+  "ua-001": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not report an exact zero-shot baseline performance and explains that only evaluation scenarios are described."
+  },
+  "ua-002": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not contain the requested weight decay value and declines to provide one."
+  },
+  "ua-003": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not report a LibriSpeech word error rate and explains that the paper concerns chess rather than speech recognition."
+  },
+  "ua-004": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not report GPU hours and explains that it only gives experiment counts."
+  },
+  "ua-005": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus contains no COCO benchmark or mAP score and explains that MIRAGE was evaluated with Pearson r on different datasets."
+  },
+  "ua-006": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages contain no ablation study or component-removal details, so it declines to identify the largest accuracy drop."
+  },
+  "ua-007": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not mention a random baseline or its exact performance metric."
+  },
+  "ua-008": {
+    "behaviour": "refuse",
+    "reason": "The agent explains that the model is inference-only and that no learning rate is used or mentioned, rather than providing a learning-rate value."
+  },
+  "ua-009": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the passages contain no LibriSpeech or WER information and explains that the paper focuses on harm reasoning rather than speech recognition."
+  },
+  "ua-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided text does not report the requested wall-clock time and declines to provide a value."
+  },
+  "ua-011": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the paper contains no CIFAR classification result and therefore declines to provide an accuracy."
+  },
+  "ut-003": {
+    "behaviour": "refuse",
+    "reason": "The answer explains that the corpus reports use of OmegaFold but contains no specific structure-prediction results or performance metrics."
+  },
+  "ut-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the documents do not mention click-through prediction results and that the context cannot support an answer."
+  },
+  "mh-003": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts specific patient-case totals for both studies and compares them."
+  },
+  "mh-007": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that both papers evaluate on MATH500 and supplies benchmark details for one, rather than refusing or asking for clarification."
+  },
+  "mh-010": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies studies associated with models as small as 1B and checkpoints up to 405B, despite mentioning more than one study for the 1B case."
+  },
+  "am-001": {
+    "behaviour": "answer",
+    "reason": "The agent directly specifies the evaluation setup, including datasets, metrics, baselines, and ablation studies."
+  },
+  "am-002": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies a specific limitation involving the lack of an explicit mechanism for encoding non-stationarity or anisotropy."
+  },
+  "am-003": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies multiple possible papers and explicitly says the answer depends on which proposed method is intended, listing competing interpretations without selecting one."
+  },
+  "am-004": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies MuJoCo v3 tasks as the benchmark and lists the specific environments used."
+  },
+  "am-005": {
+    "behaviour": "answer",
+    "reason": "The agent asserts specific baseline methods for two possible papers rather than refusing or asking which proposed alignment method is intended."
+  },
+  "am-006": {
+    "behaviour": "answer",
+    "reason": "The agent directly specifies the evaluation setup, benchmarks, dataset structure, tasks, and metrics used to assess safety and alignment."
+  },
+  "am-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided context does not mention why the method struggles with jailbreaks in low-resource languages."
+  },
+  "am-008": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies multiple papers and lays out different possible baselines depending on which proposed method the question refers to, without selecting one."
+  },
+  "am-009": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific limitation: larger image dimensions may require architectural adaptations or scaling strategies to preserve accuracy and efficiency."
+  },
+  "am-010": {
+    "behaviour": "clarify",
+    "reason": "The answer identifies multiple possible papers and their different baselines rather than selecting a single intended referent."
+  },
+  "sp-001": {
+    "behaviour": "answer",
+    "reason": "The agent directly states a specific top-1 error rate for the requested method, architecture, and dataset."
+  },
+  "sp-002": {
+    "behaviour": "refuse",
+    "reason": "The agent says the corpus does not report a completion duration for the Trace dataset with parameters."
+  },
+  "sp-003": {
+    "behaviour": "refuse",
+    "reason": "The agent does not provide a percentage or address the question, instead stating only that it answers questions about machine-learning and AI research papers."
+  },
+  "sp-005": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided context lacks the requested Intent Accuracy value and Table 8, so it declines to answer."
+  },
+  "sp-006": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts a specific Top-1 accuracy for the k=2 S-Adam configuration on ImageNet."
+  },
+  "sp-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the documents do not specify a training iteration budget for the majority of runs and declines to provide one."
+  },
+  "sp-008": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention an average score for Gemini-3-Flash and declines to provide one."
+  },
+  "sp-009": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific expense figure for Claude Haiku 4.5 per 1,000 evaluations."
+  },
+  "sp-010": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies the confidence threshold \u03c4 as the primary tunable hyperparameter of CLAD and explains its role."
+  },
+  "sp-011": {
+    "behaviour": "answer",
+    "reason": "The agent directly provides the requested mR at 50/100 score for the Motifs approach under PredCls."
+  },
+  "sp-012": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the passages do not report the requested numerical MAE and only describe the errors qualitatively."
+  },
+  "sp-014": {
+    "behaviour": "refuse",
+    "reason": "The agent does not answer the taxonomy question and instead gives a general description of its capabilities."
+  },
+  "sp-016": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the passages do not specify a value for n in the plots and declines to provide one."
+  },
+  "sp-017": {
+    "behaviour": "answer",
+    "reason": "The agent directly states that the effective rank measurement for the pretrained RoBERTa baseline is 55.011."
+  },
+  "sp-018": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the LMC learning rate was fixed at 10^-3 (0.001)."
+  },
+  "sp-020": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the numerical average travel time is not provided in the retrieved context and declines to give a value."
+  },
+  "sp-021": {
+    "behaviour": "refuse",
+    "reason": "The agent does not provide the requested Tflash numerical result and instead gives a generic statement about its capabilities."
+  },
+  "sp-022": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided text does not mention section 2.3 and declines to identify its subject."
+  },
+  "sp-023": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that WebFace42M achieves an accuracy of 96.26 according to Table 1."
+  },
+  "sp-025": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies agency-sa-goal as the most effective prompt variant for encouraging strategic plotting."
+  },
+  "sp-026": {
+    "behaviour": "refuse",
+    "reason": "The agent declines to answer the clinical case question and limits its scope to machine-learning and AI research papers."
+  },
+  "sp-027": {
+    "behaviour": "answer",
+    "reason": "The agent directly states that the average performance score for the 0.5B configuration paired with Hista is 21.2."
+  },
+  "sp-028": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the retrieved passages do not report an average performance difference or comparison between structured and unstructured methods."
+  },
+  "sp-029": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the retrieved passages do not mention the specified approach, model, or accuracy, so it declines to provide the requested figure."
+  },
+  "sp-030": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the text lacks any Citeseer benchmark or related performance metrics and declines to identify an approach."
+  },
+  "sp-031": {
+    "behaviour": "clarify",
+    "reason": "The agent identifies multiple possible studies and lists different metric sets without selecting a single primary performance measure."
+  },
+  "sp-032": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention or report a DreamSim score for SleeperMark."
+  },
+  "sp-033": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the discrepancy decreases with graph size and gives a specific convergence bound."
+  },
+  "sp-034": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts a specific proportion, 58.8%, as the answer."
+  },
+  "sp-035": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies PAR as attaining the lowest sensitivity values and supports the claim with examples."
+  },
+  "sp-036": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the requested text window size is not mentioned in the provided passages and declines to provide an answer."
+  },
+  "sp-037": {
+    "behaviour": "answer",
+    "reason": "The agent asserts a specific 0.6/0.2/0.2 training, validation, and test split ratio, albeit limited to one paper's datasets."
+  },
+  "sp-038": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the context lacks the requested 7-billion-parameter evaluation metrics and declines to provide the mean accuracy."
+  },
+  "sp-039": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the non-shuffle variant prematurely converges around 25 epochs."
+  },
+  "sp-040": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the requested TPR value and declines to provide one."
+  },
+  "sp-041": {
+    "behaviour": "answer",
+    "reason": "The agent directly states that the true positive accuracy dropped to 6.02% (approximately 6.0%)."
+  },
+  "sp-042": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the exact processing-unit count and total RAM are not specified, mentioning the 80 GB A100 only as context for that limitation."
+  },
+  "sp-043": {
+    "behaviour": "answer",
+    "reason": "The agent asserts specific run counts (5 for UEA tests and 1 for autoresearch), rather than only declining to provide the requested average."
+  },
+  "sp-044": {
+    "behaviour": "answer",
+    "reason": "It directly states that restricting the injection angle to three settings reduced the ground-truth operating points to 240, while distinguishing a separate 162-point result."
+  },
+  "sp-047": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not mention the difficult subset or its bootstrap resample count, while giving other resampling figures only to explain the absence."
+  },
+  "sp-048": {
+    "behaviour": "answer",
+    "reason": "The agent directly states the collision metric decreases from 0.071 to 0.016 when using TG with FPG."
+  },
+  "sp-049": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the corpus does not mention the second goal or an approach with dataset-dependent fluctuating results."
+  },
+  "sp-050": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the requested bootstrap fraction or amplitude decrease, so it declines to provide a value."
+  }
+}

@@ -32,6 +32,7 @@ def item(**overrides: object) -> EvalItem:
         "stratum": Stratum.SINGLE_PAPER,
         "question": "What accuracy is reported?",
         "gold_chunk_ids": ["2605.30148_0021"],
+        "gold_answer": "23.4 percent",
         "provenance": Provenance(generator_model="hand", source_paper_ids=["2605.30148"]),
     }
     return EvalItem(**{**base, **overrides})  # type: ignore[arg-type]
@@ -309,3 +310,73 @@ class TestCrossStratumIndependence:
         """Enforced disjointness today; recordable if 150 papers ever stop allowing it."""
         assert item().shared_papers == []
         assert item(shared_papers=["p1"]).shared_papers == ["p1"]
+
+
+class TestDecisionCapture:
+    """The verification CLI must record the decision that was actually made.
+
+    A session recorded 22 accepts and 2 rejects against an intent of roughly 17 and 7. Notes
+    pasted as several lines were consumed one line per subsequent prompt, so every answer
+    after a paste landed one slot early — decisions stored as notes, notes read as
+    decisions. It turned a 28% disagreement rate into 8%, on the one number the exercise
+    exists to produce.
+    """
+
+    def test_an_empty_answer_is_not_a_decision(self) -> None:
+        from evals.verify_cli import VALID_DECISIONS
+
+        assert "" not in VALID_DECISIONS
+
+    def test_only_the_five_keys_are_decisions(self) -> None:
+        from evals.verify_cli import VALID_DECISIONS
+
+        assert set(VALID_DECISIONS) == {"a", "e", "r", "s", "q"}
+
+    def test_free_text_is_not_silently_truncated_to_a_key(self) -> None:
+        """`answer[:1]` turned "reject this" into "r" and "absolutely not" into "a"."""
+        from evals.verify_cli import VALID_DECISIONS
+
+        for text in ("reject this", "absolutely not", "REJECT", "accept?"):
+            assert text.strip().lower() not in VALID_DECISIONS
+
+    def test_notes_have_an_explicit_terminator(self) -> None:
+        """Without one, a multi-line paste runs into the next prompt."""
+        from evals.verify_cli import NOTES_TERMINATOR
+
+        assert NOTES_TERMINATOR == "."
+
+
+class TestGoldAnswerIsRequired:
+    """Every multi-hop item reached human review with "(none recorded)".
+
+    Without a gold answer the judge has nothing to grade against, and the gold chunks cannot
+    be checked for containing the fact they supposedly support — the item is unusable in
+    both directions. It now fails at construction instead of at review.
+    """
+
+    def test_an_answerable_item_without_a_gold_answer_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="needs a gold answer"):
+            item(gold_answer="")
+
+    def test_whitespace_does_not_count_as_an_answer(self) -> None:
+        with pytest.raises(ValueError, match="needs a gold answer"):
+            item(gold_answer="   ")
+
+    def test_multi_hop_is_held_to_the_same_rule(self) -> None:
+        with pytest.raises(ValueError, match="needs a gold answer"):
+            item(
+                stratum=Stratum.MULTI_HOP,
+                gold_answer="",
+                provenance=Provenance(generator_model="g", source_paper_ids=["a", "b"]),
+            )
+
+    def test_refusal_items_need_no_gold_answer(self) -> None:
+        """Their expected behaviour is a refusal; there is no answer to record."""
+        built = item(
+            stratum=Stratum.UNANSWERABLE_TOPIC,
+            gold_chunk_ids=[],
+            gold_answer="",
+            absent_term="curriculum learning",
+        )
+
+        assert built.gold_answer == ""

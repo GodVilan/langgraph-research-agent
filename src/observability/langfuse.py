@@ -168,6 +168,39 @@ def trace_run(
         yield None
 
 
+def current_trace_id() -> str:
+    """The active trace's id, or "" when tracing is off.
+
+    Only meaningful *inside* a ``trace_run`` block. Returned so the caller can carry it in
+    state rather than being stashed in a module global: the eval harness needs it to attach
+    scores to the right trace afterwards, and Phase 5's API will want to hand it back per
+    request, which a global could not serve concurrently.
+    """
+    client = get_client()
+    if client is None:
+        return ""
+    with contextlib.suppress(Exception):
+        return str(client.get_current_trace_id() or "")
+    return ""
+
+
+def record_score(trace_id: str, name: str, value: float, comment: str = "") -> bool:
+    """Attach one numeric score to a trace. Returns False when tracing is off or it fails.
+
+    Scores are what the dashboard's Scores panel reads; without them it shows "No data"
+    however many traces exist. Never raises — a failed score must not fail an eval run.
+    """
+    client = get_client()
+    if client is None or not trace_id:
+        return False
+    try:
+        client.create_score(trace_id=trace_id, name=name, value=value, comment=comment or None)
+    except Exception as exc:
+        log.warning("Langfuse score failed for %s/%s: %s", trace_id, name, exc)
+        return False
+    return True
+
+
 def record_state(root: Any, state: dict[str, Any]) -> None:
     """Attach everything the callback handler cannot see.
 

@@ -1,0 +1,278 @@
+{
+  "ua-001": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested baseline performance."
+  },
+  "ua-002": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the passages do not mention a specific weight decay value and declines to provide one."
+  },
+  "ua-003": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested word error rate."
+  },
+  "ua-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the GPU hours required for the benchmark evaluations."
+  },
+  "ua-005": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested mAP score."
+  },
+  "ua-006": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a component removal."
+  },
+  "ua-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested metric."
+  },
+  "ua-008": {
+    "behaviour": "refuse",
+    "reason": "The agent explains that the described inference-only pipeline has no training or optimization and therefore no learning rate, rather than providing a learning-rate value."
+  },
+  "ua-009": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested word error rate."
+  },
+  "ua-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the cited passages do not report an exact wall-clock convergence time for the largest test mesh."
+  },
+  "ua-011": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested accuracy."
+  },
+  "ut-003": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus contains no passages addressing protein structure prediction results."
+  },
+  "ut-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing click-through prediction results and declines to provide results."
+  },
+  "mh-003": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the hematological malignancy study does not provide a single primary-cohort total, so it declines to give the requested direct comparison while reporting the pancreatic study's total."
+  },
+  "mh-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify either paper or its benchmarks."
+  },
+  "mh-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify either study."
+  },
+  "am-001": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the evaluation setup."
+  },
+  "am-002": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a limitation."
+  },
+  "am-003": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline."
+  },
+  "am-004": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus contains no passages addressing the benchmark used in the reinforcement-learning experiments."
+  },
+  "am-005": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing which baseline was used."
+  },
+  "am-006": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus contains no passages addressing the evaluation setup or benchmark for safety and alignment."
+  },
+  "am-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide an answer."
+  },
+  "am-008": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline."
+  },
+  "am-009": {
+    "behaviour": "answer",
+    "reason": "The agent identifies the stated limitation as needing architectural adaptations or scaling strategies for substantially larger image dimensions."
+  },
+  "am-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a baseline."
+  },
+  "sp-001": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested top-1 error rate."
+  },
+  "sp-002": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the provided passages do not mention a completion duration for the Trace dataset and therefore declines to provide a value."
+  },
+  "sp-003": {
+    "behaviour": "refuse",
+    "reason": "The agent does not provide the requested percentage and instead gives a generic description of the questions it can answer."
+  },
+  "sp-005": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain information addressing the requested Intent Accuracy value."
+  },
+  "sp-006": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain information addressing the requested Top-1 accuracy."
+  },
+  "sp-007": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not state a general training iteration budget for the majority of runs."
+  },
+  "sp-008": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain information addressing the question and declines to provide a score."
+  },
+  "sp-009": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain information addressing the expense per 1,000 evaluations."
+  },
+  "sp-010": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a parameter."
+  },
+  "sp-011": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested mR score."
+  },
+  "sp-012": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the passages do not provide the requested numerical mean absolute error for M\u00afoLe-\u039b on PubChem."
+  },
+  "sp-014": {
+    "behaviour": "refuse",
+    "reason": "The agent does not provide the requested count and instead gives a generic description of its capabilities."
+  },
+  "sp-016": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the passages do not specify a value for n in the plots and explains its other appearances."
+  },
+  "sp-017": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the pretrained RoBERTa baseline's effective rank measurement is 55.011."
+  },
+  "sp-018": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the Langevin Monte Carlo learning rate was 10^{-3}."
+  },
+  "sp-020": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain information addressing the average travel time."
+  },
+  "sp-021": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested Tflash metric result."
+  },
+  "sp-022": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the context does not mention section 2.3 and declines to identify its subject."
+  },
+  "sp-023": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide an accuracy."
+  },
+  "sp-025": {
+    "behaviour": "answer",
+    "reason": "The agent directly identifies `agency-sa-goal` as the most effective prompt variant."
+  },
+  "sp-026": {
+    "behaviour": "refuse",
+    "reason": "The agent declines to answer the clinical case question and limits its scope to machine-learning and AI research papers."
+  },
+  "sp-027": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain information addressing the requested average performance score."
+  },
+  "sp-028": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the comparison and declines to provide an average difference."
+  },
+  "sp-029": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain information addressing the requested accuracy percentage."
+  },
+  "sp-030": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the Citeseer benchmark performance question."
+  },
+  "sp-031": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested performance measure."
+  },
+  "sp-032": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the DreamSim score for SleeperMark."
+  },
+  "sp-033": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the discrepancy shrinks with network scale and gives a specific operator-norm convergence rate."
+  },
+  "sp-034": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the proportion of old skills in successful samples is 58.8%."
+  },
+  "sp-035": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to identify a system."
+  },
+  "sp-036": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the text window size for the smaller family of language versions and therefore declines to provide one."
+  },
+  "sp-037": {
+    "behaviour": "answer",
+    "reason": "The agent asserts that all datasets use a 0.6/0.2/0.2 train/validation/test split ratio."
+  },
+  "sp-038": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested mean accuracy."
+  },
+  "sp-039": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that the non-shuffle variant prematurely converges around 25 epochs."
+  },
+  "sp-040": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the requested TPR value."
+  },
+  "sp-041": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested percentage."
+  },
+  "sp-042": {
+    "behaviour": "refuse",
+    "reason": "The agent says the context lacks the complete number of processing units and total RAM, mentioning the 80 GB A100 only to explain the insufficiency."
+  },
+  "sp-043": {
+    "behaviour": "answer",
+    "reason": "The agent asserts specific run counts for the tables (5 seeds and one run), even though it says no overall average is provided."
+  },
+  "sp-044": {
+    "behaviour": "answer",
+    "reason": "The agent directly asserts that restricting the injection angle to three settings reduced the count to 240 true operating points, while also adding a separate figure."
+  },
+  "sp-047": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly says the corpus does not contain passages addressing the question and declines to provide a number."
+  },
+  "sp-048": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the requested collision-metric drop."
+  },
+  "sp-049": {
+    "behaviour": "refuse",
+    "reason": "The agent explicitly states that the corpus does not contain passages addressing the question and declines to identify an approach."
+  },
+  "sp-050": {
+    "behaviour": "refuse",
+    "reason": "The agent states that the provided passages do not mention the bootstrap fraction or amplitude decrease and therefore declines to provide a value."
+  }
+}

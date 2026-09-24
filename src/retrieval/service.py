@@ -23,7 +23,7 @@ import logging
 import time
 from pathlib import Path
 
-from src.config import INDEX_NAME, RetrievalSettings, Settings, get_settings
+from src.config import RetrievalSettings, Settings, get_settings
 from src.observability.tracing import span
 from src.retrieval.arxiv_client import fetch_paper_chunks, search_arxiv
 from src.retrieval.bm25 import BM25Retriever
@@ -81,13 +81,14 @@ class RetrievalService:
         log.info("Loaded %d chunks from %s", len(chunks), s.chunks_path)
 
         emb = EmbeddingModel()
-        index_file = Path(s.index_dir) / f"{INDEX_NAME}.faiss"
+        index_name = s.retrieval.index_name
+        index_file = Path(s.index_dir) / f"{index_name}.faiss"
         if not index_file.exists():
             raise FileNotFoundError(
                 f"FAISS index not found at {index_file}. Run `make index` to build it "
                 f"from the committed chunks."
             )
-        dense = DenseRetriever(emb, VectorStore.load(s.index_dir, name=INDEX_NAME))
+        dense = DenseRetriever(emb, VectorStore.load(s.index_dir, name=index_name))
         return cls(dense, BM25Retriever(chunks), SessionIndex(emb), s.retrieval)
 
     # ── Policy ────────────────────────────────────────────────────────────────

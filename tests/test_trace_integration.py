@@ -89,6 +89,17 @@ def client(live_settings: ObservabilitySettings, monkeypatch: pytest.MonkeyPatch
     created = lf.get_client()
     if created is None:
         pytest.skip(f"could not reach Langfuse at {live_settings.langfuse_host}")
+
+    # `get_client` constructs lazily and does not connect, so a stopped stack produced a
+    # client that looked fine and then failed at the first request — the test errored where
+    # it should have skipped. An unreachable backend is a missing precondition, not a
+    # failure of the code under test.
+    from datetime import UTC, datetime, timedelta
+
+    try:
+        created.api.trace.list(from_timestamp=datetime.now(UTC) - timedelta(minutes=1), limit=1)
+    except Exception as exc:
+        pytest.skip(f"Langfuse at {live_settings.langfuse_host} is not answering: {exc}")
     return created
 
 

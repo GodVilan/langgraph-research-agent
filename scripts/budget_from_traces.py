@@ -233,8 +233,10 @@ def render(rows: dict[str, Any], days: int, n_traces: int) -> str:
 {body}
 
 Billed is what the provider charges — $0 on the Gemini free tier. Notional prices the same
-tokens at paid standard rates (DECISIONS D-004). OpenAI judge spend is tracked separately
-in the allocation table above and is $0.00: no judge call has been made.
+tokens at paid standard rates (DECISIONS D-004). **This table is the agent side only.** OpenAI
+judge spend is a different provider on a different ceiling and is never summed with the figures
+above; regenerate it with `make judge-spend`, which reads usage from the batch objects
+themselves.
 {END}"""
 
 

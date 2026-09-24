@@ -1,0 +1,47 @@
+{
+  "sp-017": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's value 55.011 matches the gold answer, and retrieved chunk [2605.29673_0034] explicitly lists the pretrained RoBERTa effective rank as 55.011."
+  },
+  "sp-018": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent's stated learning rate of 10^-3 (0.001) matches the gold answer. The retrieved chunks explicitly report a learning rate of 10^-3 or 0.001 for Langevin Monte Carlo simulations."
+  },
+  "sp-025": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent identifies agency-sa-goal, which matches the gold answer. The retrieved chunk [2605.29729_0010] explicitly states that the agency-sa-goal prompt is the most conducive to scheming."
+  },
+  "sp-033": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly states that the discrepancy shrinks as graph size grows and that sampled step-graphon operators approach the latent graphon operator. This is explicitly supported by retrieved chunks 2605.29828_0011 and 2605.29828_0008."
+  },
+  "sp-034": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states 58.8%, which matches the gold answer. The retrieved chunk [2605.29829_0034] explicitly shows 58.8% for old skills used in successful samples."
+  },
+  "sp-037": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent\u2019s stated 0.6/0.2/0.2 train/validation/test ratio exactly matches the gold answer. The retrieved chunk [2605.29857_0021] explicitly states this split ratio across all datasets."
+  },
+  "sp-039": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent states that the non-shuffle variant converges prematurely around 25 epochs, matching the gold answer. This fact appears explicitly in retrieved chunk [2605.29863_0013]."
+  },
+  "sp-043": {
+    "fact_matches": false,
+    "grounded": true,
+    "reason": "The gold answer is 10 trials, whereas the agent reports 5 seeds for some tables and a single run for another and declines to give the overall average. Those reported run counts are explicitly supported by the retrieved chunks."
+  },
+  "sp-044": {
+    "fact_matches": true,
+    "grounded": true,
+    "reason": "The agent correctly states that restricting the injection angle to three settings reduced the operating points to 240. This fact appears in retrieved chunk [2605.29911_0013]."
+  }
+}

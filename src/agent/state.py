@@ -224,6 +224,10 @@ class AgentState(TypedDict, total=False):
     thread_id: str
     question: str
     request: RequestOptions
+    # The Langfuse trace this run wrote to, "" when tracing is off. Carried in state rather
+    # than in a module global so that scores can be attached to the right trace afterwards,
+    # and so Phase 5 can return it per request without cross-request leakage.
+    trace_id: str
 
     # add_messages, not operator.add: it dedupes and updates by message id, which is what
     # makes checkpoint resume idempotent. operator.add would duplicate every message on
@@ -280,6 +284,7 @@ def initial_state(
     return AgentState(
         thread_id=thread_id,
         question=question,
+        trace_id="",
         request=opts,
         messages=[],
         plan=[],
