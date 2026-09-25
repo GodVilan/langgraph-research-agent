@@ -93,7 +93,8 @@ draws, no confidence interval — n=3 cannot support one.
 The gate's tolerances *are* this spread (`evals/baseline_metrics.json`), so the gate fires on
 real movement and not on noise. It has been shown to fire three ways: on a real regression
 (`section_filter`, four metrics named), on an injected retrieval collapse (test plus two CI
-steps, one of which errors if the injection ever passes), and it passes the clean run.
+steps, one of which errors if the injection ever passes), and it passes the clean run. CI replays
+committed run artifacts through the gate; it does not run the agent on pushed code (D-050).
 
 ---
 

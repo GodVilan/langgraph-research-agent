@@ -55,6 +55,10 @@ from typing import Any
 import httpx
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from scripts.smoke_live import cited_source_papers  # noqa: E402
+
 RUNS = REPO / "evals" / "runs"
 DATASET = REPO / "evals" / "datasets" / "phase4.json"
 LABEL = "load check against deployed instance"
@@ -88,6 +92,35 @@ def local_key_users() -> list[str]:
     ]
 
 
+class ClientClock:
+    """Did the machine running the check sleep? Every timing here is ``time.monotonic``, which
+    on macOS (and Linux's CLOCK_MONOTONIC) stops while the machine is asleep. The first G-3 rerun
+    ran on a laptop that slept for most of it: the tool reported 600 s and a 2.3 s cold start for
+    a run that took two hours of wall time, and its requests timed out on dead connections
+    (D-052). Wall time running ahead of monotonic time is the signature; past
+    ``TOLERANCE_S`` the run is invalid."""
+
+    TOLERANCE_S = 5.0
+
+    def __init__(self) -> None:
+        self.wall0 = time.time()
+        self.mono0 = time.monotonic()
+
+    def slept_s(self) -> float:
+        return (time.time() - self.wall0) - (time.monotonic() - self.mono0)
+
+    def slept(self) -> bool:
+        return self.slept_s() > self.TOLERANCE_S
+
+
+def invalid_reason(slept_s: float) -> str:
+    return (
+        f"the client machine slept ~{slept_s:.0f} s during the run: every timing is measured "
+        "on a clock that stops in sleep, and in-flight requests died with it. INVALID — not a "
+        "result."
+    )
+
+
 def pct(values: list[float], q: float) -> float:
     """Nearest-rank percentile: a value that was actually observed, not an interpolation."""
     ordered = sorted(values)
@@ -100,6 +133,7 @@ async def cold_start(url: str, space: str) -> dict[str, Any]:
     from huggingface_hub import HfApi
 
     token = os.environ.get("HF_TOKEN") or str(dotenv_values(REPO / ".env").get("HF_TOKEN") or "")
+    clock = ClientClock()
     async with httpx.AsyncClient(timeout=30) as client:
         before = (await client.get(f"{url}/ready")).json().get("boot_id")
         if not before:
@@ -123,6 +157,8 @@ async def cold_start(url: str, space: str) -> dict[str, Any]:
         r = await client.post(
             f"{url}/query", json={"question": questions()[0], "stream": False}, timeout=300
         )
+    if clock.slept():
+        return {"error": invalid_reason(clock.slept_s())}
     return {
         "method": "HfApi.restart_space, then poll /ready every 2 s until a new boot_id answers",
         "seconds_to_ready": round(to_ready, 1),
@@ -139,11 +175,14 @@ async def run(
     token: str,
     timeout_s: float,
     transport: httpx.AsyncBaseTransport | None = None,
+    sink: Any = None,
+    clock: ClientClock | None = None,
 ) -> tuple[list[dict[str, Any]], float]:
     qs = questions()
     records: list[dict[str, Any]] = []
     headers = {"X-Loadcheck-Token": token} if token else {}
     started = time.monotonic()
+    clock = clock or ClientClock()
     counter = {"next": 0}
 
     def served() -> int:
@@ -153,6 +192,11 @@ async def run(
 
     def done() -> bool:
         if stop["reason"]:
+            return True
+        if clock.slept():
+            stop["reason"] = invalid_reason(clock.slept_s())
+            if sink is not None:
+                sink({"invalid": stop["reason"]})  # the stream itself says so, even if killed
             return True
         if len(records) >= MAX_REQUESTS:
             stop["reason"] = f"request cap {MAX_REQUESTS} reached"
@@ -179,11 +223,20 @@ async def run(
                 if not ctype.startswith("application/json") and r.status_code != 200:
                     body = {"error": "platform (non-JSON — the host, not this service)"}
                 if r.status_code == 200:
+                    sources = [str(x["paper_id"]) for x in body.get("sources") or []]
                     rec |= {
                         "server_ms": body.get("latency_ms"),
                         "guardrail_blocked": body.get("guardrail_blocked"),
                         "truncated": body.get("truncated"),
                         "llm_calls": (body.get("usage") or {}).get("llm_calls"),
+                        # Does the served answer cite a source it returned? Same test as
+                        # `make smoke-live`, over every served answer rather than one example.
+                        "cited": bool(cited_source_papers(str(body.get("answer", "")), sources)),
+                        "n_sources": len(sources),
+                        # Kept so an uncited response can be read: a refusal cites nothing by
+                        # design, and the service flags only the guardrail's refusals.
+                        "answer": str(body.get("answer", "")),
+                        "trace_id": body.get("trace_id"),
                     }
                 else:
                     rec["reason"] = body.get("error") or r.text[:80]
@@ -191,12 +244,22 @@ async def run(
                 rec["status"] = 0
                 rec["reason"] = type(exc).__name__
             rec["client_ms"] = round((time.monotonic() - t0) * 1000, 1)
+            rec["clock_drift_s"] = round(clock.slept_s(), 1)  # > TOLERANCE_S: the client slept
             records.append(rec)
+            if sink is not None:
+                sink(rec)  # written and flushed now: an abort keeps every request so far
             # Back off instead of retrying at once. The first deployed run retried instantly
             # and sent ~74,000 requests in minutes, 70,510 of them answered by Hugging Face's
             # own platform rate limiter (D-048).
             if rec.get("reason") == "daily_cost_ceiling":
                 stop["reason"] = "daily cost ceiling reached; it resets at 00:00 UTC"
+            elif rec.get("reason") == "cost_ledger_unavailable":
+                stop["reason"] = "the service's cost ledger is failing; not a load result"
+            elif rec["status"] == 500:
+                # Builds before 2026-09-25 answered a malformed ledger result with an unhandled
+                # 500 rather than `cost_ledger_unavailable` (D-054, since fixed and redeployed).
+                # An unexplained 500 is still not a load result, so it stops the run.
+                stop["reason"] = "unhandled 500 from the service (possibly the ledger); stopped"
             elif rec["status"] in (429, 503) or rec["status"] == 0:
                 wait = float(retry_after or 0) or (30.0 if rec["status"] == 429 else 5.0)
                 await asyncio.sleep(min(wait, 30.0))
@@ -215,9 +278,32 @@ async def run(
     return records, time.monotonic() - started
 
 
+def load_artifact(path: Path) -> dict[str, Any]:
+    """The JSONL written during the run (header line, then one line per request) — or the JSON
+    summary written at the end. The JSONL survives an abort; the summary does not."""
+    if path.suffix == ".jsonl":
+        lines = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+        header = lines[0]
+        records = [line for line in lines[1:] if "i" in line]
+        header |= {k: v for line in lines[1:] if "i" not in line for k, v in line.items()}
+        wall = max((r["sent_s"] + r["client_ms"] / 1000 for r in records), default=0.0)
+        data = {**header, "records": records, "wall_s": round(wall, 1)}
+    else:
+        data = dict(json.loads(path.read_text(encoding="utf-8")))
+    drift = max((r.get("clock_drift_s", 0.0) for r in data["records"]), default=0.0)
+    if drift > ClientClock.TOLERANCE_S and not data.get("invalid"):
+        data["invalid"] = invalid_reason(drift)  # an aborted JSONL carries the evidence too
+    return data
+
+
 def report(path: Path) -> None:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = load_artifact(path)
     recs = data["records"]
+    if data.get("invalid"):
+        print(f"{LABEL.capitalize()} — {data['url']}\n")
+        print(f"INVALID: {data['invalid']}")
+        print(f"{len(recs)} requests recorded; no latency, throughput or rate is printed from it.")
+        return
     ok = [r for r in recs if r["status"] == 200]
     minutes = data["wall_s"] / 60
     print(f"{LABEL.capitalize()} — {data['url']}")
@@ -257,6 +343,20 @@ def report(path: Path) -> None:
                 f"server-side graph time p50 {pct(server, 50):.1f} s, p95 {pct(server, 95):.1f} s"
                 " — the rest is queueing for a slot, and the network"
             )
+        cited = [r for r in ok if "cited" in r]
+        if cited:
+            uncited = [r for r in cited if not r["cited"]]
+            blocked = [r for r in uncited if r.get("guardrail_blocked")]
+            other = [r for r in uncited if not r.get("guardrail_blocked")]
+            print(
+                f"uncited: {len(uncited)} of {len(cited)} served responses cite no returned "
+                f"source (n={len(cited)}, live Space) — {len(blocked)} guardrail-blocked (the "
+                f"service's flag), {len(other)} not blocked"
+                + (", read below:" if other and all("answer" in r for r in other) else "")
+            )
+            for r in other:
+                if "answer" in r:
+                    print(f"    #{r['i']:>3}  {' '.join(str(r['answer']).split())[:110]}")
         calls = statistics.median(r.get("llm_calls") or 0 for r in ok)
         print(
             f"throughput: {n / minutes:.1f} served queries/min. Ceiling: the Gemini free-tier "
@@ -266,6 +366,82 @@ def report(path: Path) -> None:
     cold = data.get("cold_start")
     if cold:
         print(f"\ncold start (separate, not in the figures above): {json.dumps(cold)}")
+
+
+SINGLE_USER = RUNS / "latency_single_user.json"
+
+
+async def single_user(
+    url: str,
+    n: int,
+    spacing_s: float,
+    timeout_s: float,
+    transport: httpx.AsyncBaseTransport | None = None,
+    clock: ClientClock | None = None,
+    pause: Any = asyncio.sleep,
+) -> list[dict[str, Any]]:
+    """``n`` requests, one at a time, ``spacing_s`` apart start to start: one user against a
+    warm instance. No bypass token — the per-IP bucket (4/min) admits one request every 30 s.
+    Never merged with the concurrent figures: different load, different question."""
+    clock = clock or ClientClock()
+    qs = questions()
+    records: list[dict[str, Any]] = []
+    async with httpx.AsyncClient(timeout=timeout_s, transport=transport) as client:
+        for i in range(n):
+            t0 = time.monotonic()
+            rec: dict[str, Any] = {"i": i, "sent_utc": dt.datetime.now(dt.UTC).isoformat()}
+            try:
+                r = await client.post(f"{url}/query", json={"question": qs[i], "stream": False})
+                rec["status"] = r.status_code
+                body = (
+                    r.json()
+                    if r.headers.get("content-type", "").startswith("application/json")
+                    else {}
+                )
+                if r.status_code == 200:
+                    rec |= {
+                        "server_ms": body.get("latency_ms"),
+                        "llm_calls": (body.get("usage") or {}).get("llm_calls"),
+                        "guardrail_blocked": body.get("guardrail_blocked"),
+                        "trace_id": body.get("trace_id"),
+                    }
+                else:
+                    rec["reason"] = body.get("error") or r.text[:80]
+            except httpx.HTTPError as exc:
+                rec["status"], rec["reason"] = 0, type(exc).__name__
+            rec["client_ms"] = round((time.monotonic() - t0) * 1000, 1)
+            rec["clock_drift_s"] = round(clock.slept_s(), 1)
+            records.append(rec)
+            print(f"  {i + 1}/{n} {rec['status']} {rec['client_ms']:.0f} ms", flush=True)
+            if clock.slept():
+                break
+            if i < n - 1:
+                await pause(max(0.0, spacing_s - (time.monotonic() - t0)))
+    return records
+
+
+def report_single(path: Path = SINGLE_USER) -> dict[str, Any]:
+    data = dict(json.loads(path.read_text(encoding="utf-8")))
+    recs = data["records"]
+    drift = max((r.get("clock_drift_s", 0.0) for r in recs), default=0.0)
+    if drift > ClientClock.TOLERANCE_S:
+        data["invalid"] = invalid_reason(drift)
+    if data.get("invalid"):
+        print(f"INVALID: {data['invalid']}")
+        return data
+    ok = [r for r in recs if r["status"] == 200]
+    lat = [r["client_ms"] / 1000 for r in ok]
+    print(
+        f"Single user, warm — {data['url']}, {data['started_utc']}: {len(ok)} of {len(recs)} "
+        f"served, one at a time, {data['spacing_s']:.0f} s apart"
+    )
+    if ok:
+        n = len(ok)
+        print(
+            f"latency n={n}: p50 {pct(lat, 50):.1f} s, p95 {pct(lat, 95):.1f} s (client, end to "
+            f"end, nearest rank — at n={n} the p95 is value {max(1, math.ceil(0.95 * n))} of {n})"
+        )
+    return data
 
 
 def main() -> None:
@@ -284,11 +460,39 @@ def main() -> None:
         help="attest that nothing else uses this Gemini key during the run",
     )
     parser.add_argument("--report", action="store_true")
+    parser.add_argument("--single-user", type=int, default=0, help="N sequential requests")
+    parser.add_argument("--spacing", type=float, default=30.0, help="seconds, start to start")
     args = parser.parse_args()
+    if args.single_user or (args.report and args.label == "single_user"):
+        if not args.report:
+            if not args.url:
+                raise SystemExit("--url is required")
+            started = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
+            clock = ClientClock()
+            recs = asyncio.run(
+                single_user(
+                    args.url.rstrip("/"), args.single_user, args.spacing, args.timeout, clock=clock
+                )
+            )
+            single: dict[str, Any] = {
+                "label": "single user, warm",
+                "url": args.url.rstrip("/"),
+                "started_utc": started,
+                "spacing_s": args.spacing,
+                "client": "scripts/load_check.py --single-user (httpx), one machine, no bypass",
+                "records": recs,
+            }
+            if clock.slept():
+                single["invalid"] = invalid_reason(clock.slept_s())
+            SINGLE_USER.write_text(json.dumps(single, indent=1), encoding="utf-8")
+            print(f"wrote {SINGLE_USER}")
+        report_single()
+        return
     out = RUNS / f"loadcheck_{args.label}.json"
+    stream = RUNS / f"loadcheck_{args.label}.jsonl"
 
     if args.report:
-        report(out)
+        report(out if out.exists() else stream)
         return
     if not args.url:
         raise SystemExit("--url is required")
@@ -325,10 +529,35 @@ def main() -> None:
         print("measuring cold start first…", file=sys.stderr)
         result["cold_start"] = asyncio.run(cold_start(url, args.space))
     result["started_utc"] = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
-    records, wall = asyncio.run(
-        run(url, args.concurrency, args.min_served, args.max_minutes, token, args.timeout)
-    )
+    clock = ClientClock()
+    result["max_requests"] = MAX_REQUESTS
+    fh = open(stream, "w", encoding="utf-8")  # noqa: SIM115 — held open for the whole run
+    fh.write(json.dumps(result) + "\n")
+    fh.flush()
+
+    def sink(rec: dict[str, Any]) -> None:
+        fh.write(json.dumps(rec) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+
+    try:
+        records, wall = asyncio.run(
+            run(
+                url,
+                args.concurrency,
+                args.min_served,
+                args.max_minutes,
+                token,
+                args.timeout,
+                sink=sink,
+                clock=clock,
+            )
+        )
+    finally:
+        fh.close()
     result |= {"wall_s": round(wall, 1), "records": sorted(records, key=lambda r: r["i"])}
+    if clock.slept():
+        result["invalid"] = invalid_reason(clock.slept_s())
     out.write_text(json.dumps(result, indent=1), encoding="utf-8")
     print(f"\nwrote {out}\n")
     report(out)

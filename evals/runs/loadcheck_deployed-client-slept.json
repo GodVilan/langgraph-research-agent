@@ -1,0 +1,1264 @@
+{
+ "label": "load check against deployed instance",
+ "url": "https://godvillain-scholium.hf.space",
+ "concurrency": 10,
+ "min_served": 30,
+ "per_ip_bypass": true,
+ "pacer": "10 calls/min, burst 3 (infra/Dockerfile)",
+ "key_exclusive": {
+  "attested": true,
+  "local_processes": [],
+  "scope": "local processes only: --key-exclusive and the process check cover this machine. They cannot see other holders of the same Gemini key elsewhere."
+ },
+ "public_endpoint_open_during_run": true,
+ "client": "scripts/load_check.py (httpx), one machine",
+ "cold_start": {
+  "method": "HfApi.restart_space, then poll /ready every 2 s until a new boot_id answers",
+  "seconds_to_ready": 2.3,
+  "first_request_status": 200,
+  "first_request_s": 3.4
+ },
+ "started_utc": "2026-09-25T00:44:07+00:00",
+ "max_requests": 600,
+ "wall_s": 600.2,
+ "records": [
+  {
+   "i": 0,
+   "user": 0,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14808.4
+  },
+  {
+   "i": 1,
+   "user": 1,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14810.2
+  },
+  {
+   "i": 2,
+   "user": 2,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14809.7
+  },
+  {
+   "i": 3,
+   "user": 3,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14806.1
+  },
+  {
+   "i": 4,
+   "user": 4,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14803.1
+  },
+  {
+   "i": 5,
+   "user": 5,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14810.0
+  },
+  {
+   "i": 6,
+   "user": 6,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14810.2
+  },
+  {
+   "i": 7,
+   "user": 7,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14809.4
+  },
+  {
+   "i": 8,
+   "user": 8,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14810.2
+  },
+  {
+   "i": 9,
+   "user": 9,
+   "sent_s": 0.02,
+   "status": 0,
+   "reason": "ReadError",
+   "client_ms": 14808.7
+  },
+  {
+   "i": 10,
+   "user": 4,
+   "sent_s": 19.83,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180206.1
+  },
+  {
+   "i": 11,
+   "user": 3,
+   "sent_s": 19.85,
+   "status": 200,
+   "server_ms": 687.4,
+   "guardrail_blocked": true,
+   "truncated": false,
+   "llm_calls": 1,
+   "cited": false,
+   "n_sources": 0,
+   "client_ms": 1766.3
+  },
+  {
+   "i": 12,
+   "user": 0,
+   "sent_s": 19.85,
+   "status": 200,
+   "server_ms": 900.2,
+   "guardrail_blocked": true,
+   "truncated": false,
+   "llm_calls": 1,
+   "cited": false,
+   "n_sources": 0,
+   "client_ms": 1968.8
+  },
+  {
+   "i": 13,
+   "user": 9,
+   "sent_s": 19.85,
+   "status": 200,
+   "server_ms": 17369.6,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 3,
+   "client_ms": 19418.9
+  },
+  {
+   "i": 14,
+   "user": 2,
+   "sent_s": 19.85,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20432.6
+  },
+  {
+   "i": 15,
+   "user": 7,
+   "sent_s": 19.85,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20436.0
+  },
+  {
+   "i": 16,
+   "user": 1,
+   "sent_s": 19.85,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20435.1
+  },
+  {
+   "i": 17,
+   "user": 5,
+   "sent_s": 19.85,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180189.1
+  },
+  {
+   "i": 18,
+   "user": 6,
+   "sent_s": 19.85,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20435.3
+  },
+  {
+   "i": 19,
+   "user": 8,
+   "sent_s": 19.85,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20435.4
+  },
+  {
+   "i": 20,
+   "user": 3,
+   "sent_s": 21.61,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20127.5
+  },
+  {
+   "i": 21,
+   "user": 0,
+   "sent_s": 21.82,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20099.9
+  },
+  {
+   "i": 22,
+   "user": 9,
+   "sent_s": 39.27,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180008.6
+  },
+  {
+   "i": 23,
+   "user": 2,
+   "sent_s": 50.29,
+   "status": 200,
+   "server_ms": 6888.9,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": false,
+   "n_sources": 5,
+   "client_ms": 7171.4
+  },
+  {
+   "i": 24,
+   "user": 1,
+   "sent_s": 50.3,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20364.5
+  },
+  {
+   "i": 25,
+   "user": 7,
+   "sent_s": 50.3,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180162.1
+  },
+  {
+   "i": 26,
+   "user": 6,
+   "sent_s": 50.3,
+   "status": 200,
+   "server_ms": 24776.9,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 25036.6
+  },
+  {
+   "i": 27,
+   "user": 8,
+   "sent_s": 50.3,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20362.4
+  },
+  {
+   "i": 28,
+   "user": 3,
+   "sent_s": 51.74,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20188.7
+  },
+  {
+   "i": 29,
+   "user": 0,
+   "sent_s": 51.92,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20193.6
+  },
+  {
+   "i": 30,
+   "user": 2,
+   "sent_s": 57.46,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180003.7
+  },
+  {
+   "i": 31,
+   "user": 6,
+   "sent_s": 75.34,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20079.6
+  },
+  {
+   "i": 32,
+   "user": 1,
+   "sent_s": 80.67,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180367.0
+  },
+  {
+   "i": 33,
+   "user": 8,
+   "sent_s": 80.67,
+   "status": 200,
+   "server_ms": 30024.1,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 5,
+   "client_ms": 34734.3
+  },
+  {
+   "i": 34,
+   "user": 3,
+   "sent_s": 81.94,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180593.5
+  },
+  {
+   "i": 35,
+   "user": 0,
+   "sent_s": 82.12,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180361.6
+  },
+  {
+   "i": 36,
+   "user": 6,
+   "sent_s": 105.42,
+   "status": 200,
+   "server_ms": 6945.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 7,
+   "client_ms": 7188.8
+  },
+  {
+   "i": 37,
+   "user": 6,
+   "sent_s": 112.61,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180010.4
+  },
+  {
+   "i": 38,
+   "user": 8,
+   "sent_s": 115.41,
+   "status": 200,
+   "server_ms": 2911.8,
+   "guardrail_blocked": true,
+   "truncated": false,
+   "llm_calls": 1,
+   "cited": false,
+   "n_sources": 0,
+   "client_ms": 3093.6
+  },
+  {
+   "i": 39,
+   "user": 8,
+   "sent_s": 118.5,
+   "status": 200,
+   "server_ms": 24023.7,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 3,
+   "client_ms": 24111.3
+  },
+  {
+   "i": 40,
+   "user": 8,
+   "sent_s": 142.61,
+   "status": 200,
+   "server_ms": 36117.3,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 5,
+   "client_ms": 12857.5
+  },
+  {
+   "i": 41,
+   "user": 8,
+   "sent_s": 155.47,
+   "status": 200,
+   "server_ms": 2159.2,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 2274.5
+  },
+  {
+   "i": 42,
+   "user": 8,
+   "sent_s": 157.75,
+   "status": 200,
+   "server_ms": 22939.6,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 23048.5
+  },
+  {
+   "i": 43,
+   "user": 8,
+   "sent_s": 180.8,
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180004.8
+  },
+  {
+   "i": 44,
+   "user": 4,
+   "sent_s": 205.05,
+   "status": 200,
+   "server_ms": 31181.1,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 2,
+   "client_ms": 68159.6
+  },
+  {
+   "i": 45,
+   "user": 5,
+   "sent_s": 205.05,
+   "status": 200,
+   "server_ms": 957.2,
+   "guardrail_blocked": true,
+   "truncated": false,
+   "llm_calls": 1,
+   "cited": false,
+   "n_sources": 0,
+   "client_ms": 1166.4
+  },
+  {
+   "i": 46,
+   "user": 5,
+   "sent_s": 206.21,
+   "status": 200,
+   "server_ms": 23778.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": false,
+   "n_sources": 5,
+   "client_ms": 60913.8
+  },
+  {
+   "i": 47,
+   "user": 9,
+   "sent_s": 224.29,
+   "status": 200,
+   "server_ms": 7147.4,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 1,
+   "client_ms": 7634.8
+  },
+  {
+   "i": 48,
+   "user": 9,
+   "sent_s": 231.92,
+   "status": 200,
+   "server_ms": 36453.9,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 36522.5
+  },
+  {
+   "i": 49,
+   "user": 7,
+   "sent_s": 235.46,
+   "status": 200,
+   "server_ms": 46670.1,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 3,
+   "client_ms": 46854.3
+  },
+  {
+   "i": 50,
+   "user": 2,
+   "sent_s": 242.48,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20438.3
+  },
+  {
+   "i": 51,
+   "user": 1,
+   "sent_s": 266.06,
+   "status": 200,
+   "server_ms": 36027.3,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 1,
+   "client_ms": 38462.0
+  },
+  {
+   "i": 52,
+   "user": 5,
+   "sent_s": 267.13,
+   "status": 200,
+   "server_ms": 52317.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 3,
+   "client_ms": 67480.0
+  },
+  {
+   "i": 53,
+   "user": 0,
+   "sent_s": 267.48,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20312.2
+  },
+  {
+   "i": 54,
+   "user": 3,
+   "sent_s": 267.56,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20234.5
+  },
+  {
+   "i": 55,
+   "user": 9,
+   "sent_s": 268.45,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20144.4
+  },
+  {
+   "i": 56,
+   "user": 2,
+   "sent_s": 272.93,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20261.5
+  },
+  {
+   "i": 57,
+   "user": 4,
+   "sent_s": 273.21,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20103.9
+  },
+  {
+   "i": 58,
+   "user": 7,
+   "sent_s": 282.32,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20113.7
+  },
+  {
+   "i": 59,
+   "user": 6,
+   "sent_s": 297.63,
+   "status": 200,
+   "server_ms": 54155.9,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 61006.8
+  },
+  {
+   "i": 60,
+   "user": 0,
+   "sent_s": 297.79,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20174.3
+  },
+  {
+   "i": 61,
+   "user": 3,
+   "sent_s": 297.79,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20189.9
+  },
+  {
+   "i": 62,
+   "user": 9,
+   "sent_s": 298.59,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20225.1
+  },
+  {
+   "i": 63,
+   "user": 2,
+   "sent_s": 303.19,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20255.6
+  },
+  {
+   "i": 64,
+   "user": 4,
+   "sent_s": 303.31,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20216.1
+  },
+  {
+   "i": 65,
+   "user": 1,
+   "sent_s": 304.52,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20067.9
+  },
+  {
+   "i": 66,
+   "user": 7,
+   "sent_s": 312.44,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20206.2
+  },
+  {
+   "i": 67,
+   "user": 0,
+   "sent_s": 327.97,
+   "status": 200,
+   "server_ms": 30056.4,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": false,
+   "n_sources": 3,
+   "client_ms": 36698.6
+  },
+  {
+   "i": 68,
+   "user": 3,
+   "sent_s": 327.99,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20066.9
+  },
+  {
+   "i": 69,
+   "user": 9,
+   "sent_s": 328.82,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20264.9
+  },
+  {
+   "i": 70,
+   "user": 2,
+   "sent_s": 333.45,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20150.9
+  },
+  {
+   "i": 71,
+   "user": 4,
+   "sent_s": 333.53,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20212.8
+  },
+  {
+   "i": 72,
+   "user": 1,
+   "sent_s": 334.59,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20243.3
+  },
+  {
+   "i": 73,
+   "user": 5,
+   "sent_s": 334.61,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20059.5
+  },
+  {
+   "i": 74,
+   "user": 7,
+   "sent_s": 342.65,
+   "status": 200,
+   "server_ms": 60283.4,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 76266.1
+  },
+  {
+   "i": 75,
+   "user": 3,
+   "sent_s": 358.06,
+   "status": 200,
+   "server_ms": 24087.5,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 30689.9
+  },
+  {
+   "i": 76,
+   "user": 6,
+   "sent_s": 358.63,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20141.6
+  },
+  {
+   "i": 77,
+   "user": 9,
+   "sent_s": 359.08,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20059.6
+  },
+  {
+   "i": 78,
+   "user": 2,
+   "sent_s": 363.6,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20152.6
+  },
+  {
+   "i": 79,
+   "user": 4,
+   "sent_s": 363.74,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20153.1
+  },
+  {
+   "i": 80,
+   "user": 0,
+   "sent_s": 364.67,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20064.7
+  },
+  {
+   "i": 81,
+   "user": 5,
+   "sent_s": 364.67,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20157.4
+  },
+  {
+   "i": 82,
+   "user": 1,
+   "sent_s": 364.84,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20227.0
+  },
+  {
+   "i": 83,
+   "user": 8,
+   "sent_s": 365.8,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20158.0
+  },
+  {
+   "i": 84,
+   "user": 3,
+   "sent_s": 388.76,
+   "status": 200,
+   "server_ms": 18117.3,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 18198.7
+  },
+  {
+   "i": 85,
+   "user": 6,
+   "sent_s": 388.78,
+   "status": 200,
+   "server_ms": 72313.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 90553.5
+  },
+  {
+   "i": 86,
+   "user": 9,
+   "sent_s": 389.15,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20068.4
+  },
+  {
+   "i": 87,
+   "user": 2,
+   "sent_s": 393.76,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20396.2
+  },
+  {
+   "i": 88,
+   "user": 4,
+   "sent_s": 393.9,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20260.7
+  },
+  {
+   "i": 89,
+   "user": 0,
+   "sent_s": 394.73,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20152.0
+  },
+  {
+   "i": 90,
+   "user": 5,
+   "sent_s": 394.83,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20156.0
+  },
+  {
+   "i": 91,
+   "user": 1,
+   "sent_s": 395.07,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20157.9
+  },
+  {
+   "i": 92,
+   "user": 8,
+   "sent_s": 395.96,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20307.7
+  },
+  {
+   "i": 93,
+   "user": 3,
+   "sent_s": 406.96,
+   "status": 200,
+   "server_ms": 42201.5,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 2,
+   "client_ms": 54161.3
+  },
+  {
+   "i": 94,
+   "user": 7,
+   "sent_s": 418.92,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20075.3
+  },
+  {
+   "i": 95,
+   "user": 9,
+   "sent_s": 419.22,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20059.2
+  },
+  {
+   "i": 96,
+   "user": 2,
+   "sent_s": 424.16,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20207.7
+  },
+  {
+   "i": 97,
+   "user": 4,
+   "sent_s": 424.16,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20204.7
+  },
+  {
+   "i": 98,
+   "user": 0,
+   "sent_s": 424.89,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20229.8
+  },
+  {
+   "i": 99,
+   "user": 5,
+   "sent_s": 424.99,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20147.7
+  },
+  {
+   "i": 100,
+   "user": 1,
+   "sent_s": 425.23,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20147.3
+  },
+  {
+   "i": 101,
+   "user": 8,
+   "sent_s": 426.27,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20156.2
+  },
+  {
+   "i": 102,
+   "user": 7,
+   "sent_s": 449.0,
+   "status": 200,
+   "server_ms": 54513.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 66633.0
+  },
+  {
+   "i": 103,
+   "user": 9,
+   "sent_s": 449.28,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20146.0
+  },
+  {
+   "i": 104,
+   "user": 4,
+   "sent_s": 454.37,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20185.4
+  },
+  {
+   "i": 105,
+   "user": 2,
+   "sent_s": 454.37,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20184.9
+  },
+  {
+   "i": 106,
+   "user": 0,
+   "sent_s": 455.12,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20150.5
+  },
+  {
+   "i": 107,
+   "user": 5,
+   "sent_s": 455.14,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20141.7
+  },
+  {
+   "i": 108,
+   "user": 1,
+   "sent_s": 455.37,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20153.0
+  },
+  {
+   "i": 109,
+   "user": 8,
+   "sent_s": 456.43,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20232.5
+  },
+  {
+   "i": 110,
+   "user": 3,
+   "sent_s": 461.12,
+   "status": 200,
+   "server_ms": 18327.4,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": false,
+   "n_sources": 3,
+   "client_ms": 36496.3
+  },
+  {
+   "i": 111,
+   "user": 6,
+   "sent_s": 479.33,
+   "status": 200,
+   "server_ms": 66320.0,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 4,
+   "client_ms": 84690.1
+  },
+  {
+   "i": 112,
+   "user": 9,
+   "sent_s": 479.43,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20058.7
+  },
+  {
+   "i": 113,
+   "user": 4,
+   "sent_s": 484.55,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20239.2
+  },
+  {
+   "i": 114,
+   "user": 2,
+   "sent_s": 484.56,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20235.3
+  },
+  {
+   "i": 115,
+   "user": 0,
+   "sent_s": 485.27,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20158.7
+  },
+  {
+   "i": 116,
+   "user": 5,
+   "sent_s": 485.28,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20151.8
+  },
+  {
+   "i": 117,
+   "user": 1,
+   "sent_s": 485.53,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20162.2
+  },
+  {
+   "i": 118,
+   "user": 8,
+   "sent_s": 486.67,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20153.4
+  },
+  {
+   "i": 119,
+   "user": 3,
+   "sent_s": 497.62,
+   "status": 200,
+   "server_ms": 30153.8,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": true,
+   "n_sources": 5,
+   "client_ms": 48173.3
+  },
+  {
+   "i": 120,
+   "user": 9,
+   "sent_s": 509.49,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20091.2
+  },
+  {
+   "i": 121,
+   "user": 2,
+   "sent_s": 514.79,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20205.6
+  },
+  {
+   "i": 122,
+   "user": 4,
+   "sent_s": 514.8,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20203.4
+  },
+  {
+   "i": 123,
+   "user": 5,
+   "sent_s": 515.43,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20166.8
+  },
+  {
+   "i": 124,
+   "user": 0,
+   "sent_s": 515.43,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20163.2
+  },
+  {
+   "i": 125,
+   "user": 7,
+   "sent_s": 515.63,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20058.0
+  },
+  {
+   "i": 126,
+   "user": 1,
+   "sent_s": 515.69,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20159.0
+  },
+  {
+   "i": 127,
+   "user": 8,
+   "sent_s": 516.82,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20211.0
+  },
+  {
+   "i": 128,
+   "user": 9,
+   "sent_s": 539.58,
+   "status": 200,
+   "server_ms": 48153.4,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 4,
+   "cited": false,
+   "n_sources": 4,
+   "client_ms": 54439.4
+  },
+  {
+   "i": 129,
+   "user": 2,
+   "sent_s": 545.0,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20178.0
+  },
+  {
+   "i": 130,
+   "user": 4,
+   "sent_s": 545.0,
+   "status": 200,
+   "server_ms": 36237.9,
+   "guardrail_blocked": false,
+   "truncated": false,
+   "llm_calls": 3,
+   "cited": true,
+   "n_sources": 2,
+   "client_ms": 55152.7
+  },
+  {
+   "i": 131,
+   "user": 0,
+   "sent_s": 545.6,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20161.7
+  },
+  {
+   "i": 132,
+   "user": 5,
+   "sent_s": 545.6,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20153.4
+  },
+  {
+   "i": 133,
+   "user": 7,
+   "sent_s": 545.69,
+   "status": 503,
+   "reason": "busy",
+   "client_ms": 20154.4
+  }
+ ],
+ "invalid": "the client machine slept for most of the run: macOS power log shows sleep from 00:26:12 UTC (seconds after the Space restart was issued) with 2-second dark wakes at 00:44:03 and 00:59:52, until a lid-open wake at 02:43:34 UTC; the Space's run log shows the new container ready at 00:26:51 and the load's first requests answered at 00:44:27 while the client slept. The tool timed everything on time.monotonic, which stops in sleep: it reported 600 s and a 2.3 s cold start for a run that ended at 02:49:52 UTC. INVALID \u2014 not a result (D-052)."
+}

@@ -55,10 +55,21 @@ def billed() -> dict[str, int]:
     return dict(out)
 
 
+def billing_period_end() -> str:
+    return str(json.loads(BILLING.read_text(encoding="utf-8"))["period"]["to"])
+
+
 def run_artifacts() -> list[dict[str, Any]]:
+    """Run artifacts inside the bill's period. A run started after it is on another bill — and
+    from 2026-09-25, on keys in no-billing projects — so counting it as "measured" would divide
+    two populations (D-021). The first version globbed every run and did exactly that the day
+    after the period closed: 658,690 tokens of a deploy-key run moved the gap from 76% to 74%."""
+    end = billing_period_end()
     rows = []
     for path in sorted(RUNS.glob("v3_de699d68*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
+        if str(data.get("started_at", ""))[:10] > end:
+            continue
         items = data["items"].values()
         rows.append(
             {

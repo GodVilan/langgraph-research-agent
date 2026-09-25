@@ -296,8 +296,10 @@ response's trace must be readable back from Langfuse Cloud; and the sampler's *e
 
 ## 10. What is not verified
 
-* The deployed URL, its cold start, its proxy hop count, and a load check against it — they
-  exist only once the deploy step runs.
+* Behaviour under real traffic. The deployed URL is verified by `make smoke-live`, the proxy hop
+  count was observed on the host (1, D-047), and cold start and throughput come from **one load
+  check, one client machine against one instance** (README, Serving; `make load-report`) — not
+  from live callers, whose arrival pattern nothing here has seen.
 * Anything above one worker or one instance: the per-IP buckets and the concurrency gate are
   per process by design.
 * Nothing scrapes `/metrics`. It is exposed; no Prometheus or Grafana runs (BACKLOG).

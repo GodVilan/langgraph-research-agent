@@ -95,6 +95,54 @@ class TestTheGateFiresEndToEnd:
 
         assert self._gate(regressed) == 1, "the gate passed an injected regression"
 
+    def test_a_partial_sheet_is_refused_not_gated(self, tmp_path: Path) -> None:
+        """D-053: a sheet assembled after q1 (q3 pending) scored 49 of 69 and the gate reported
+        correct answers 0 vs 15 as a regression. An unfinished input exits 2 — and 2 is not 1,
+        so a refusal can never pass for the gate firing."""
+        import json
+        import subprocess
+
+        sheet = json.loads(self.SHEET.read_text(encoding="utf-8"))
+        for item in [i for i in sheet["scores"] if i.startswith("sp-")][:20]:
+            del sheet["scores"][item]
+        partial = tmp_path / "partial.json"
+        partial.write_text(json.dumps(sheet), encoding="utf-8")
+        result = subprocess.run(
+            [sys.executable, "-m", "evals.gate", "--run", str(self.RUN), "--sheet", str(partial)],
+            cwd=self.ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 2
+        assert "covers 49 of 69 items" in result.stderr
+
+    def test_an_unreadable_sheet_exits_2_not_1(self, tmp_path: Path) -> None:
+        """Exit 1 means "regression"; a crash on bad input must not look like one."""
+        import subprocess
+
+        bad = tmp_path / "bad.json"
+        bad.write_text("{not json", encoding="utf-8")
+        code = subprocess.run(
+            [sys.executable, "-m", "evals.gate", "--run", str(self.RUN), "--sheet", str(bad)],
+            cwd=self.ROOT,
+            capture_output=True,
+        ).returncode
+        assert code == 2
+
+    def test_gated_values_refuses_a_partial_sheet_on_every_path(self) -> None:
+        """`--derive-baseline` goes through `gated_values` too; the refusal lives there."""
+        from evals.gate import IncompleteSheetError, gated_values
+        from evals.run_set import RunRecord
+        from evals.schema import EvalSet
+        from evals.scoring import ScoreSheet
+
+        evalset = EvalSet.read(self.ROOT / "evals/datasets/phase4.json")
+        record = RunRecord.model_validate_json(self.RUN.read_text(encoding="utf-8"))
+        sheet = ScoreSheet.load(self.SHEET)
+        sheet.scores.pop(next(iter(sheet.scores)))
+        with pytest.raises(IncompleteSheetError):
+            gated_values(evalset, record, sheet)
+
     def test_the_gate_refuses_to_run_without_a_baseline(self, tmp_path: Path) -> None:
         """An underived tolerance is worse than no gate: exit 2, not a pass."""
         import subprocess

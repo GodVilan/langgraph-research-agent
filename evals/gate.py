@@ -33,7 +33,29 @@ from evals.scoring import ScoreSheet
 BASELINE = Path("evals/baseline_metrics.json")
 
 
+class IncompleteSheetError(ValueError):
+    """The sheet does not score every item of the run it claims. Outcome counts over a partial
+    sheet read as a collapse: on 2026-09-25 a sheet assembled after q1 (49 of 69 scored, q3
+    pending) reported correct answers 0 against a baseline of 15, and the gate printed it as a
+    regression. An unfinished input is refused, never gated (D-053)."""
+
+
+def sheet_problem(evalset: EvalSet, sheet: ScoreSheet) -> str:
+    """Why this sheet cannot be gated, or "" if it can. Coverage only: the injected-regression
+    check deliberately pairs a doctored copy of a run with that run's sheet."""
+    missing = sorted(i.item_id for i in evalset.items if i.item_id not in sheet.scores)
+    if missing:
+        return (
+            f"score sheet covers {len(evalset.items) - len(missing)} of {len(evalset.items)} "
+            f"items; unscored: {', '.join(missing[:8])}{' …' if len(missing) > 8 else ''} "
+            "(q3 not collected?)"
+        )
+    return ""
+
+
 def gated_values(evalset: EvalSet, record: RunRecord, sheet: ScoreSheet | None) -> dict[str, float]:
+    if sheet is not None and (problem := sheet_problem(evalset, sheet)):
+        raise IncompleteSheetError(problem)
     retrieval = retrieval_summary(retrieval_rows(evalset, record))
     factual = retrieval.get("single_paper_factual", {})
     values: dict[str, float] = {
@@ -230,7 +252,11 @@ def main() -> int:
         for pair in args.derive_from:
             run_path, sheet_path = (Path(x) for x in pair.split(":", 1))
             record = RunRecord.model_validate_json(run_path.read_text(encoding="utf-8"))
-            per_run.append(gated_values(evalset, record, ScoreSheet.load(sheet_path)))
+            run_sheet = ScoreSheet.load(sheet_path)
+            if problem := sheet_problem(evalset, run_sheet):
+                print(f"refusing {sheet_path}: {problem}", file=sys.stderr)
+                return 2
+            per_run.append(gated_values(evalset, record, run_sheet))
             records.append(record)
             paths.append(run_path)
         derived = derive_baseline(per_run, records, loaded[0], paths)
@@ -247,8 +273,15 @@ def main() -> int:
         print("--run is required to gate", file=sys.stderr)
         return 2
     baseline = loaded[0] if len(loaded) == 1 else strictest(loaded)
-    record = RunRecord.model_validate_json(args.run.read_text(encoding="utf-8"))
-    sheet = ScoreSheet.load(args.sheet) if args.sheet else None
+    try:
+        record = RunRecord.model_validate_json(args.run.read_text(encoding="utf-8"))
+        sheet = ScoreSheet.load(args.sheet) if args.sheet else None
+    except (OSError, ValueError) as exc:  # unreadable input is a refusal (2), never a failure (1)
+        print(f"refusing: cannot read the run or sheet: {exc}", file=sys.stderr)
+        return 2
+    if sheet is not None and (problem := sheet_problem(evalset, sheet)):
+        print(f"refusing to gate {args.sheet}: {problem}", file=sys.stderr)
+        return 2
     values = gated_values(evalset, record, sheet)
     failures = evaluate(values, baseline)
     if len(loaded) > 1:

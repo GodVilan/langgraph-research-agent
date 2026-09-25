@@ -1803,7 +1803,8 @@ unpinned run — the direction pinning predicts (5 blocks every call against an 
 **Decided:** `evals/baseline_metrics_pinned.json` is committed **beside** the Phase 4 baseline,
 which stays untouched. Values are the pinned run's own; tolerances are the Phase 4 three-run
 spread, **carried** — one run cannot measure its own spread (the rule was written into
-`evals/gate.py` before the result existed). CI now gates the shipped configuration: the
+`evals/gate.py` before the result existed). CI now gates the shipped configuration's
+committed run artifact (replayed, not re-run — D-050): the
 must-pass step and the injected-regression step both run against the pinned run and baseline,
 and the injected regression fails it (replayed locally before committing).
 
@@ -1841,7 +1842,7 @@ three pinned draws with their own max-min spread, written by `evals/gate.py --de
 — no hand edits. Doing so exposed that the Phase 4 baseline's stated rule had never been
 implemented in committed code; the one derivation function now regenerates **both** committed
 baselines exactly from the runs they name, and `tests/test_gate.py` fails if either drifts. CI
-gates the shipped configuration against the re-centred baseline; the injected regression still
+gates the shipped configuration's committed artifact (replayed, not re-run — D-050) against the re-centred baseline; the injected regression still
 fails it. One consequence stated plainly: pinned correct answers had spread 0 across three
 draws, so the shipped gate allowed no drop in correct answers at all — **superseded by the
 note below**.
@@ -2037,8 +2038,12 @@ Langfuse Cloud traces, the deploy key a free-tier key in its own no-billing proj
    forms, resolves an abbreviation only when unique, and reports corrupted ids as unresolved.
    No gated metric reads it (retrieval uses retrieved ids; the judge reads text).
 3. **`smoke-live` could not assert on one draw.** Unpinned generation (D-042) makes the README
-   example's citation form a draw: about 2 of ~10 free-tier draws carried no resolvable
-   citation. The check now runs up to 3 draws, prints each draw's citations, passes if any cites
+   example's citation form a draw. (A typed "about 2 of ~10 draws" stood here; it was never
+   regenerable and is replaced by a measurement: in the load check against the deployed
+   instance, 11 of 32 served responses cited no returned source — 5 guardrail refusals, 6
+   generator refusals read by hand, none an answer without a citation (n=32, live Space,
+   `make load-report`). That covers the 43 factual questions, not the README example's own
+   draw-to-draw rate, which stays unmeasured.) The check now runs up to 3 draws, prints each draw's citations, passes if any cites
    a returned source, and warns with the count when not all did — a relaxation of the brief's
    single-draw wording, flagged rather than made silently.
 4. **Local Langfuse could not test the v2 API.** The v2 observations endpoint needs self-hosted
@@ -2082,3 +2087,254 @@ published.**
 **Consequence today:** the leaked reservations stay counted until 00:00 UTC (an over-count, the
 safe direction; the ledger was not hand-edited). With ~$0.19 of the day left, a load check to the
 G-3 spec (≥30 served, 10 users each holding a $0.025 reservation) cannot run until the reset.
+
+---
+
+## D-049 — Deploy mapping: tag `deploy-2026-09-24` (git `d6b0369`) is Space commit `caefad03`
+
+**Recorded 2026-09-24, verified by `make verify-deploy SPACE=godvillain/Scholium REV=d6b0369`.**
+Every file in the Space's tree at `caefad03` was compared with `d6b0369`:
+
+* **60 identical, 0 mismatched.** 57 repo files byte-for-byte; `Dockerfile` equals
+  `infra/Dockerfile` (the deploy copies it to the Space root); the two gitignored FAISS files
+  match `data/INDEX.sha256` as committed at `d6b0369`; the Space card (`README.md` in the Space)
+  equals what `scripts/deploy_space.py` at `d6b0369` renders.
+* **1 not compared:** `.gitattributes`, Hugging Face's own LFS rules, not a repo file.
+* **Not deployed, by design, so not mismatches:** 222 tracked files — `evals/` 132, `tests/` 41,
+  `scripts/` 26, `docs/` 16, the repo `README.md` (the Space serves the generated card under the
+  same name), `Makefile`, `.env.example`, `.gitignore`, `.github/workflows/ci.yml`,
+  `infra/docker-compose.langfuse.yml`, `data/LICENSES.json`, `data/traces_d021.json`.
+
+A later deploy is mapped the same way: tag the commit, deploy, run `make verify-deploy` with that
+commit, and record the pair here.
+
+**The deployed commit, gated (2026-09-25).** A pinned full run of the frozen 69 from `d6b0369`
+— a `git archive` export with this repo's venv and the index verified against
+`data/INDEX.sha256@d6b0369`, the deploy project's Gemini key, tracing off, run locally rather
+than through the public endpoint — completed 69 of 69 with 0 errors and blocked the same 5 items
+as the three baseline draws (`evals/runs/v3_de699d68_deployed.json`, `code_rev` stamped). Judged
+by `gpt-5.6-luna` @ `low` under the $0.03 cap, submitted in stages so q3 went out only after
+q1's actual cost plus a q3 projection from measured runs fit ($0.0051 + $0.0106 = $0.0157
+actual). `make gate RUN=evals/runs/v3_de699d68_deployed.json
+SHEET=evals/runs/scores_luna-low_de699d68_all_deployed.json` **passes** against
+`evals/baseline_metrics_pinned.json`: every gated metric inside the three-draw spread. One draw,
+not added to the baseline (no re-baselining was asked for). A first gate invocation on a sheet
+still awaiting q3 printed a false regression and is not this result (D-053).
+
+---
+
+## D-050 — CI replays committed run artifacts through the gate; it does not evaluate the pushed code
+
+**The fact, stated where it could be misread (README "CI reports; it does not block", EVALS,
+PHASE4, D-044):** the regression gate in `.github/workflows/ci.yml` reads a committed run artifact
+and its judge sheet — outputs recorded when the configuration was last run and judged — and
+checks them against the committed baseline, plus an injected regression that must fail. **No
+model is called in CI.** A change to prompts, nodes, retrieval or the guardrail that alters
+answers passes CI unchanged until the set is re-run (`make run-set`), judged, and the new
+artifact gated. Wording that implied CI evaluates the current code ("a live regression gate",
+"CI gates the shipped configuration") was corrected on 2026-09-24.
+
+**Why the Phase 4 spec's "eval on a fast subset" is not in CI:**
+
+* **No key in CI, deliberately.** CI has no Gemini or OpenAI credentials; every push to every
+  branch runs the workflow, and a key there would spend on any push from anyone with write
+  access.
+* **Free-tier quota.** The Gemini keys are free tier at 15 RPM / 500 RPD, shared with the live
+  Space. Even a 10-item subset is ~35 model calls per push, paced at 15 RPM — minutes per run —
+  and a few pushes a day would eat the Space's daily quota.
+* **Judging is Batch.** The outcome metrics need the judge, which runs through the OpenAI Batch
+  API (mandatory, half-price): minutes to hours of latency per run, and real money per push.
+  Retrieval-only metrics could skip the judge, but they are the metrics that cannot move without
+  a retrieval change (spread 0.000).
+
+**Reverses if:** a dedicated paid Gemini key with its own budget cap exists for CI, stored as a
+secret available only to protected branches; the subset is small enough to pace inside a CI job;
+and either the judge is replaced for CI by a cheap synchronous arm validated against the human
+sheet, or CI gates retrieval metrics only and says so. Until then, re-running the set is a
+manual step recorded with its artifact.
+
+### D-047, amended 2026-09-24 — the citation drift is time-bound, not key-bound
+
+Tested rather than assumed (Phase 5 review): the README request five times on the **old** key
+(project `langgraph-research-agent`) against the deploy key's draws on the Space.
+
+| key | when (UTC) | tier then | citing answers | abbreviated ids |
+|---|---|---|---:|---:|
+| old | 2026-09-24 15:11–16:45 (three pinned runs) | paid (billing attached) | 156 | **0** |
+| old | 2026-09-24 ~21:45 (README request ×5) | free (billing detached) | 5 | **4** |
+| deploy | 2026-09-24 21:05–21:45 (Space, smoke draws) | free | every draw | **all** |
+
+**It is not the key**: both keys abbreviate now. The change happened on the old key between
+16:45 and ~20:50 UTC on one day, and coincides with that key's move to the free tier. A model or
+serving update in the same window **cannot be excluded**, so this is recorded as a time-bound
+change coinciding with the tier switch — not as "caused by the free tier". No doc claims more.
+
+---
+
+## D-051 — Keep all 150 papers; credit every one; publish a takedown route
+
+**Decided (Srikanth, 2026-09-24):** the corpus stays as it is — all 150 papers, nothing
+re-chunked, re-indexed or removed. The license audit (`make corpus-licenses`, `data/LICENSES.json`,
+arXiv OAI-PMH) found 85 CC BY 4.0, 6 CC BY-NC-SA 4.0, 3 CC BY-NC-ND 4.0, 2 CC BY-SA 4.0, and **54
+under arXiv's non-exclusive distribution license**, which grants distribution rights to arXiv, not
+to third parties. This repository commits all 150 papers' full text in `data/chunks_512.json`, the
+container bakes it in, and the service quotes excerpts.
+
+**What was done instead of removal:** `CORPUS_ATTRIBUTION.md` credits every paper — arXiv id
+(linked), title, all authors, license (linked) — rendered from the audit and the metadata, with a
+test that fails a stale copy; the README License section states that MIT covers the code only,
+lays out the open question for the 54 papers as not verified, and gives a takedown route (a
+GitHub issue on this repository).
+
+**Why keeping is acceptable here, as a judgment rather than a legal conclusion:** a
+non-commercial research demo over public preprints, every excerpt attributed to its paper by id
+and title, with a published removal path. Why the question stays open: whether redistributing the
+full text of arXiv-licensed papers in a public repository is permitted is **not verified**, and the
+README says so.
+
+**Reverses if:** a takedown request arrives for a paper (remove its chunks, rebuild the index,
+re-run the frozen set against the reduced corpus and re-baseline, and record the corpus checksum
+change); or an authoritative reading establishes that the arXiv license does not permit this use
+(remove all 54 the same way). Either reversal invalidates every retrieval number measured on the
+150-paper corpus, which is why it is a recorded decision rather than a quiet edit.
+
+## D-052 — The first G-3 rerun measured a sleeping laptop; the load tool now checks its own clock
+
+**2026-09-25, first G-3 rerun after the 00:00 UTC reset. Invalid, not published.** The run was
+launched at 00:26 UTC from a MacBook on battery with its lid closed; the session was executing
+only during macOS dark wakes. The power log (`pmset -g log`) shows sleep entered at 00:26:12 UTC —
+seconds after the tool issued the Space restart — with 2-second dark wakes at 00:44:03 and
+00:59:52 and a lid-open wake at 02:43:34. The Space's run log shows the other side: new container
+ready at 00:26:51, the cold-start query answered at 00:44:07, the load's first ten requests
+answered (503 busy) at 00:44:27, and served answers from 00:44:35 onward, delivered to a client
+that was asleep.
+
+**What the tool reported, and why every figure was wrong:** "134 requests over 600 s", "cold start
+2.3 s to ready", served p50/p95, and 10 client `ReadError`s and 10 `ReadTimeout`s. Every timing was
+`time.monotonic`, which stops while the machine sleeps, so wall time (00:44 → 02:49 UTC, about two
+hours) collapsed to ten minutes; the cold start's "2.3 s" was the poll after a 17-minute sleep;
+the errors were connections that died across sleep. Nothing in the artifact showed any of this.
+
+**Kept, quarantined:** `evals/runs/loadcheck_deployed-client-slept.json(l)`, carrying an
+`invalid` field with the evidence above; `make load-report LABEL=deployed-client-slept` prints
+the reason and refuses to print latency, throughput or rates. Cost: about 142 model calls on the
+deploy key (Langfuse Cloud generation count since 00:26 UTC) and $0.139 of the day's notional
+ceiling.
+
+**The fix is a mechanism, not a note to keep the lid open.** `ClientClock` compares wall time
+with monotonic time; more than 5 s of divergence means the client slept. The run stops, writes an
+`invalid` line into the per-request stream (so a killed run carries the evidence too), records
+the drift on every request, and the cold start returns an error instead of a number. The report
+refuses an invalid artifact. `make load-check` also runs under `caffeinate -i`, which holds off
+idle sleep but cannot stop a closed lid on battery — so the check is the guarantee, and
+`caffeinate` only makes a valid run likelier. Tests: a fake clock that jumps two hours stops the
+run, marks the stream, and blanks the report; the real clock on an awake machine does not
+trip it.
+
+**Post-mortem class:** a measuring tool that assumes the machine running it is continuously
+awake. The same family as D-048's tool defects: the instrument failed, and without a check its
+failure read as a measurement. Recorded beside "external-facing tool without backoff".
+
+**Reverses if:** load checks move to a host that cannot sleep (a CI runner or a VM), at which
+point the clock check stays as a cheap assertion rather than being removed.
+
+## D-053 — The gate scored a half-judged sheet as a regression; unfinished input is now refused
+
+**2026-09-25, item 4 (the pinned run of the deployed commit).** Judging is two-stage (D-030a):
+`collect` for q1 assembles a score sheet from the items q1 settles alone and leaves the rest
+awaiting q3. My poll loop waited for that sheet *file* to exist, so it returned the moment q1
+landed, and I ran the gate on a sheet scoring **49 of 69** items. The gate printed:
+
+    correct_answers 0.000 vs baseline 15.000 (tolerance ±1.000) — regression
+
+Every answered item was still awaiting q3, so none could be `correct_answer`. The gate had no
+completeness check: it computed outcome counts over whatever the sheet held. **Not a result, and
+not reported as the item 4 outcome** — the deployed code was never measured by that invocation.
+
+**Fixed, in the gate, not the loop:** `gated_values` raises `IncompleteSheetError` unless the
+sheet scores every item of the set, so both the gate and `--derive-baseline` refuse; the CLI
+exits 2 and names the unscored items. Tests: a sheet with 20 items removed exits 2 with "covers
+49 of 69 items"; `gated_values` refuses a sheet missing one item.
+
+**The same defect one level up, found by the fix's own test.** A first version also refused a
+sheet whose `run_path` differed from `--run`. CI's injected-regression step pairs a doctored copy
+of a run with the original sheet, so it would have been refused with exit 2 — and CI read *any*
+non-zero exit as "the gate fired". The injected regression would have "passed" on a refusal, the
+D-023 pattern exactly. The run-path check is dropped; CI now requires **exit 1 and
+`factual_recall@5: 0.000` in the output**, so a refusal, a crash or a wrong failure all fail CI.
+Replayed locally: the injected regression exits 1 naming recall; the committed pinned run passes.
+The replay also showed an unreadable sheet crashing the gate with a traceback — exit 1, the
+regression code. It now exits 2 ("refusing: cannot read the run or sheet"), tested.
+
+**Post-mortem class:** a detector that accepts input its author assumed would be complete, and a
+test harness that accepts any failure as the failure it wanted. D-023 and D-026 again.
+
+**Not extended:** `make metrics-report` and `metrics-spread` still compute outcomes over whatever
+a sheet holds; they print n per stratum, so a partial sheet shows, but they do not refuse
+(BACKLOG).
+
+## D-054 — Where a malformed Upstash result failed, the redeploy that fixes it, and why the Phase 5 measurements carry over
+
+**Which call raised the unhandled 500 (deployed `d6b0369`).** The **reservation, before the
+query**: `UpstashLedger.reserve` did `float(str(total_raw))` on `INCRBYFLOAT`'s answer, and
+`_reserve` in `src/api/app.py` catches only `LedgerUnavailableError`, so a `ValueError` became an
+unhandled 500. That path **fails closed**: nothing runs, and the $0.025 reservation — already
+applied on the server when the answer came back unparseable — stays counted, an over-count.
+`/ready` failed the same way (`spent` parsed `GET` the same way). The fixed build returns `503
+cost_ledger_unavailable` for both.
+
+**Settlement could not raise that 500 — because it never read its answer at all.** `settle` sent
+`INCRBYFLOAT <actual − reserved>` and discarded the result, so a 200 with a malformed body was
+taken as a completed write. Losing a settlement is safe when the delta is negative (the usual
+case: a query gives back most of its $0.025), and **fails open when it is positive**: the
+per-request budget is checked after each model call (`src/guardrails/budget.py`), so a run can
+overshoot its reservation by its last call, and a lost positive settlement under-counts the
+daily ceiling by that overshoot. Never observed — the largest per-query notional measured is
+$0.0057 against the $0.025 reservation (docs/BUDGET.md) — but reachable. Now `settle` parses the
+new total and raises `LedgerUnavailableError`, which `_settle` logs; the settlement is still
+lost, but not silently. D-026 again: a write assumed from a status code. Tests: a malformed
+settlement raises, a well-formed one passes, and the reservation-path cases (unreachable, 429,
+command error in a 200, malformed result, timeout) refuse the query before any model call.
+
+**Redeploy, 2026-09-25.** `make deploy-space` from the working tree pushed Space commit
+`7745886e`; the rebuilt container came up as boot `a050a88ad358` with the same index sha
+(`ad6c35cf…`). `make verify-deploy REV=WORKTREE` (a mode added for exactly this: a deploy made
+before the commit that carries it exists): **60 identical, 0 mismatched**, `.gitattributes`
+listed. `make smoke-live` against the redeployed Space: every check passed (README curl cites a
+source on the first draw; trace complete, 32 observations). **The tag `deploy-2026-09-25` is not
+created**: it must point at a commit holding this fix, and commits are Srikanth's. After he
+commits: `git tag deploy-2026-09-25 <commit>` and `make verify-deploy SPACE=godvillain/Scholium
+REV=deploy-2026-09-25`, expected 60 / 0; the pair to record is `<commit>` == Space `7745886e`.
+
+**Why the G-3 load check and the item 4 gate result carry over.** The deployed files differ from
+`d6b0369` in exactly one: `make verify-deploy REV=d6b0369` against the new Space reports **59
+identical, 1 mismatched — `src/api/ledger.py`**, and `git diff d6b0369` over the deploy
+allow-list (`.dockerignore`, `infra/Dockerfile`, `pyproject.toml`, `src/`, the corpus and index
+checksums, and `scripts/deploy_space.py`, which renders the Space card) shows the same single
+file. Its tests and this record are not deployed.
+* *The gate result (item 4)* never touched the ledger: the pinned run executes the graph through
+  `evals.run_set`, not the API. It carries over by construction.
+* *The load check* ran through the ledger, but only on well-formed Upstash answers — the Space's
+  run log shows 33 × 200 and 137 × 503 `busy`, no 500 and no `cost_ledger_unavailable`. On a
+  numeric answer the new code does the same arithmetic (`_number(x)` is `float(str(x))`) and
+  sends the same single pipeline per call; the one addition is parsing settlement's reply,
+  which costs no request. Nothing the load check measured passes through a changed line.
+
+**Reverses if:** a later deploy changes any other allow-listed file, in which case the load check
+and the gate are re-run against it rather than carried.
+
+## D-021, third instance — the Gemini reconciliation counted a run from outside the bill
+
+**2026-09-25, found while drafting the post-mortem.** `make gemini-reconcile` globbed every
+`v3_de699d68*.json` run artifact as "measured" usage. The day after the billing period closed,
+that included `v3_de699d68_deployed.json` — a run on 2026-09-25, on the deploy key, in a
+no-billing project — so 658,690 of its input tokens were counted against a bill they are not on,
+and the published gap moved from 76% to 74%. The command also rewrote the committed artifact
+(`evals/runs/gemini_reconcile.json`); the committed version was restored from git.
+
+Same rule as D-021: a ratio asserts its two sides describe one population. Here the population is
+fixed by the bill (`docs/billing/gemini.json` `period`), so `run_artifacts()` now drops any run
+started after `period.to`. Tests: every artifact is counted exactly when it started inside the
+period, and the committed reconciliation lists exactly the runs the script now selects. The usage
+log is not a measured source in this script, so the 236 deploy-key rows appended to it are not
+counted either.

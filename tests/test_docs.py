@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from typing import ClassVar
 
+import pytest
+
 REPO = Path(__file__).resolve().parent.parent
 README = REPO / "README.md"
 
@@ -289,3 +291,101 @@ class TestCorpusLicensesAreRendered:
         licenses = json.loads((REPO / "data" / "LICENSES.json").read_text(encoding="utf-8"))
         papers = json.loads((REPO / "data" / "metadata.json").read_text(encoding="utf-8"))
         assert {str(p["paper_id"]) for p in papers} == set(licenses["papers"])
+
+
+class TestLoadCheckIsRendered:
+    """The deployed load-check figures come from the artifact, never typed (D-052)."""
+
+    def test_the_load_check_and_uncited_blocks_are_the_rendered_ones(self) -> None:
+        sys.path.insert(0, str(REPO))
+        from scripts.readme_stats import render_loadcheck, render_uncited
+
+        for name, render in (("LOADCHECK", render_loadcheck), ("UNCITED", render_uncited)):
+            block = re.search(rf"<!-- {name}:START -->.*?<!-- {name}:END -->", readme(), re.S)
+            assert block is not None and block.group(0) == render(), name
+
+    def test_an_invalid_load_check_cannot_be_rendered(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import json
+
+        sys.path.insert(0, str(REPO))
+        import scripts.readme_stats as rs
+
+        slept = REPO / "evals" / "runs" / "loadcheck_deployed-client-slept.json"
+        monkeypatch.setattr(rs, "LOADCHECK_JSON", slept)
+        with pytest.raises(SystemExit, match="invalid"):
+            rs.render_loadcheck()
+        assert json.loads(slept.read_text(encoding="utf-8"))["invalid"]
+
+    def test_a_single_user_run_that_slept_or_dropped_a_request_cannot_be_rendered(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import json
+
+        sys.path.insert(0, str(REPO))
+        import scripts.readme_stats as rs
+
+        base = json.loads(rs.SINGLE_USER_JSON.read_text(encoding="utf-8"))
+        for doctor, expect in (
+            (lambda d: d["records"][0].__setitem__("clock_drift_s", 900.0), "invalid"),
+            (lambda d: d["records"][0].__setitem__("status", 503), "not served"),
+        ):
+            data = json.loads(json.dumps(base))
+            doctor(data)
+            copy = tmp_path / "single.json"
+            copy.write_text(json.dumps(data), encoding="utf-8")
+            monkeypatch.setattr(rs, "SINGLE_USER_JSON", copy)
+            with pytest.raises(SystemExit, match=expect):
+                rs.render_loadcheck()
+
+    def test_an_unread_uncited_response_blocks_the_render(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import json
+
+        sys.path.insert(0, str(REPO))
+        import scripts.readme_stats as rs
+
+        data = json.loads(rs.LOADCHECK_JSON.read_text(encoding="utf-8"))
+        data["uncited_reading"]["records"].popitem()
+        copy = tmp_path / "lc.json"
+        copy.write_text(json.dumps(data), encoding="utf-8")
+        monkeypatch.setattr(rs, "LOADCHECK_JSON", copy)
+        with pytest.raises(SystemExit, match="not yet read"):
+            rs.render_uncited()
+
+
+class TestCiClaimIsExact:
+    """D-050: CI replays committed run artifacts through the gate; it never runs the agent."""
+
+    def test_the_readme_says_what_ci_does(self) -> None:
+        assert "does not run the agent on the pushed code" in readme()
+
+    def test_no_doc_calls_the_gate_live_or_says_ci_evaluates_the_code(self) -> None:
+        pattern = re.compile(r"(?i)live regression gate|CI (evaluates|runs the eval)")
+        offenders = []
+        for doc in (REPO / "README.md", REPO / "docs" / "EVALS.md", REPO / "docs" / "PHASE4.md"):
+            for n, line in enumerate(doc.read_text(encoding="utf-8").splitlines(), 1):
+                if pattern.search(line):
+                    offenders.append(f"{doc.name}:{n}: {line.strip()[:100]}")
+        assert not offenders, "\n".join(offenders)
+
+
+class TestCorpusAttribution:
+    def test_the_attribution_file_is_the_rendered_one(self) -> None:
+        sys.path.insert(0, str(REPO))
+        from scripts.corpus_licenses import render_attribution
+
+        text = (REPO / "CORPUS_ATTRIBUTION.md").read_text(encoding="utf-8")
+        assert text == render_attribution(), "run `make corpus-licenses ATTRIBUTION=1`"
+
+    def test_every_paper_is_credited(self) -> None:
+        import json
+
+        text = (REPO / "CORPUS_ATTRIBUTION.md").read_text(encoding="utf-8")
+        for paper in json.loads((REPO / "data" / "metadata.json").read_text(encoding="utf-8")):
+            assert f"[{paper['paper_id']}](https://arxiv.org/abs/{paper['paper_id']})" in text
+
+    def test_the_readme_carries_a_takedown_route(self) -> None:
+        assert "github.com/GodVilan/langgraph-research-agent/issues" in readme()

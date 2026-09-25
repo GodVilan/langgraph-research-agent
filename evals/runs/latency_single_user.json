@@ -1,0 +1,121 @@
+{
+ "label": "single user, warm",
+ "url": "https://godvillain-scholium.hf.space",
+ "started_utc": "2026-09-25T13:14:37+00:00",
+ "spacing_s": 30.0,
+ "client": "scripts/load_check.py --single-user (httpx), one machine, no bypass",
+ "records": [
+  {
+   "i": 0,
+   "sent_utc": "2026-09-25T13:14:37.990641+00:00",
+   "status": 200,
+   "server_ms": 3595.5,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "7420e34dce37d50439449b1894320953",
+   "client_ms": 3820.8,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 1,
+   "sent_utc": "2026-09-25T13:15:07.993915+00:00",
+   "status": 200,
+   "server_ms": 6597.2,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "663b4e506bdade11b40e0cc383e3a532",
+   "client_ms": 6787.9,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 2,
+   "sent_utc": "2026-09-25T13:15:37.996533+00:00",
+   "status": 200,
+   "server_ms": 794.3,
+   "llm_calls": 1,
+   "guardrail_blocked": true,
+   "trace_id": "e1bed7736f4af33e08222b63e2731267",
+   "client_ms": 975.7,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 3,
+   "sent_utc": "2026-09-25T13:16:08.000002+00:00",
+   "status": 200,
+   "server_ms": 6860.9,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "91d8ff7a53b98691fd6b525d2ec3a737",
+   "client_ms": 7086.9,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 4,
+   "sent_utc": "2026-09-25T13:16:38.002139+00:00",
+   "status": 200,
+   "server_ms": 7012.7,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "791c603d06ea6d30968ba343662621dd",
+   "client_ms": 7192.6,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 5,
+   "sent_utc": "2026-09-25T13:17:08.003958+00:00",
+   "status": 200,
+   "server_ms": 14112.3,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "c58800af7604ff9da5507fd652252e6e",
+   "client_ms": 14337.9,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 6,
+   "sent_utc": "2026-09-25T13:17:38.004303+00:00",
+   "status": 200,
+   "server_ms": 5710.0,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "0151df1ef04e5b8f2a77deab16d86afa",
+   "client_ms": 6078.1,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 7,
+   "sent_utc": "2026-09-25T13:18:08.006944+00:00",
+   "status": 200,
+   "server_ms": 10073.6,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "9b5fada1f029f879f2d7057c07b080ae",
+   "client_ms": 10277.6,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 8,
+   "sent_utc": "2026-09-25T13:18:38.021714+00:00",
+   "status": 200,
+   "server_ms": 7934.5,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "2362eb5ced24217d9308e6ce69b90de3",
+   "client_ms": 8139.3,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 9,
+   "sent_utc": "2026-09-25T13:19:08.024126+00:00",
+   "status": 200,
+   "server_ms": 8385.8,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "018ff7b1decbeaba858839f98e837618",
+   "client_ms": 8627.1,
+   "clock_drift_s": -0.0
+  }
+ ],
+ "space_commit": "7745886e",
+ "space_commit_note": "the working tree to be tagged deploy-2026-09-25 (D-054); verified 60/0 by make verify-deploy REV=WORKTREE before the run \u2014 field added afterwards"
+}

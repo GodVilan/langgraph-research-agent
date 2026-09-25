@@ -751,3 +751,79 @@ class TestAdmissionIsNotCancellable:
         await _admit(svc, "d", 0.025)  # type: ignore[arg-type]
         assert await ledger.spent("d") == pytest.approx(0.025)
         assert svc.gate.in_flight == 1  # type: ignore[attr-defined]
+
+
+class TestUpstashFailsClosed:
+    """An unreachable or quota-exhausted Upstash must refuse queries, never serve uncounted."""
+
+    @staticmethod
+    def ledger(handler: Any) -> Any:
+        import httpx
+
+        from src.api.ledger import UpstashLedger
+
+        led = UpstashLedger("https://stub.upstash.io", "tok")
+        led._client = httpx.AsyncClient(
+            base_url="https://stub.upstash.io",
+            headers=led._client.headers,
+            transport=httpx.MockTransport(handler),
+        )
+        return led
+
+    @pytest.mark.parametrize(
+        "failure",
+        ["unreachable", "quota_429", "command_error_200", "malformed_result", "timeout"],
+    )
+    async def test_the_query_is_refused_and_nothing_runs(
+        self, api_settings: Settings, scripted, failure: str
+    ) -> None:
+        import httpx
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            if failure == "unreachable":
+                raise httpx.ConnectError("connection refused")
+            if failure == "timeout":
+                raise httpx.ReadTimeout("upstash did not answer")
+            if failure == "quota_429":
+                # Upstash's answer when the plan's request limit is used up.
+                return httpx.Response(429, json={"error": "ERR max requests limit exceeded."})
+            if failure == "command_error_200":
+                return httpx.Response(200, json=[{"error": "ERR max daily request limit"}, {}])
+            return httpx.Response(200, json=[{"result": "not-a-number"}, {"result": 1}])
+
+        fake = scripted([simple_plan(), "A.", passing_critique()])
+        async with running(api_settings, FakeRetrievalService(), self.ledger(handler)) as (
+            _,
+            client,
+        ):
+            r = await client.post("/query", json=ask())
+            ready = await client.get("/ready")
+        assert r.status_code == 503, r.text
+        assert r.json()["error"] == "cost_ledger_unavailable"
+        assert fake.calls == [], "the model was called without the ceiling being counted"
+        assert ready.status_code == 503
+
+    async def test_a_malformed_settlement_is_raised_not_swallowed(self) -> None:
+        """D-054: settlement never parsed INCRBYFLOAT's answer, so a 200 with a malformed result
+        was taken as a write. It now raises, and `_settle` logs it."""
+        import httpx
+
+        from src.api.ledger import LedgerUnavailableError
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json=[{"result": "not-a-number"}, {"result": 1}])
+
+        led = self.ledger(handler)
+        with pytest.raises(LedgerUnavailableError, match="non-numeric"):
+            await led.settle("2026-09-25", 0.004)
+        await led.close()
+
+    async def test_a_well_formed_settlement_passes(self) -> None:
+        import httpx
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json=[{"result": "0.029"}, {"result": 1}])
+
+        led = self.ledger(handler)
+        await led.settle("2026-09-25", 0.004)
+        await led.close()

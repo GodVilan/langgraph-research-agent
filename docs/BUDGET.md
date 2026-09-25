@@ -10,7 +10,7 @@ throughout ([`DECISIONS.md`](./DECISIONS.md) D-046). Rationale for the split: D-
 
 <!-- JUDGESPEND:START -->
 <!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`; the figure is summed from the batches by `make judge-spend`. -->
-**OpenAI judge spend: $0.1670 of the $5.00 lifetime ceiling** — 939 Batch requests, 1,359,403 input / 51,711 output tokens at batch rates, measured 2026-09-24.
+**OpenAI judge spend: $0.1827 of the $5.00 lifetime ceiling** — 1028 Batch requests, 1,487,447 input / 56,605 output tokens at batch rates, measured 2026-09-25.
 <!-- JUDGESPEND:END -->
 
 <!-- GEMINI:START -->
@@ -115,9 +115,9 @@ used to carry still read $0.00 for runs that had cost most of the total):
 | Line | Batches | Requests | Spent (batch rates) |
 |---|---:|---:|---:|
 | Judge validation — the 25-item sample, three judge configurations | 6 | 60 | $0.0061 |
-| Full runs of the shipped configuration (r1, r2, r3, traced, pinned) | 14 | 626 | $0.1128 |
+| Full runs of the shipped configuration (r1, r2, r3, traced, pinned) | 16 | 715 | $0.1286 |
 | Comparison arms (dense_only, section_filter, v2.1) | 7 | 253 | $0.0481 |
-| **Total** | 27 | 939 | **$0.1670** |
+| **Total** | 29 | 1028 | **$0.1827** |
 <!-- SPENDTABLE:END -->
 
 Judge validation also showed that `medium` spent ~1.6× `low`'s output tokens and moved zero

@@ -1,8 +1,17 @@
 name: CI
 
-# Phase 4 adds the eval subset and the regression gate to this workflow. What runs today is
-# lint, type check, fast tests, and — the reason this file exists ahead of Phase 4 — an
-# install from a clean environment.
+# What this workflow does today, on every push to every branch:
+#
+#   check          lint (ruff), type check (mypy --strict), the fast test suite, the Langfuse
+#                  integration suite against a real local Langfuse (a skip is an error), a
+#                  re-verification of the frozen eval set, and the regression gate;
+#   clean-install  install from pyproject.toml alone and import every module.
+#
+# The regression gate REPLAYS COMMITTED RUN ARTIFACTS: it reads evals/runs/v3_de699d68_pinned.json
+# and its judge sheet and checks them against evals/baseline_metrics_pinned.json, then checks that
+# an injected regression of the same artifact fails. No model is called here — there is no key in
+# CI by design — so a code change that alters answers is not caught until the set is re-run and
+# judged (DECISIONS D-050). Nothing requires this workflow to pass (DECISIONS D-023).
 
 on:
   # Every branch, not just main. This project's working agreement is that Srikanth commits
@@ -126,10 +135,17 @@ jobs:
               item["retrieved"] = []
           pathlib.Path("/tmp/regressed.json").write_text(json.dumps(run))
           PY
-          if python -m evals.gate --run /tmp/regressed.json \
-               --sheet evals/runs/scores_luna-low_de699d68_all_pinned.json \
-               --baseline evals/baseline_metrics_pinned.json; then
-            echo "::error::the gate PASSED an injected regression — it does not gate anything"
+          # Exit 1 with the regression named, and nothing else: exit 2 is the gate *refusing*
+          # its input (no baseline, an incomplete sheet), which is not the gate firing (D-053).
+          set +e
+          python -m evals.gate --run /tmp/regressed.json \
+            --sheet evals/runs/scores_luna-low_de699d68_all_pinned.json \
+            --baseline evals/baseline_metrics_pinned.json > /tmp/gate.out 2>&1
+          code=$?
+          set -e
+          cat /tmp/gate.out
+          if [ "$code" -ne 1 ] || ! grep -q "factual_recall@5: 0.000" /tmp/gate.out; then
+            echo "::error::the gate did not fail the injected regression on recall (exit $code)"
             exit 1
           fi
           echo "the gate failed the injected regression, as it must"

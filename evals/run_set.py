@@ -288,6 +288,11 @@ def report(record: RunRecord) -> str:
         f"truncated {[(r.item_id, r.truncation_reason) for r in runs if r.truncated]}",
         f"guardrail-blocked {blocked}",
         f"guardrail events {dict(events)}",
+        # Recorded at run time. Runs before 2026-09-24 used a citation parser that missed
+        # multi-id brackets (134 of 645 answers), so their `unknown_citation` counts undercount
+        # and are not a rate of invented citations (DECISIONS D-047).
+        "  (unknown_citation counts in runs before 2026-09-24 come from a parser that missed "
+        "multi-id brackets — not an invented-citation rate; D-047)",
         # Both denominators, always. "5 refusals" reads differently over 69 items than over
         # the 44 the classifier actually judged: the keyword fast path *accepts* a question
         # without the classifier, so a fast-path event is a question the classifier never saw.

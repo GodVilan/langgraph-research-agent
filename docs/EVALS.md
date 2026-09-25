@@ -1003,3 +1003,11 @@ shown to gate anything, so all three are asserted rather than described:
    injected regression — it does not gate anything".
 3. **The clean run.** The committed r1 artifact passes its own gate, so the gate is not simply
    failing everything.
+
+**What CI does with the gate, exactly.** CI replays **committed run artifacts** — today the
+pinned run `evals/runs/v3_de699d68_pinned.json` and its judge sheet — through `evals/gate.py`
+against `evals/baseline_metrics_pinned.json`, and checks that an injected regression of the same
+artifact fails. **It does not run the agent against the pushed code**: no model is called in CI,
+so a code change that alters answers is invisible to CI until the set is re-run and judged and
+the new artifact gated. The spec's "eval on a fast subset" in CI is not built; D-050 records why
+and what would reverse it.

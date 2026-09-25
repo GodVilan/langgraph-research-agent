@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics guardrail-variance guardrail-probe generator-determinism gemini-reconcile corpus-licenses trace-units smoke-live serve docker-build docker-run deploy-space space-secrets load-check load-report check clean
+.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics guardrail-variance guardrail-probe generator-determinism gemini-reconcile corpus-licenses trace-units smoke-live verify-deploy serve docker-build docker-run deploy-space space-secrets load-check latency-single load-report check clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -185,8 +185,8 @@ generator-determinism:  ## does seed=0,top_k=1 pin the generator? (REPORT=1 repr
 gemini-reconcile:  ## Gemini bill vs every recorded token count, on tokens; names the gap (REPORT=1 reprints)
 	$(PY) scripts/gemini_reconcile.py $(if $(REPORT),--report,)
 
-corpus-licenses:  ## each corpus paper's arXiv license, counted; changes nothing (REPORT=1 reprints)
-	$(PY) scripts/corpus_licenses.py $(if $(REPORT),--report,)
+corpus-licenses:  ## each paper's arXiv license, counted; changes nothing (REPORT=1 reprints, ATTRIBUTION=1 writes CORPUS_ATTRIBUTION.md)
+	$(PY) scripts/corpus_licenses.py $(if $(REPORT),--report,) $(if $(ATTRIBUTION),--attribution,)
 
 trace-units:  ## Langfuse units per traced query, and the sampling rate the daily ceiling implies
 	$(PY) scripts/trace_units.py
@@ -214,8 +214,16 @@ space-secrets:  ## (owner runs this) copy the Space's secrets from a gitignored 
 smoke-live:  ## assert a running instance's effects: URL=... [SPACE=owner/name] [ENV_FILE=.env.deploy] [SAMPLE_RATE=1.0] [NO_TRACE=1]
 	$(PY) scripts/smoke_live.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --env-file $(or $(ENV_FILE),.env) --sample-rate $(or $(SAMPLE_RATE),1.0) $(if $(NO_TRACE),--no-trace,)
 
+verify-deploy:  ## does the live Space serve exactly git REV's files? SPACE=owner/name REV=sha
+	$(PY) scripts/verify_deploy.py --space $(SPACE) --rev $(REV)
+
 load-check:  ## G-3 load check: URL=... [SPACE=owner/name] [C=10] [SERVED=30] [MAX_MIN=15] [LABEL=deployed] [NO_TOKEN=1]
-	$(PY) scripts/load_check.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --concurrency $(or $(C),10) --min-served $(or $(SERVED),30) --max-minutes $(or $(MAX_MIN),15) --label $(or $(LABEL),deployed) $(if $(NO_TOKEN),--no-token,) --key-exclusive
+	@# caffeinate -i holds off idle sleep on macOS (not a closed lid on battery); the tool's own
+	@# clock check marks the run INVALID if the machine sleeps anyway (D-052).
+	$(shell command -v caffeinate >/dev/null 2>&1 && echo caffeinate -i) $(PY) scripts/load_check.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --concurrency $(or $(C),10) --min-served $(or $(SERVED),30) --max-minutes $(or $(MAX_MIN),15) --label $(or $(LABEL),deployed) $(if $(NO_TOKEN),--no-token,) --key-exclusive
+
+latency-single:  ## single user, warm: N=10 sequential requests SPACING=30 s apart -> evals/runs/latency_single_user.json
+	$(shell command -v caffeinate >/dev/null 2>&1 && echo caffeinate -i) $(PY) scripts/load_check.py --url $(URL) --single-user $(or $(N),10) --spacing $(or $(SPACING),30)
 
 load-report:  ## every load-check number, from evals/runs/loadcheck_<LABEL>.json
 	$(PY) scripts/load_check.py --report --label $(or $(LABEL),deployed)

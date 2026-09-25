@@ -1,13 +1,13 @@
 {
- "batches": 27,
- "priced": 27,
+ "batches": 29,
+ "priced": 29,
  "unavailable": 0,
- "requests": 939,
- "prompt_tokens": 1359403,
- "completion_tokens": 51711,
- "usd_at_batch_rates": 0.167,
+ "requests": 1028,
+ "prompt_tokens": 1487447,
+ "completion_tokens": 56605,
+ "usd_at_batch_rates": 0.1827,
  "ceiling_usd": 5.0,
- "measured_utc": "2026-09-24",
+ "measured_utc": "2026-09-25",
  "batches_detail": [
   {
    "receipt": "batch_luna-low_q1.a058e6565f1d.json",
@@ -38,6 +38,12 @@
    "status": "completed",
    "requests": 2,
    "usd": 0.000155
+  },
+  {
+   "receipt": "batch_luna-low_q1_all_deployed.json",
+   "status": "completed",
+   "requests": 69,
+   "usd": 0.005146
   },
   {
    "receipt": "batch_luna-low_q1_all_pinned.json",
@@ -104,6 +110,12 @@
    "status": "completed",
    "requests": 20,
    "usd": 0.010816
+  },
+  {
+   "receipt": "batch_luna-low_q3_all_deployed.json",
+   "status": "completed",
+   "requests": 20,
+   "usd": 0.010595
   },
   {
    "receipt": "batch_luna-low_q3_all_pinned.json",

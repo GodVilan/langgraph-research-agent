@@ -21,6 +21,7 @@ import re
 import sys
 import time
 from collections import Counter
+from collections.abc import Mapping
 from pathlib import Path
 
 import httpx
@@ -64,7 +65,7 @@ def fetch(paper_id: str, client: httpx.Client) -> str:
     raise RuntimeError(f"{paper_id}: arXiv kept answering 503")
 
 
-def report(data: dict[str, object]) -> None:
+def report(data: Mapping[str, object]) -> None:
     papers = data["papers"]
     assert isinstance(papers, dict)
     counts = Counter(NAMES.get(str(v), str(v)) for v in papers.values())
@@ -73,10 +74,59 @@ def report(data: dict[str, object]) -> None:
         print(f"  {n:>4}  {name}")
 
 
+ATTRIBUTION = REPO / "CORPUS_ATTRIBUTION.md"
+
+
+def render_attribution() -> str:
+    """CORPUS_ATTRIBUTION.md: every corpus paper with its arXiv id, title, authors and license.
+
+    Rendered from data/LICENSES.json and data/metadata.json — never edited by hand;
+    tests/test_docs.py fails a stale copy.
+    """
+    data = json.loads(OUT.read_text(encoding="utf-8"))
+    meta = {
+        str(p["paper_id"]): p
+        for p in json.loads((REPO / "data" / "metadata.json").read_text(encoding="utf-8"))
+    }
+
+    def cell(text: str) -> str:
+        return " ".join(str(text).split()).replace("|", "\\|")
+
+    rows = []
+    for pid in sorted(data["papers"]):
+        paper = meta[pid]
+        authors = paper.get("authors") or []
+        names = ", ".join(str(a) for a in authors)  # all of them: CC BY credits the creators
+        lic = NAMES.get(str(data["papers"][pid]), str(data["papers"][pid]))
+        url = str(data["papers"][pid])
+        lic_cell = f"[{lic}]({url})" if url.startswith("http") else lic
+        rows.append(
+            f"| [{pid}](https://arxiv.org/abs/{pid}) | {cell(paper.get('title', ''))} | "
+            f"{cell(names)} | {lic_cell} |"
+        )
+    return (
+        "# Corpus attribution\n\n"
+        "<!-- Rendered by `make corpus-licenses ATTRIBUTION=1` from data/LICENSES.json and "
+        "data/metadata.json. Do not edit by hand. -->\n\n"
+        f"This project's corpus is the text of the {len(rows)} arXiv papers below, chunked into "
+        "`data/chunks_512.json` and quoted in excerpts by the service. Each paper remains under "
+        "the license its authors chose on arXiv (fetched "
+        f"{data['fetched_utc'][:10]} from arXiv's OAI-PMH interface); this project's MIT license "
+        "covers its code only. To request removal of a paper, see the README's License "
+        "section.\n\n"
+        "| arXiv id | Title | Authors | License |\n|---|---|---|---|\n" + "\n".join(rows) + "\n"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--report", action="store_true")
+    parser.add_argument("--attribution", action="store_true", help="write CORPUS_ATTRIBUTION.md")
     args = parser.parse_args()
+    if args.attribution:
+        ATTRIBUTION.write_text(render_attribution(), encoding="utf-8")
+        print(f"wrote {ATTRIBUTION}")
+        return
     if args.report:
         report(json.loads(OUT.read_text(encoding="utf-8")))
         return

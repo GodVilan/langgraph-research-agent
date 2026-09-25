@@ -237,12 +237,20 @@ class UpstashLedger:
             results.append(entry.get("result"))
         return results
 
+    @staticmethod
+    def _number(raw: object) -> float:
+        """A result that is not a number is an unusable ledger, not a crash: fail closed."""
+        try:
+            return float(str(raw))
+        except ValueError as exc:
+            raise LedgerUnavailableError(f"upstash ledger: non-numeric result {raw!r}") from exc
+
     async def reserve(self, day: str, amount: float, ceiling: float) -> tuple[bool, float]:
         key = self._key(day)
         total_raw, _ = await self._pipeline(
             ["INCRBYFLOAT", key, repr(amount)], ["EXPIRE", key, str(KEY_TTL_S)]
         )
-        total = float(str(total_raw))
+        total = self._number(total_raw)
         if total > ceiling:
             await self._pipeline(["INCRBYFLOAT", key, repr(-amount)])
             return False, total - amount
@@ -252,11 +260,18 @@ class UpstashLedger:
         if delta == 0.0:
             return
         key = self._key(day)
-        await self._pipeline(["INCRBYFLOAT", key, repr(delta)], ["EXPIRE", key, str(KEY_TTL_S)])
+        total_raw, _ = await self._pipeline(
+            ["INCRBYFLOAT", key, repr(delta)], ["EXPIRE", key, str(KEY_TTL_S)]
+        )
+        # INCRBYFLOAT answers with the new total; a 200 carrying anything else is not evidence
+        # the settlement landed (D-026). Raising makes `_settle` log it instead of losing it
+        # silently — which matters when delta > 0 (a run that overshot its reservation on its
+        # last call), the one case where a lost settlement under-counts the ceiling (D-054).
+        self._number(total_raw)
 
     async def spent(self, day: str) -> float:
         (raw,) = await self._pipeline(["GET", self._key(day)])
-        return float(str(raw)) if raw is not None else 0.0
+        return self._number(raw) if raw is not None else 0.0
 
     async def close(self) -> None:
         await self._client.aclose()

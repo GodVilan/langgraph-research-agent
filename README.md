@@ -9,7 +9,7 @@ observability, evaluation, and serving layers. The audit that opened this projec
 
 <!-- STATUS:START -->
 <!-- Rendered from docs/status.json by `make readme-stats`. -->
-**Status: Phase 5 of 5 — deployed on Hugging Face Spaces and verified by `make smoke-live`; the G-3 load check is not yet published (first attempt aborted, DECISIONS D-048).** **Live: <https://godvillain-scholium.hf.space>**
+**Status: Phase 5 of 5 — deployed on Hugging Face Spaces, verified by `make smoke-live`, load-checked from one client machine, and the deployed commit's pinned run passes the regression gate (DECISIONS D-049, D-052) — Phase 5 complete, awaiting review.** **Live: <https://godvillain-scholium.hf.space>**
 <!-- STATUS:END -->
 
 Hosted on Hugging Face Spaces under PRO — Docker Spaces now need a paid plan
@@ -164,8 +164,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 694, all passing | `make test` |
-| First-party Python | 44 files, 6,357 lines under `src/` | `make readme-stats` |
+| Tests | 721, all passing | `make test` |
+| First-party Python | 44 files, 6,372 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -174,7 +174,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-09-24.*
+*Measured 2026-09-25.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
@@ -213,6 +213,19 @@ requests cannot jointly pass it), and a two-slot concurrency gate (503). A deplo
 **refuses to start** on a ledger that would forget the day's spend — checked against the real
 image, as is the volume-backed ledger carrying spend across a restart ([D-037](docs/DECISIONS.md)).
 
+<!-- LOADCHECK:START -->
+<!-- Rendered from evals/runs/loadcheck_deployed.json and evals/runs/latency_single_user.json by `make readme-stats`; `make load-report` and `make load-report LABEL=single_user` print the same figures. -->
+**Latency of the deployed instance** — one client machine against one instance, not live traffic. Each row is its own measurement; none is merged with another. Latency is client-measured, end to end, over served requests only, nearest rank (at n=32 the p95 is value 31 of 32; at n=10, value 10 of 10 — the maximum).
+
+| Measurement | n | p50 | p95 | Notes |
+|---|---:|---:|---:|---|
+| Load check, 10 concurrent users (2026-09-25, Space `caefad03`) | 32 served of 169 | 48.4 s | 88.3 s | server-side graph time p50 36.3 s / p95 72.6 s, the rest waiting for one of two slots; 137 turned away (137 `503 busy`); 3.2 served queries a minute |
+| Single user, warm, one request at a time 30 s apart (2026-09-25, Space `7745886e`) | 10 | 7.1 s | 14.3 s | server-side graph time p50 6.9 s / p95 14.1 s; 1 of 10 refused by the scope guardrail in one model call and counted; no bypass token |
+| Cold start, measured separately (2026-09-25, Space `caefad03`) | 1 | — | — | 39.6 s from restart until a new container answered `/ready`, then 3.7 s for its first query |
+
+**The throughput ceiling is the Gemini free-tier quota, not the service**: the container paces model calls at 10 calls/min, burst 3 (infra/Dockerfile), and a query in the load check made a median 3 model calls. Key exclusivity was checked for local processes only, and the public endpoint stayed open during both runs. The two Space commits differ in one deployed file, the ledger's handling of a malformed Upstash answer, which no row exercised ([D-054](docs/DECISIONS.md)). The two earlier load-check attempts are not results ([D-048](docs/DECISIONS.md), [D-052](docs/DECISIONS.md)).
+<!-- LOADCHECK:END -->
+
 **BGE-large ships, 1.3 GB and all**, because Phase 4 measured the smaller model: bge-small
 Recall@5 0.174 vs bge-large 0.267 on n=43 factual items (v2.1: 0.233), with large finding gold
 on 5 items small misses and small on none that large misses. The image pins the model to a
@@ -232,7 +245,7 @@ built or downloaded at start.
   classifier gave byte-identical output on 140 of 140 probe calls on 2026-09-24 — one day, one
   model version, not a provider guarantee — so a classifier decision is still reported
   `deterministic: false`. Re-measured end to end: the pinned configuration passes the
-  regression gate and is now the baseline CI gates ([D-035](docs/DECISIONS.md),
+  regression gate and its runs are now the baseline CI replays through the gate ([D-035](docs/DECISIONS.md),
   [D-044](docs/DECISIONS.md)).
 - **v3 refuses 26 of 46 answerable items** in Phase 4 — the largest single failure in this
   project, and the reason refusal accuracy is never quoted without it
@@ -241,6 +254,10 @@ built or downloaded at start.
 - **Throughput is the model's free-tier quota**: 10 calls a minute in the container, ~3–4 calls
   per query, so a few queries a minute for the whole instance. Beyond two in-flight queries a
   request waits up to 20 s for a slot, then gets `503 busy` rather than a long silent wait.
+<!-- UNCITED:START -->
+<!-- Rendered from evals/runs/loadcheck_deployed.json by `make readme-stats`. -->
+- **Not every served response cites a source, and `make smoke-live` retries its citation check up to 3 times.** In the load check against the deployed instance, 11 of 32 served responses cited no returned source (n=32, live Space, 2026-09-25): 5 scope-guardrail refusals (the service's own flag) and 6 not flagged — read by hand from the answer texts in the artifact (2026-09-25): 6 generator refusals. **None stated an answer without a citation.** Generation is unpinned, so the README example's citation varies by draw; `smoke-live` passes if any of 3 draws cites a returned source and warns with the count when not all do ([D-047](docs/DECISIONS.md)).
+<!-- UNCITED:END -->
 - **Threads are not durable without a volume**, and a follow-up question is retrieved without
   its antecedent (BACKLOG).
 - **The corpus is fixed**: 150 papers from one day of cs.LG. Live arXiv fetch is off on the
@@ -445,7 +462,18 @@ with `make test-integration` after `make langfuse-up`.
 ### CI reports; it does not block
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs lint, `mypy --strict`, the fast
-suite, and a clean-install job on every push to every branch. **Nothing enforces it.** There
+suite, the Langfuse integration suite, a re-verification of the frozen eval set, the regression
+gate, and a clean-install job on every push to every branch.
+
+**What the regression gate in CI does, exactly: it replays committed run artifacts through the
+gate.** It reads `evals/runs/v3_de699d68_pinned.json` and its judge sheet — outputs recorded
+when the pinned configuration was last run and judged — and checks them against
+`evals/baseline_metrics_pinned.json`, then checks that a deliberately regressed copy fails. **It
+does not run the agent on the pushed code.** A change that alters answers or retrieval passes CI
+unchanged until someone reruns `make run-set`, judges it, and gates the new artifact. Why the
+spec's fast-subset live eval is not in CI: [D-050](docs/DECISIONS.md).
+
+**Nothing enforces any of it.** There
 is no branch protection and no required check, so a red run does not stop a commit reaching
 `main` — this repository is developed by committing to `main` directly, without pull
 requests, and a status check can only block a merge that goes through one.
@@ -453,9 +481,9 @@ requests, and a status check can only block a merge that goes through one.
 That is a deliberate trade and it is stated here rather than left to be inferred, because a
 badge and a workflow file together imply an enforcement that does not exist. Making it
 blocking means adopting pull requests and enabling branch protection on both jobs; the
-decision is recorded in [DECISIONS D-023](docs/DECISIONS.md) and revisited when Phase 4's
-regression gate lands, since a gate nobody is required to pass is a weaker claim than it
-looks.
+decision is recorded in [DECISIONS D-023](docs/DECISIONS.md). The regression gate has landed
+and the trade stands: a gate nobody is required to pass, over artifacts rather than the pushed
+code, is a weaker claim than "CI gates regressions" sounds, and this section says so.
 
 The clean-install job is the one worth explaining. It installs from `pyproject.toml` alone
 into an uncached environment and imports every module from a directory that is not the repo
@@ -511,19 +539,19 @@ Stated plainly, because a reader should not have to infer it:
 | | Phase | Status |
 |---|---|---|
 | Eval dataset | 4 | **Frozen: 69 items** (43 factual / 3 multi-hop / 2 unanswerable-topic / 11 unanswerable-attribute / 10 ambiguous), `evals/datasets/phase4.json`, `make verify-dataset`. Why 69 and not 100: [EVALS.md](docs/EVALS.md). |
-| Metrics, baseline, CI regression gate | 4 | **Built** — metrics over all 69 with a three-draw spread, a live regression gate demonstrated failing on an injected regression ([PHASE4.md](docs/PHASE4.md)). |
+| Metrics, baseline, CI regression gate | 4 | **Built** — metrics over all 69 with a three-draw spread; a regression gate that CI runs over **committed run artifacts** (not the pushed code — [D-050](docs/DECISIONS.md)), demonstrated failing on an injected regression ([PHASE4.md](docs/PHASE4.md)). |
 | v2.1-vs-v3 comparison | 4 | **Run.** Same frozen 69 items, same corpus, same generator, v2.1 pinned at `8d3e67f`, retriever frozen identical. **Retrieval: no gain for v3** — Recall@5 0.267 (v3, three runs, spread 0.000) vs 0.233 (v2.1), and v2.1 is *ahead* on MRR (0.196 vs 0.175) and on finding the gold paper (28 vs 21–22 of 43), with the same 30 of 43 items missed by both; the number belongs to the eval set's paraphrasing, not to either system. **Outcomes: v3 ahead outside the spread** — 15 correct of 46 answerable vs 6, and 5 wrong vs 11 (7 of v2.1's 11 answered from the wrong paper). v3's justification is orchestration, checkpointing and observability — **not retrieval quality**. Detail and the places v3 is worse: [EVALS.md](docs/EVALS.md). |
 | FastAPI service, Docker | 5 | **Built and run locally** ([SERVING.md](docs/SERVING.md)). |
-| Deployment | 5 | **Live** at <https://godvillain-scholium.hf.space>, verified by `make smoke-live` and on-host checks ([D-047](docs/DECISIONS.md)). |
-| Load figures | 5 | **Not published.** The first load check was aborted — it found a reservation leak (fixed) and was itself a runaway ([D-048](docs/DECISIONS.md)). |
+| Deployment | 5 | **Live** at <https://godvillain-scholium.hf.space>, verified by `make smoke-live` and on-host checks ([D-047](docs/DECISIONS.md)); the deployed commit is mapped file by file to git (`make verify-deploy`) and a pinned run of it passes the regression gate ([D-049](docs/DECISIONS.md)). |
+| Load figures | 5 | **Published** — one load check against the deployed instance, one client machine, in [Serving](#serving). Two earlier attempts are not results: the first found a reservation leak (fixed) and was itself a runaway ([D-048](docs/DECISIONS.md)); the second measured a sleeping laptop ([D-052](docs/DECISIONS.md)). |
 
 Deferred design choices and their reasons are in [BACKLOG.md](docs/BACKLOG.md).
 
 ### Numbers this README does not report
 
-No latency figure for the deployed instance and no load-check figure: the one load check run so
-far was aborted and its numbers are not a result ([D-048](docs/DECISIONS.md)). Phase 4's p50/p95 are a local batch run, single-user, and are not
-serving figures.
+No live-traffic figure: the deployed instance's latency and throughput come from one load check,
+one client machine against one instance, and are labelled that way wherever they appear. Phase
+4's p50/p95 are a local batch run, single-user, and are not serving figures either.
 
 ---
 
@@ -557,7 +585,7 @@ answers; do not send the endpoint anything private.
 
 <!-- JUDGESPEND:START -->
 <!-- Rendered from evals/runs/judge_spend.json by `make readme-stats`; the figure is summed from the batches by `make judge-spend`. -->
-**OpenAI judge spend: $0.1670 of the $5.00 lifetime ceiling** — 939 Batch requests, 1,359,403 input / 51,711 output tokens at batch rates, measured 2026-09-24.
+**OpenAI judge spend: $0.1827 of the $5.00 lifetime ceiling** — 1028 Batch requests, 1,487,447 input / 56,605 output tokens at batch rates, measured 2026-09-25.
 <!-- JUDGESPEND:END -->
 
 The originally pinned `gemini-2.5-flash-lite` was retired for new API keys and returns 404,
@@ -638,5 +666,12 @@ What that means here, stated as the open question it is rather than resolved:
   container image bakes it in, and the service quotes excerpts of it in answers. Whether that is
   permitted is **not verified**. Nothing has been changed yet; the audit (`make corpus-licenses`,
   per-paper results in `data/LICENSES.json`) exists so the decision can be made on the facts.
+
+**Decision (2026-09-24, [D-051](docs/DECISIONS.md)): all 150 papers stay; nothing in the corpus
+changes.** Every paper is credited with its arXiv id, title, all authors and license in
+[CORPUS_ATTRIBUTION.md](CORPUS_ATTRIBUTION.md), rendered from the audit.
+
+**Takedown:** if you are an author of a paper in this corpus and want it removed, open a GitHub
+issue at <https://github.com/GodVilan/langgraph-research-agent/issues>.
 
 This is a statement of what the licenses say, not legal advice.

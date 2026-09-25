@@ -2,7 +2,7 @@
   "_comment": "The one hand-edited source for the project status. `make readme-stats` renders README's STATUS block from it; tests/test_docs.py fails if the README disagrees. Edit here, never in the README.",
   "phase": 5,
   "of": 5,
-  "state": "deployed on Hugging Face Spaces and verified by `make smoke-live`; the G-3 load check is not yet published (first attempt aborted, DECISIONS D-048)",
+  "state": "deployed on Hugging Face Spaces, verified by `make smoke-live`, load-checked from one client machine, and the deployed commit's pinned run passes the regression gate (DECISIONS D-049, D-052) \u2014 Phase 5 complete, awaiting review",
   "live_url": "https://godvillain-scholium.hf.space",
   "closed_phases": [
     0,

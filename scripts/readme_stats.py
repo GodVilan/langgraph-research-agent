@@ -15,6 +15,8 @@ import json
 import re
 import subprocess
 import sys
+from collections import Counter
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -121,7 +123,163 @@ BLOCKS = {
     "SPENDTABLE": ("<!-- SPENDTABLE:START -->", "<!-- SPENDTABLE:END -->"),
     "GEMINI": ("<!-- GEMINI:START -->", "<!-- GEMINI:END -->"),
     "LICENSES": ("<!-- LICENSES:START -->", "<!-- LICENSES:END -->"),
+    "LOADCHECK": ("<!-- LOADCHECK:START -->", "<!-- LOADCHECK:END -->"),
+    "UNCITED": ("<!-- UNCITED:START -->", "<!-- UNCITED:END -->"),
 }
+LOADCHECK_JSON = REPO / "evals" / "runs" / "loadcheck_deployed.json"
+
+
+def _loadcheck() -> dict[str, object]:
+    """The published load check — refused if the tool marked it invalid (D-052) or it fell
+    short of the served count G-3 asks for."""
+    sys.path.insert(0, str(REPO))
+    from scripts.load_check import load_artifact
+
+    data = load_artifact(LOADCHECK_JSON)
+    if data.get("invalid"):
+        raise SystemExit(f"{LOADCHECK_JSON.name} is marked invalid: {data['invalid']}")
+    served = [r for r in data["records"] if r["status"] == 200]
+    if len(served) < int(data["min_served"]):
+        raise SystemExit(f"{LOADCHECK_JSON.name}: {len(served)} served < {data['min_served']}")
+    return data
+
+
+SINGLE_USER_JSON = REPO / "evals" / "runs" / "latency_single_user.json"
+
+
+def _single_user() -> dict[str, object]:
+    """The single-user warm run — refused if the client slept or any request was not served."""
+    sys.path.insert(0, str(REPO))
+    from scripts.load_check import ClientClock, invalid_reason
+
+    data = dict(json.loads(SINGLE_USER_JSON.read_text(encoding="utf-8")))
+    recs = data["records"]
+    assert isinstance(recs, list)
+    drift = max((float(r.get("clock_drift_s", 0.0)) for r in recs), default=0.0)
+    if data.get("invalid") or drift > ClientClock.TOLERANCE_S:
+        raise SystemExit(f"{SINGLE_USER_JSON.name} is invalid: {invalid_reason(drift)}")
+    unserved = [r for r in recs if r["status"] != 200]
+    if unserved:
+        raise SystemExit(f"{SINGLE_USER_JSON.name}: {len(unserved)} request(s) not served")
+    return data
+
+
+def render_loadcheck() -> str:
+    """Three measurements of the deployed instance, one row each, never merged: the concurrent
+    load check, one user against a warm instance, and cold start."""
+    import math
+    import statistics
+
+    from scripts.load_check import pct
+
+    def p95_rank(n: int) -> int:
+        return max(1, math.ceil(0.95 * n))
+
+    data = _loadcheck()
+    recs = data["records"]
+    assert isinstance(recs, list)
+    ok = [r for r in recs if r["status"] == 200]
+    n = len(ok)
+    minutes = float(data["wall_s"]) / 60  # type: ignore[arg-type]
+    rejected = Counter(f"{r['status']} {r.get('reason', '')}".strip() for r in recs if r not in ok)
+    rej = ", ".join(f"{c} `{k}`" for k, c in rejected.most_common())
+    lat = [r["client_ms"] / 1000 for r in ok]
+    srv = [r["server_ms"] / 1000 for r in ok]
+    calls = statistics.median(r["llm_calls"] for r in ok)
+    cold = data["cold_start"]
+    assert isinstance(cold, dict)
+
+    single = _single_user()
+    srecs = single["records"]
+    assert isinstance(srecs, list)
+    s_lat = [r["client_ms"] / 1000 for r in srecs]
+    s_srv = [r["server_ms"] / 1000 for r in srecs if r.get("server_ms") is not None]
+    sn = len(srecs)
+    s_blocked = sum(1 for r in srecs if r.get("guardrail_blocked"))
+    day = str(data["started_utc"])[:10]
+    sday = str(single["started_utc"])[:10]
+    start, end = BLOCKS["LOADCHECK"]
+    rows = [
+        f"| Load check, {data['concurrency']} concurrent users ({day}, Space "
+        f"`{data.get('space_commit', '?')}`) | {n} served of "
+        f"{len(recs)} | {pct(lat, 50):.1f} s | {pct(lat, 95):.1f} s | server-side graph time "
+        f"p50 {pct(srv, 50):.1f} s / p95 {pct(srv, 95):.1f} s, the rest waiting for one of two "
+        f"slots; {len(recs) - n} turned away ({rej}); {n / minutes:.1f} served queries a minute |",
+        f"| Single user, warm, one request at a time {single['spacing_s']:.0f} s apart ({sday}, "
+        f"Space `{single.get('space_commit', '?')}`) "
+        f"| {sn} | {pct(s_lat, 50):.1f} s | {pct(s_lat, 95):.1f} s | server-side graph time p50 "
+        f"{pct(s_srv, 50):.1f} s / p95 {pct(s_srv, 95):.1f} s; {s_blocked} of {sn} refused by "
+        f"the scope guardrail in one model call and counted; no bypass token |",
+        f"| Cold start, measured separately ({day}, Space `{data.get('space_commit', '?')}`) "
+        f"| 1 | — | — | {cold['seconds_to_ready']} s "
+        f"from restart until a new container answered `/ready`, then "
+        f"{cold['first_request_s']} s for its first query |",
+    ]
+    return (
+        f"{start}\n<!-- Rendered from evals/runs/loadcheck_deployed.json and "
+        f"evals/runs/latency_single_user.json by `make readme-stats`; `make load-report` and "
+        f"`make load-report LABEL=single_user` print the same figures. -->\n"
+        f"**Latency of the deployed instance** — one client machine against one instance, not "
+        f"live traffic. Each row is its own measurement; none is merged with another. Latency is "
+        f"client-measured, end to end, over served requests only, nearest rank (at n={n} the p95 "
+        f"is value {p95_rank(n)} of {n}; at n={sn}, value {p95_rank(sn)} of {sn} — the "
+        f"maximum).\n\n"
+        f"| Measurement | n | p50 | p95 | Notes |\n|---|---:|---:|---:|---|\n"
+        + "\n".join(rows)
+        + f"\n\n**The throughput ceiling is the Gemini free-tier quota, not the service**: the "
+        f"container paces model calls at {data['pacer']}, and a query in the load check made a "
+        f"median {calls:g} model calls. Key exclusivity was checked for local processes only, "
+        f"and the public endpoint stayed open during both runs. The two Space commits differ "
+        f"in one deployed file, the ledger's handling of a malformed Upstash answer, which no row "
+        f"exercised ([D-054](docs/DECISIONS.md)). The two earlier load-check "
+        f"attempts are not results ([D-048](docs/DECISIONS.md), [D-052](docs/DECISIONS.md)).\n"
+        f"{end}"
+    )
+
+
+def render_uncited() -> str:
+    """Uncited served responses, split by the service's own guardrail flag; the rest must have
+    been read (``uncited_reading`` in the artifact) or this refuses to render."""
+    sys.path.insert(0, str(REPO))
+    from scripts.smoke_live import DRAWS
+
+    data = _loadcheck()
+    recs = data["records"]
+    assert isinstance(recs, list)
+    ok = [r for r in recs if r["status"] == 200]
+    uncited = [r for r in ok if not r["cited"]]
+    blocked = [r for r in uncited if r.get("guardrail_blocked")]
+    other = [r for r in uncited if not r.get("guardrail_blocked")]
+    reading = data.get("uncited_reading") or {}
+    assert isinstance(reading, dict)
+    verdicts = reading.get("records") or {}
+    unread = [r["i"] for r in other if str(r["i"]) not in verdicts]
+    if unread:
+        raise SystemExit(f"uncited responses not yet read: {unread} (make load-report prints them)")
+    kinds = Counter(verdicts[str(r["i"])] for r in other)
+    read = ", ".join(f"{c} {k}{'s' if c != 1 else ''}" for k, c in kinds.most_common())
+    answers = [r for r in other if verdicts[str(r["i"])] != "generator refusal"]
+    start, end = BLOCKS["UNCITED"]
+    return (
+        f"{start}\n<!-- Rendered from evals/runs/loadcheck_deployed.json by `make readme-stats`. "
+        f"-->\n"
+        f"- **Not every served response cites a source, and `make smoke-live` retries its "
+        f"citation check up to {DRAWS} times.** In the load check against the deployed "
+        f"instance, {len(uncited)} of {len(ok)} served responses cited no returned source "
+        f"(n={len(ok)}, live Space, {str(data['started_utc'])[:10]}): {len(blocked)} "
+        f"scope-guardrail refusals (the service's own flag) and {len(other)} not flagged — "
+        f"read by hand from the answer texts in the artifact ({reading.get('read_utc')}): {read}. "
+        + (
+            "**None stated an answer without a citation.** "
+            if not answers
+            else f"**{len(answers)} stated an answer without a citation.** "
+        )
+        + f"Generation is unpinned, so the README example's citation varies by draw; "
+        f"`smoke-live` passes if any of {DRAWS} draws cites a returned source and warns with the "
+        f"count when not all do ([D-047](docs/DECISIONS.md)).\n{end}"
+    )
+
+
 LICENSES_JSON = REPO / "data" / "LICENSES.json"
 
 
@@ -154,7 +312,7 @@ def render_gemini() -> str:
     bill = json.loads(GEMINI_BILLING.read_text(encoding="utf-8"))
     rec = json.loads(GEMINI_RECONCILE.read_text(encoding="utf-8"))
     total = float(bill["total_usd"])
-    by = {}
+    by: dict[tuple[str, str], float] = {}
     for sku in bill["skus"]:
         key = (sku["model"], sku["kind"])
         by[key] = by.get(key, 0.0) + float(sku["usd"])
@@ -205,7 +363,7 @@ def render_spend() -> str:
 
 
 # What each batch receipt paid for, by its file name (evals/runs/batch_<arm>_<stage>[_all][_tag]).
-SPEND_LINES = (
+SPEND_LINES: tuple[tuple[str, Callable[[str], bool]], ...] = (
     (
         "Judge validation — the 25-item sample, three judge configurations",
         lambda r: "_all" not in r,
@@ -267,6 +425,8 @@ def main() -> int:
     updated = replace_block(updated, "JUDGESPEND", render_spend())
     updated = replace_block(updated, "GEMINI", render_gemini())
     updated = replace_block(updated, "LICENSES", render_licenses())
+    updated = replace_block(updated, "LOADCHECK", render_loadcheck())
+    updated = replace_block(updated, "UNCITED", render_uncited())
     readme.write_text(updated, encoding="utf-8")
     budget = REPO / "docs" / "BUDGET.md"
     budget_text = replace_block(budget.read_text(encoding="utf-8"), "JUDGESPEND", render_spend())
