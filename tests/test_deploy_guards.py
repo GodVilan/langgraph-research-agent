@@ -16,6 +16,7 @@ Three mechanisms, each tested so that it fires:
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -138,3 +139,116 @@ class TestClientRefusesSeedsRemotely:
     )
     def test_locality_is_the_parsed_hostname(self, host: str, local: bool) -> None:
         assert ObservabilitySettings(langfuse_host=host).host_is_local is local
+
+
+class TestDeployOnlyFromATaggedCommit:
+    """D-055: `make deploy-space` refuses unless every deployed file is a tagged commit."""
+
+    @staticmethod
+    def repo(tmp_path: Path) -> Path:
+        import subprocess
+
+        r = tmp_path / "repo"
+        for rel, text in {
+            ".dockerignore": "*\n!pyproject.toml\n!src/\n",
+            "pyproject.toml": "[project]\nname='x'\n",
+            "src/app.py": "print('v1')\n",
+            "infra/Dockerfile": "FROM scratch\n",
+            "scripts/deploy_space.py": "# card\n",
+            "README.md": "not deployed\n",
+        }.items():
+            (r / rel).parent.mkdir(parents=True, exist_ok=True)
+            (r / rel).write_text(text, encoding="utf-8")
+        for cmd in (
+            ["init", "-q"],
+            ["add", "-A"],
+            ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "c1"],
+            ["tag", "deploy-2026-01-01"],
+        ):
+            subprocess.run(["git", *cmd], cwd=r, check=True, capture_output=True)
+        return r
+
+    def test_a_clean_tagged_tree_is_accepted(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        prov = provenance(self.repo(tmp_path))
+        assert prov.deploy_tags == ["deploy-2026-01-01"] and prov.dirty == []
+        assert deploy_refusal(prov) == ""
+
+    def test_a_modified_deployed_file_is_refused(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        r = self.repo(tmp_path)
+        (r / "src" / "app.py").write_text("print('v2')\n", encoding="utf-8")
+        refusal = deploy_refusal(provenance(r))
+        assert "src/app.py" in refusal and "D-055" in refusal
+
+    def test_an_untracked_deployed_file_is_refused(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        r = self.repo(tmp_path)
+        (r / "src" / "new.py").write_text("x = 1\n", encoding="utf-8")
+        assert "src/new.py" in deploy_refusal(provenance(r))
+
+    def test_the_dockerfile_and_the_card_renderer_count_as_deployed(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        r = self.repo(tmp_path)
+        (r / "infra" / "Dockerfile").write_text("FROM busybox\n", encoding="utf-8")
+        (r / "scripts" / "deploy_space.py").write_text("# other card\n", encoding="utf-8")
+        refusal = deploy_refusal(provenance(r))
+        assert "infra/Dockerfile" in refusal and "scripts/deploy_space.py" in refusal
+
+    def test_an_untagged_head_is_refused_even_when_clean(self, tmp_path: Path) -> None:
+        import subprocess
+
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        r = self.repo(tmp_path)
+        (r / "src" / "app.py").write_text("print('v2')\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "c2"],
+            cwd=r,
+            check=True,
+        )
+        assert "carries no deploy-* tag" in deploy_refusal(provenance(r))
+
+    def test_a_dirty_file_that_is_not_deployed_does_not_block(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import deploy_refusal, provenance
+
+        r = self.repo(tmp_path)
+        (r / "README.md").write_text("edited\n", encoding="utf-8")
+        assert deploy_refusal(provenance(r)) == ""
+
+    def test_main_refuses_before_uploading_and_allow_dirty_is_explicit(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        import scripts.deploy_space as ds
+
+        dirty = ds.Provenance(head="a" * 40, deploy_tags=[], dirty=["src/app.py"])
+        monkeypatch.setattr(ds, "provenance", lambda repo=ds.REPO: dirty)
+        monkeypatch.setattr(ds, "assemble_context", lambda dest: dest.mkdir(parents=True) or dest)
+        monkeypatch.setattr(ds, "check_context", lambda context: None)
+        monkeypatch.setattr(
+            sys, "argv", ["deploy_space.py", "--space", "o/n", "--i-confirmed-public"]
+        )
+        with pytest.raises(SystemExit, match="refusing to deploy: deployed files differ"):
+            ds.main()
+
+        # The override gets past the guard, warns, and still stops at the publish confirmation
+        # when that is absent — so this test uploads nothing.
+        monkeypatch.setattr(sys, "argv", ["deploy_space.py", "--space", "o/n", "--allow-dirty"])
+        with pytest.raises(SystemExit, match="without --i-confirmed-public"):
+            ds.main()
+        assert "WARNING: --allow-dirty" in capsys.readouterr().err
+
+    def test_a_deploy_record_is_written_and_read_back(self, tmp_path: Path) -> None:
+        import json
+
+        from scripts.deploy_space import record_deploy
+
+        log = tmp_path / "deploy_log.jsonl"
+        record_deploy({"space_commit": "abc", "allow_dirty": True}, log)
+        record_deploy({"space_commit": "def", "allow_dirty": False}, log)
+        rows = [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines()]
+        assert [r["space_commit"] for r in rows] == ["abc", "def"]

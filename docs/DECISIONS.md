@@ -2306,6 +2306,13 @@ created**: it must point at a commit holding this fix, and commits are Srikanth'
 commits: `git tag deploy-2026-09-25 <commit>` and `make verify-deploy SPACE=godvillain/Scholium
 REV=deploy-2026-09-25`, expected 60 / 0; the pair to record is `<commit>` == Space `7745886e`.
 
+**Mapping recorded (2026-09-25): tag `deploy-2026-09-25` = git `957b711` = Space `7745886e`.**
+Srikanth committed and tagged; `make verify-deploy SPACE=godvillain/Scholium
+REV=deploy-2026-09-25`: identical 60, mismatched 0, not compared 1 (`.gitattributes`, Hugging
+Face's own). This was the second deploy run from uncommitted files — the first, `caefad03`, was
+mapped to `d6b0369` only after the fact (D-049) — so `make deploy-space` now refuses to do it
+again (D-055).
+
 **Why the G-3 load check and the item 4 gate result carry over.** The deployed files differ from
 `d6b0369` in exactly one: `make verify-deploy REV=d6b0369` against the new Space reports **59
 identical, 1 mismatched — `src/api/ledger.py`**, and `git diff d6b0369` over the deploy
@@ -2338,3 +2345,39 @@ started after `period.to`. Tests: every artifact is counted exactly when it star
 period, and the committed reconciliation lists exactly the runs the script now selects. The usage
 log is not a measured source in this script, so the 236 deploy-key rows appended to it are not
 counted either.
+
+## D-055 — Deploy only a tagged commit; the override is explicit and recorded
+
+**Decided (Srikanth, 2026-09-25):** Srikanth commits and tags; the deploy runs from the tag.
+Two deploys had run from uncommitted working trees — `caefad03`, mapped to `d6b0369` only after
+the fact (D-049), and `7745886e`, verified against the working tree and mapped to `957b711` once
+the commit existed (D-054). Both mappings held, but only because someone checked afterwards.
+
+**The mechanism.** `scripts/deploy_space.py` computes what would ship before uploading:
+`HEAD`, the `deploy-*` tags on it, and `git status --porcelain --untracked-files=all` over every
+deployed path — the `.dockerignore` allow-list plus `infra/Dockerfile`, `.dockerignore` and the
+script itself, whose text renders the Space card. The upload refuses if any deployed path is
+modified or untracked, or if `HEAD` has no `deploy-*` tag. Paths git ignores (the FAISS index)
+are outside git's vouching; their checksums are committed and verified by `check_context`, as
+before. A dirty file that is not deployed (docs, tests, evals) does not block.
+
+`--allow-dirty` (`make deploy-space ALLOW_DIRTY=1`) overrides the refusal, prints a warning,
+names the Space commit "deploy arXiv Agent v3 from UNCOMMITTED (--allow-dirty) on <sha>", and
+the deploy record carries `allow_dirty: true` with the dirty paths. Every upload appends one line
+to `infra/deploy_log.jsonl` (time, Space, Space commit, git `HEAD`, tags, override, dirty paths)
+and reads it back (D-026). A clean deploy's Space commit message names its tag and short sha.
+The log starts with the two earlier deploys, backfilled and marked so (`backfilled`, with the
+after-the-fact mapping), recorded as what they were: uncommitted deploys.
+
+**Tests** (`tests/test_deploy_guards.py::TestDeployOnlyFromATaggedCommit`, in a throwaway git
+repo): a clean tagged tree is accepted; a modified deployed file, an untracked deployed file, a
+changed Dockerfile or card renderer, and a clean but untagged `HEAD` are each refused; a dirty
+file outside the deployed set does not block; `main()` refuses before any upload, and the
+override passes the guard with a warning while still stopping at the publish confirmation; the
+deploy record is written and read back. On the real repo the dry run reported
+`an upload would be refused: deployed files differ from HEAD: scripts/deploy_space.py` — this
+change itself, uncommitted.
+
+**Reverses if:** never silently. A deploy that must go out before a commit uses the override,
+and the record says so.
+

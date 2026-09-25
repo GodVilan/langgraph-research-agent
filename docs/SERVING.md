@@ -279,8 +279,35 @@ leaves `/query` answering in well under a second with fakes
 
 **Cold start on a sleeping host** is container start plus model load. It is paid by the
 first request after every sleep and is not hidden: `/health` answers immediately and
-`/ready` says `loading` until the model is in memory. The figure for the deployed host is
-recorded at deploy time — **not verified until then**.
+`/ready` says `loading` until the model is in memory. The deployed host's figure is measured
+separately from any load, after a restart, and published in the README's latency table
+(`make load-report`).
+
+### Deploying: a tagged commit, nothing else
+
+Srikanth commits and tags `deploy-YYYY-MM-DD`; the deploy runs from that tag:
+
+```bash
+make deploy-space SPACE=godvillain/Scholium DRY=1
+```
+
+```bash
+make deploy-space SPACE=godvillain/Scholium
+```
+
+```bash
+make verify-deploy SPACE=godvillain/Scholium REV=deploy-YYYY-MM-DD
+```
+
+The upload **refuses** unless every deployed path — the `.dockerignore` allow-list, `infra/Dockerfile`,
+`.dockerignore` itself and `scripts/deploy_space.py`, which renders the Space card — is clean in
+git (untracked files count) and `HEAD` carries a `deploy-*` tag. The dry run prints the same
+verdict without refusing. `ALLOW_DIRTY=1` overrides it: it warns, names the Space commit
+"UNCOMMITTED (--allow-dirty)", and the deploy log records the dirty paths. Every upload appends
+one line to `infra/deploy_log.jsonl` (time, Space commit, git `HEAD`, its tags, override, dirty
+paths), read back after writing. The gitignored FAISS index is not git's to vouch for; its
+checksums are committed and verified before upload. Why: two deploys ran from uncommitted files
+and were mapped to git only afterwards (D-049, D-054, D-055).
 
 ---
 

@@ -205,8 +205,8 @@ docker-run:  ## run the image locally with a volume-backed ledger and threads on
 	  -e API__LEDGER=sqlite -e API__LEDGER_PATH=/data/ledger.sqlite -e CHECKPOINT_DB=/data/threads.sqlite \
 	  -v arxiv-agent-data:/data arxiv-agent-v3
 
-deploy-space:  ## deploy to a Hugging Face Docker Space: SPACE=owner/name [DRY=1]
-	$(PY) scripts/deploy_space.py --space $(SPACE) $(if $(DRY),--dry-run,--i-confirmed-public)
+deploy-space:  ## deploy a tagged commit to a Hugging Face Docker Space: SPACE=owner/name [DRY=1] [ALLOW_DIRTY=1]
+	$(PY) scripts/deploy_space.py --space $(SPACE) $(if $(DRY),--dry-run,--i-confirmed-public) $(if $(ALLOW_DIRTY),--allow-dirty,)
 
 space-secrets:  ## (owner runs this) copy the Space's secrets from a gitignored deploy env file: SPACE=owner/name [ENV_FILE=.env.deploy]
 	$(PY) scripts/space_secrets.py --space $(SPACE) --env-file $(or $(ENV_FILE),.env.deploy)
