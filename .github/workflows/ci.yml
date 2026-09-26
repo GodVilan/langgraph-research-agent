@@ -100,13 +100,22 @@ jobs:
             curl -sf http://localhost:3000/api/public/health && break
             sleep 5
           done
-          # -o markers, then assert the run was not silently empty or skipped.
-          pytest -q -m integration --no-header -rs > integration.log 2>&1 || true
+          # `integration and not network`: the trace suite only. The multi-hop necessity
+          # fixtures are marked `integration` too, but they call Gemini and CI has no key by
+          # design — selected here they skip, and the first version of this check could not
+          # see a partial skip (D-057).
+          set +e
+          pytest -q -m "integration and not network" --no-header -rs > integration.log 2>&1
+          code=$?
+          set -e
           cat integration.log
-          if grep -qE "^[0-9]+ (skipped|no tests ran)" integration.log || \
-             ! grep -qE "[0-9]+ passed" integration.log; then
-            echo "::error::the integration suite did not run — a permanently skipped test is"
-            echo "::error::no coverage at all, and the trace path has none other than this"
+          summary=$(tail -n 1 integration.log)
+          # Fail on any of: pytest failing (the first version piped `|| true`, so "1 failed,
+          # 1 passed" read as green), any skip anywhere in the summary, or nothing collected.
+          if [ "$code" -ne 0 ] || echo "$summary" | grep -qE "skipped|no tests ran" || \
+             ! echo "$summary" | grep -qE "^[0-9]+ passed"; then
+            echo "::error::the integration suite failed, skipped or did not run (exit $code):"
+            echo "::error::$summary"
             exit 1
           fi
 

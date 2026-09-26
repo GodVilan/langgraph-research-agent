@@ -89,22 +89,34 @@ def blackhole_langfuse() -> Iterator[str]:
     sock.close()
 
 
-def install_client(monkeypatch: pytest.MonkeyPatch, host: str) -> object:
+class Installed:
+    """The client, the provider it exports through, and the threads creating it started."""
+
+    def __init__(self, client: object, provider: object, threads: set[threading.Thread]) -> None:
+        self.client, self.provider, self.threads = client, provider, threads
+
+
+def install_client(monkeypatch: pytest.MonkeyPatch, host: str) -> Installed:
     from langfuse import Langfuse
     from opentelemetry.sdk.trace import TracerProvider
 
     # Own provider, so no process-global one outlives the test; the exporter is Langfuse's
     # real OTLP exporter, aimed at the stub.
+    before = set(threading.enumerate())
+    provider = TracerProvider()
     client = Langfuse(
         public_key="pk-test-faults",
         secret_key="sk-test-faults",
         host=host,
-        tracer_provider=TracerProvider(),
+        tracer_provider=provider,
+        # Bounds the exporter's own wait, so the synchronous shutdown below ends in seconds
+        # against a stub that never answers. It does not touch the request path under test.
+        timeout=1,
     )
     monkeypatch.setattr(lf, "_CLIENT", client)
     monkeypatch.setattr(lf, "_CLIENT_TRIED", True)
     monkeypatch.setattr(lf, "callback_handler", lambda: None)
-    return client
+    return Installed(client, provider, set(threading.enumerate()) - before)
 
 
 @pytest.fixture
@@ -125,7 +137,7 @@ async def test_query_answers_promptly_when_langfuse_misbehaves(
     from tests.fakes import passing_critique, simple_plan
 
     host = request.getfixturevalue(backend)
-    client = install_client(monkeypatch, host)
+    installed = install_client(monkeypatch, host)
     scripted([simple_plan(), "An answer.", passing_critique()])
     try:
         async with running(api_settings, FakeRetrievalService(), MemoryLedger()) as (_, http):
@@ -142,5 +154,35 @@ async def test_query_answers_promptly_when_langfuse_misbehaves(
             f"/query took {elapsed:.1f}s against a {backend}: export is on the request path"
         )
     finally:
-        # Shutdown may wait on the exporter; that is process exit, not a request.
-        threading.Thread(target=client.shutdown, daemon=True).start()  # type: ignore[attr-defined]
+        shut_down_before_the_stub_closes(installed)
+
+
+def shut_down_before_the_stub_closes(installed: Installed) -> None:
+    """Stop the exporter while its stub is still up, and prove it stopped.
+
+    The first version started `client.shutdown()` in a fire-and-forget daemon thread and
+    returned; the fixtures then closed the stubs, and the exporter's worker threads kept
+    retrying against dead ports into later tests — six threads still alive two seconds after
+    this file finished, logging `Connection refused … retrying`, hidden by output capture
+    (D-057). `client.shutdown()` alone is not enough: the SDK flushes and stops its own queue
+    threads but does not shut down a tracer provider it was handed, and the span processor
+    belongs to that provider. Shutdown is not on the request path, so waiting for it here
+    costs the suite a second or two and measures nothing it should not.
+    """
+
+    def shutdown() -> None:
+        installed.client.shutdown()  # type: ignore[attr-defined]
+        installed.provider.shutdown()  # type: ignore[attr-defined]
+        # Langfuse 4.14's shutdown also leaves its prompt-cache consumer running (idle, no
+        # network). Private path; if the SDK moves it this raises rather than passing quietly.
+        installed.client._resources.prompt_cache._task_manager.shutdown()  # type: ignore[attr-defined]
+
+    worker = threading.Thread(target=shutdown)
+    worker.start()
+    worker.join(timeout=15)
+    assert not worker.is_alive(), "shutdown did not finish within 15 s"
+    deadline = time.monotonic() + 5
+    while any(t.is_alive() for t in installed.threads) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    alive = sorted(t.name for t in installed.threads if t.is_alive())
+    assert not alive, f"threads the client started outlived it: {alive}"

@@ -91,3 +91,12 @@ class TestCiLocal:
                     continue
                 name = step["name"]
                 assert (name in run_here) != bool(skipped(job_id, name)), (job_id, name)
+
+    def test_the_workflow_is_read_from_the_export_not_the_checkout(self) -> None:
+        """A relative path, resolved against the export: the commit's own ci.yml is what runs."""
+        import inspect
+
+        from scripts import ci_local
+
+        assert not ci_local.WORKFLOW.is_absolute()
+        assert "export_dir / WORKFLOW" in inspect.getsource(ci_local.main)

@@ -31,12 +31,21 @@
 #
 # ENCRYPTION_KEY, SALT, and NEXTAUTH_SECRET are quoted because YAML will otherwise parse an
 # all-digit hex string as an integer, and Langfuse then rejects it as too short.
+#
+# EVERY IMAGE IS PINNED BY DIGEST (2026-09-26, DECISIONS D-057). A floating tag let a fresh
+# clone, and CI, get something other than what was tested here: `minio/minio` was withdrawn
+# from Docker Hub (MinIO went source-only, 2025-10-15) and survived on this machine only as a
+# cached image; `langfuse/langfuse:3` had moved past the v3.225.4 the Phase 4 trace window was
+# captured on; the postgres and redis tags had moved too. Each digest below is the image this
+# stack was tested with; the tag beside it is for the reader, the digest is what Docker pulls.
+# MinIO follows upstream Langfuse to Chainguard's build (langfuse/langfuse#10585), which runs as
+# uid 65532 — it cannot write a volume the old root-run image created (D-057).
 
 name: arxiv-agent-langfuse
 
 services:
   langfuse-web:
-    image: langfuse/langfuse:3
+    image: langfuse/langfuse:3.225.4@sha256:91794d5f42ccd09ed624ff101ff49a8486b3fbedeef7e48c763d19525bc33c03
     depends_on:
       postgres: { condition: service_healthy }
       clickhouse: { condition: service_healthy }
@@ -85,7 +94,7 @@ services:
     restart: unless-stopped
 
   langfuse-worker:
-    image: langfuse/langfuse-worker:3
+    image: langfuse/langfuse-worker:3.225.4@sha256:9917beee1cb2b66e698f5daf23ae0bc6af375233c0395a1a5c80eaa7535fe905
     depends_on:
       postgres: { condition: service_healthy }
       clickhouse: { condition: service_healthy }
@@ -113,7 +122,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685  # 16.15
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -128,7 +137,7 @@ services:
     restart: unless-stopped
 
   clickhouse:
-    image: clickhouse/clickhouse-server:24.3
+    image: clickhouse/clickhouse-server:24.3@sha256:85b97f63dcfff47790d26bb5d5801637aaddb2b93e5e9aee27a686c2fb2b9916
     environment:
       CLICKHOUSE_DB: default
       CLICKHOUSE_USER: default
@@ -147,9 +156,11 @@ services:
     restart: unless-stopped
 
   minio:
-    image: minio/minio:latest
+    # Chainguard's MinIO, RELEASE.2026-09-22T19-25-18Z, as upstream Langfuse's compose uses it
+    # (untagged there; pinned here). Command and healthcheck as upstream's at v3.225.4.
+    image: cgr.dev/chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
     entrypoint: sh
-    command: -c 'mkdir -p /data/langfuse && minio server /data --console-address ":9001"'
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
     environment:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: miniosecret
@@ -164,7 +175,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf  # 7.4.11
     command: --requirepass redis
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "redis", "ping"]

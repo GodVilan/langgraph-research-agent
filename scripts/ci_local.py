@@ -14,7 +14,8 @@ GitHub; every green meanwhile was local. A local run proves nothing about CI unl
   cannot reach it, which is the point — and commits it there as a one-commit repository, as
   `actions/checkout` does; `WORKTREE=1` archives what `git add -A` would stage, built in a
   temporary index (the real index and refs are untouched), and names the files not yet in HEAD;
-* reads `.github/workflows/ci.yml` and runs each step's `run:` block verbatim, with
+* reads `.github/workflows/ci.yml` **from the export** — the commit's own, not the checkout's —
+  and runs each step's `run:` block verbatim, with
   `bash -eo pipefail` as GitHub does, the workflow's `env:` at every level, and otherwise a
   minimal environment — no `.env`, no shell exports, no API keys;
 * asserts the code under test is the export's, not this checkout's editable install;
@@ -39,7 +40,9 @@ from typing import Any
 import yaml  # type: ignore[import-untyped]  # no stubs; scripts/ is outside `make type`
 
 REPO = Path(__file__).resolve().parent.parent
-WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
+# Relative: read from the *export*, so the commands run are the commit's own. Read from the
+# checkout, an edited-but-uncommitted ci.yml would be run against a commit that does not have it.
+WORKFLOW = Path(".github") / "workflows" / "ci.yml"
 VENV_BIN = REPO / ".venv" / "bin"
 
 # Steps not run here, by (job, step-name prefix), each with the reason printed in the report.
@@ -149,11 +152,11 @@ def main() -> int:
     parser.add_argument("--keep", action="store_true", help="keep the export directory")
     args = parser.parse_args()
 
-    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     rev, label = source_rev(args.worktree)
     export_dir = Path(tempfile.mkdtemp(prefix="ci-local-"))
     export(rev, export_dir)
-    print(f"ci-local: {label}, exported to {export_dir}")
+    workflow = yaml.safe_load((export_dir / WORKFLOW).read_text(encoding="utf-8"))
+    print(f"ci-local: {label}, exported to {export_dir}; workflow read from the export")
     assert_code_is_exported(export_dir, environment(export_dir, workflow.get("env") or {}))
 
     results: list[tuple[str, str, str]] = []

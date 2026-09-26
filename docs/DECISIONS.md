@@ -2492,3 +2492,93 @@ under `make test` locally.
 **Reverses if:** never. The rule it adds: a green that was not produced from what git holds is not
 evidence about CI; run `make ci-local` before reporting CI state, and read the Actions tab.
 
+
+## D-057 — A local image cache masked a missing dependency: MinIO's public images are gone
+
+**Found 2026-09-26 by the integration job's first-ever run** (run #15, `a17b522`, the first run
+in which it executed at all — D-056): `pull access denied for minio/minio`. MinIO stopped
+publishing images to Docker Hub and quay.io and went source-only on 2025-10-15 — before this
+project began. `make langfuse-up` worked here only because `minio/minio:latest` had been cached
+about a year earlier (`docker images`: created 12 months ago). **A fresh clone of this repository
+could never start the Langfuse stack**, and nothing local could show it.
+
+**The D-022 family, one layer down.** D-022: a dependency present in the developer's virtualenv
+and absent from the manifest. D-056: files present on the developer's disk and absent from git.
+Here: an image present in the developer's Docker cache and absent from every registry. Each time
+the local environment held something the declared one did not, and each time only a clean
+environment could tell them apart.
+
+**Checking the other images turned up drift, not removal.** Every other image still resolves,
+but three floating tags no longer meant what was tested here: `langfuse/langfuse:3` and
+`langfuse-worker:3` resolve to builds newer than the cached **v3.225.4** the Phase 4 trace window
+was captured on and the integration suite ran against, and `postgres:16-alpine` and
+`redis:7-alpine` resolve to different digests than the cached 16.15 and 7.4.11. Only
+`clickhouse-server:24.3` still matched. A fresh clone would have run a different Langfuse.
+
+**Decided:** every image in `infra/docker-compose.langfuse.yml` is pinned `tag@digest` to the
+build tested here (each digest confirmed still pullable, all multi-arch). MinIO moves to the image
+upstream Langfuse moved to, `cgr.dev/chainguard/minio` (langfuse/langfuse#10585), pinned at
+`sha256:bd014394…` (RELEASE.2026-09-22T19-25-18Z). Upstream's compose at v3.225.4 uses it
+*untagged*, so there is no upstream tag to copy; command and healthcheck follow upstream's (the one
+difference from ours: an explicit `--address ":9000"`).
+
+**Proved without the cache.** `minio/minio:latest` was saved first (`docker save`, 57 MB, to
+`~/Documents/Projects/langfuse-backups/` — it can no longer be downloaded, so removing it
+unbacked would have been irreversible), then untagged; the Chainguard image was removed too, so
+Compose had to pull it from `cgr.dev` by digest. A fresh stack under a separate project name
+(`arxiv-agent-langfuse-fresh`, fresh volumes, web on 127.0.0.1:3100) came up healthy, reported
+Langfuse `3.225.4`, MinIO running as uid 65532 and owning its bucket, and the trace integration
+suite passed against it (2 passed). The existing stack and its four volumes were not touched; the
+test stack and its volumes were removed afterwards.
+
+**The non-root problem is real for the existing volume.** Chainguard's MinIO runs as uid 65532;
+the old image ran as root, and the existing volume (`arxiv-agent-langfuse_langfuse-minio`) is
+root-owned, mode 755, top to bottom — read through a read-only mount. A fresh volume is created
+with `/data` world-writable and works. **The existing volume cannot be used as it is**, so running
+`make langfuse-up` against the existing stack with this compose file would recreate the MinIO
+container on a volume it cannot write. **Do not run it until the migration below.** The running
+containers are unaffected. Migration plan (not done): BACKLOG, "Migrate the local Langfuse
+MinIO volume".
+
+**Two more holes in the integration step, found while proving it.**
+1. CI ran `pytest -m integration`, which also selects the multi-hop necessity fixtures (marked
+   `integration` *and* `network`). They call Gemini; CI has no key by design, so there they
+   **skip** — and the step's check (`^[0-9]+ (skipped|no tests ran)`) could not see a partial
+   skip, because "2 passed, 5 skipped" starts with "2 passed". The job would have gone green
+   with five of seven selected tests skipped.
+2. The same step piped `pytest … || true` and then only required "N passed" somewhere, so
+   "1 failed, 1 passed" would have read as green.
+
+Now: CI selects `integration and not network` (the two trace tests) and fails on a non-zero
+pytest exit, on "skipped" or "no tests ran" anywhere in the summary, or on a summary not starting
+"N passed". Checked on the real run (green) and on four doctored summaries: partial skip, a
+failure with exit 1, a failure with a false exit 0, no tests (all red). Neither hole had fired —
+the step had never run — but either would have hidden a failure on its first run.
+
+**A cost of finding it.** Running CI's old selection locally against the fresh stack picked up
+the local `.env` and made **27 Gemini calls** (624,852 input tokens, $0.0858 notional — the
+usage log's `pytest` rows, 2026-09-26 05:20–05:26 UTC) on the local key, which sits in a
+no-billing free-tier project. I should have checked what `-m integration` selects before running
+it.
+
+**Reverses if:** never for the pins. A digest is changed deliberately, with the reason in this
+record; `make langfuse-up` on a fresh clone is the test.
+
+**Same round, two follow-ups.**
+* **`make ci-local` now reads `ci.yml` from the export**, not the checkout: the commands run are
+  the commit's own. Read from the checkout, an edited-but-uncommitted workflow would have been
+  run against a commit that does not contain it (tested: the path is relative and resolved
+  against the export).
+* **The test that starts a span exporter leaked it.** `tests/test_api_observability_faults.py`
+  runs Langfuse's real OTLP exporter against local stubs (a 429 server and a socket that never
+  answers — nothing leaves the machine). Its teardown started `client.shutdown()` in a
+  fire-and-forget daemon thread and returned; the fixtures then closed the stubs, and the
+  exporter kept retrying against dead ports into later tests — **six threads still alive two
+  seconds after the file finished**, logging `Connection refused … retrying`, all of it hidden by
+  pytest's output capture (neither CI's log nor a local run showed it). Two SDK facts made a
+  synchronous shutdown not enough on its own: Langfuse 4.14's `shutdown()` does not shut down a
+  tracer provider it was handed (the span processor belongs to the provider), and it leaves its
+  prompt-cache consumer running. The test now shuts down the client, its provider and the
+  prompt-cache task manager before the stubs close, and asserts every thread the client started
+  has stopped: 0 left, the file ~0.3 s slower. Reaching the prompt-cache manager uses private SDK
+  attributes; if they move, the test errors rather than passing.

@@ -69,7 +69,9 @@ make langfuse-reset       # stop, discard all traces
 
 ### If you only want to look at a trace
 
-The self-hosted stack is six containers — web, worker, Postgres, ClickHouse, Redis, MinIO —
+The self-hosted stack (Langfuse v3.225.4; every image pinned by digest, MinIO from Chainguard's
+build since MinIO withdrew its public images — D-057) is six containers — web, worker, Postgres,
+ClickHouse, Redis, MinIO —
 because that is what Langfuse v3+ requires. **Langfuse Cloud** (<https://cloud.langfuse.com>,
 or `us.cloud.langfuse.com`) is the lighter path and the one to use for a deployed instance:
 set the same three variables, pointing `LANGFUSE_HOST` at the cloud URL. Nothing in the code

@@ -243,7 +243,7 @@ else was paid.
 
 ## 6. Provider churn, and what each change cost
 
-Six provider changes under one build, plus one inherited from v2.1. None was caused by anything
+Seven provider changes under one build, plus one inherited from v2.1. None was caused by anything
 in this repo, and pinning a version would have prevented none of them.
 
 **Inherited:** v2.1's corpus had been swapped and its benchmark deleted before this project
@@ -258,6 +258,7 @@ provider change, but the same kind of cost.
 | 4 | OpenAI account deactivated for four days, at about $0.022 spent, no policy issue found | judging blocked; recovered because batch ids were archived at submit time and every judge input was persisted provider-independently | D-034 |
 | 5 | Hugging Face Docker Spaces moved behind PRO | $9/month and a host decision at the ship gate | D-038 |
 | 6 | Langfuse Cloud answers `410` on the legacy traces API for orgs created from 2026-09-16 | the read-back rewritten to the v2 observations API; the local stack (v3) can no longer test it, and v4 needs ClickHouse ≥ 26 | D-046 (note), D-047 |
+| 7 | MinIO removed its public images (source-only since 2025-10-15) — before this project began, but hidden for its whole life by an image cached a year earlier | the integration job red on its first-ever run (`pull access denied for minio/minio`), and a fresh clone unable to start the Langfuse stack at all; the stack moved to Chainguard's MinIO, which runs non-root and cannot write the existing root-owned volume, so the local trace store needs a migration | D-057 |
 
 What made these survivable generalises: the work was provider-independent (runs persist
 everything a judge needs), handles were archived at the moment of submission, fallbacks were
