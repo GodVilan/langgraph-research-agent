@@ -1,10 +1,15 @@
 name: CI
 
-# What this workflow does today, on every push to every branch:
+# Four jobs, each independent of the others (no `needs:`), so a failure in one cannot switch
+# another off. That is not hypothetical: from run #9 (eaa5e4b, 2026-09-24) to the fix, every run
+# failed at the unit-test step, and because the regression gate, the dataset re-verification and
+# the Langfuse integration suite were later steps of the same job, none of them ever executed on
+# GitHub — every "gate passed" and "gate fired" in this project until then was a local replay
+# (DECISIONS D-056). `make ci-local` runs these same `run:` blocks in a clean export of HEAD.
 #
-#   check          lint (ruff), type check (mypy --strict), the fast test suite, the Langfuse
-#                  integration suite against a real local Langfuse (a skip is an error), a
-#                  re-verification of the frozen eval set, and the regression gate;
+#   check          lint (ruff), type check (mypy --strict), the fast test suite;
+#   integration    the Langfuse integration suite against a real local Langfuse (a skip is an error);
+#   gate           re-verification of the frozen eval set, and the regression gate;
 #   clean-install  install from pyproject.toml alone and import every module.
 #
 # The regression gate REPLAYS COMMITTED RUN ARTIFACTS: it reads evals/runs/v3_de699d68_pinned.json
@@ -63,6 +68,22 @@ jobs:
       - name: Tests
         run: pytest -q -m "not slow and not network and not integration"
 
+  integration:
+    name: Langfuse integration suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install with dev extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
       # The integration suite is the ONLY automated coverage of the trace path, and every
       # Phase 3 tracing bug was found by a live run rather than a test. Making it skip when
       # Langfuse is down beat making it fail, but a permanently skipped test is a check that
@@ -89,12 +110,30 @@ jobs:
             exit 1
           fi
 
+  gate:
+    name: eval set + regression gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install with dev extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
       # Narrow claim, stated in evals/verify_dataset.py: the artifact matches what the
       # builder claims about it. Both paths now share `classify_candidate`, so this cannot
       # find a check that is wrong or missing from the chain — the defect matrix carries
       # that. What it still catches is everything between a correct decision and the bytes
       # on disk: serialization loss, chunk-id drift, checksum mismatch, hand edits.
       - name: Re-verify the eval dataset
+        # Runs even if an earlier step of this job failed: one failure must not hide the others.
+        if: ${{ !cancelled() }}
         run: |
           if [ -f evals/datasets/phase4.json ]; then
             python -m evals.verify_dataset evals/datasets/phase4.json
@@ -108,6 +147,8 @@ jobs:
       # shown to fire: the committed baseline run must pass, and a deliberately regressed
       # copy of it must fail. The second is what makes the first mean anything.
       - name: Regression gate — baseline passes
+        # Runs even if an earlier step of this job failed: one failure must not hide the others.
+        if: ${{ !cancelled() }}
         run: |
           if [ ! -f evals/baseline_metrics_pinned.json ]; then
             echo "no baseline committed; the gate refuses to run on an underived tolerance"
@@ -124,6 +165,8 @@ jobs:
             --baseline evals/baseline_metrics_pinned.json
 
       - name: Regression gate — an injected regression must fail it
+        # Runs even if an earlier step of this job failed: one failure must not hide the others.
+        if: ${{ !cancelled() }}
         run: |
           if [ ! -f evals/baseline_metrics_pinned.json ]; then exit 0; fi
           python - <<'PY'

@@ -88,12 +88,12 @@ def admitted_paths(repo: Path = REPO) -> list[str]:
     return [ln.strip()[1:].rstrip("/") for ln in lines if ln.strip().startswith("!")]
 
 
-def assemble_context(dest: Path) -> Path:
+def assemble_context(dest: Path, repo: Path = REPO) -> Path:
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
-    for rel in admitted_paths():
-        src = REPO / rel
+    for rel in admitted_paths(repo):
+        src = repo / rel
         if not src.exists():
             raise ContextError(f"{rel} is admitted by .dockerignore but missing; run `make index`")
         target = dest / rel
@@ -102,8 +102,8 @@ def assemble_context(dest: Path) -> Path:
             shutil.copytree(src, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         else:
             shutil.copy2(src, target)
-    shutil.copy2(REPO / "infra" / "Dockerfile", dest / "Dockerfile")
-    shutil.copy2(REPO / ".dockerignore", dest / ".dockerignore")
+    shutil.copy2(repo / "infra" / "Dockerfile", dest / "Dockerfile")
+    shutil.copy2(repo / ".dockerignore", dest / ".dockerignore")
     return dest
 
 

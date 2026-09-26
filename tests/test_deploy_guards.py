@@ -96,22 +96,89 @@ class TestDeployArtifactsExcludeTheFixture:
         admitted = [ln[1:] for ln in lines if ln.startswith("!")]
         assert not any(a.startswith("infra") or a.startswith(".env") for a in admitted)
 
+    @staticmethod
+    def fake_repo(tmp_path: Path) -> Path:
+        """A repo tree holding only tracked content plus stand-ins for the gitignored index.
+
+        The first version assembled the *real* repo, which needs the FAISS index — gitignored,
+        so absent on every CI runner — and failed there from Phase 5 on, which (with the docs
+        test before it) kept the regression gate from ever running in CI (D-056). The real
+        `.dockerignore`, Dockerfile and `src/` are copied, so the scan still covers the source
+        that ships; the data files are small stand-ins whose manifests checksum them.
+        """
+        import hashlib
+        import shutil
+
+        repo = tmp_path / "repo"
+        (repo / "infra").mkdir(parents=True)
+        shutil.copy2(DOCKERIGNORE, repo / ".dockerignore")
+        shutil.copy2(DOCKERIGNORE.parent / "infra" / "Dockerfile", repo / "infra" / "Dockerfile")
+        shutil.copytree(DOCKERIGNORE.parent / "src", repo / "src")
+        for name in ("pyproject.toml", "LICENSE"):
+            shutil.copy2(DOCKERIGNORE.parent / name, repo / name)
+        manifests = {
+            "data/CORPUS.sha256": ["data/chunks_512.json", "data/metadata.json"],
+            "data/INDEX.sha256": [
+                "data/indices/BGE_cs512.faiss",
+                "data/indices/BGE_cs512_meta.pkl",
+            ],
+        }
+        for manifest, files in manifests.items():
+            lines = []
+            for rel in files:
+                (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+                (repo / rel).write_bytes(f"stand-in for {rel}\n".encode())
+                lines.append(f"{hashlib.sha256((repo / rel).read_bytes()).hexdigest()}  {rel}")
+            (repo / manifest).write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return repo
+
     def test_the_space_context_refuses_the_compose_file(self, tmp_path: Path) -> None:
         from scripts.deploy_space import ContextError, assemble_context, check_context
 
-        context = assemble_context(tmp_path / "ctx")
-        check_context(context)  # the real context passes
-        (context / "docker-compose.langfuse.yml").write_text(COMPOSE.read_text())
-        with pytest.raises(ContextError, match="compose"):
+        context = assemble_context(tmp_path / "ctx", self.fake_repo(tmp_path))
+        check_context(context)  # a context of the shipped files passes
+        # No provisioning block in it, so only the *filename* check can refuse it. The first
+        # version wrote the real compose file, whose `LANGFUSE_INIT_` block tripped the text
+        # scan — its message also names the file — so the filename check could be deleted
+        # and this test still passed (found by mutation, D-056).
+        (context / "docker-compose.langfuse.yml").write_text("services: {}\n")
+        with pytest.raises(ContextError, match="a compose or env file must never be deployed"):
+            check_context(context)
+
+    def test_the_space_context_refuses_an_env_file(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import ContextError, assemble_context, check_context
+
+        context = assemble_context(tmp_path / "ctx", self.fake_repo(tmp_path))
+        (context / ".env").write_text("GOOGLE_API_KEY=placeholder\n")
+        with pytest.raises(ContextError, match="a compose or env file must never be deployed"):
             check_context(context)
 
     def test_the_space_context_refuses_the_provisioning_block(self, tmp_path: Path) -> None:
         from scripts.deploy_space import ContextError, assemble_context, check_context
 
-        context = assemble_context(tmp_path / "ctx")
+        context = assemble_context(tmp_path / "ctx", self.fake_repo(tmp_path))
         (context / "src" / "leak.py").write_text("LANGFUSE_INIT_PROJECT_SECRET_KEY = 'x'\n")
         with pytest.raises(ContextError, match="LANGFUSE_INIT_"):
             check_context(context)
+
+    def test_the_space_context_refuses_an_index_its_manifest_does_not_describe(
+        self, tmp_path: Path
+    ) -> None:
+        """The checksum path, which only the real index used to exercise — and CI has none."""
+        from scripts.deploy_space import ContextError, assemble_context, check_context
+
+        context = assemble_context(tmp_path / "ctx", self.fake_repo(tmp_path))
+        (context / "data" / "indices" / "BGE_cs512.faiss").write_bytes(b"a different index\n")
+        with pytest.raises(ContextError, match=r"does not match data/INDEX\.sha256"):
+            check_context(context)
+
+    def test_a_missing_admitted_file_is_refused(self, tmp_path: Path) -> None:
+        from scripts.deploy_space import ContextError, assemble_context
+
+        repo = self.fake_repo(tmp_path)
+        (repo / "data" / "indices" / "BGE_cs512.faiss").unlink()
+        with pytest.raises(ContextError, match=r"admitted by \.dockerignore but missing"):
+            assemble_context(tmp_path / "ctx", repo)
 
 
 class TestClientRefusesSeedsRemotely:

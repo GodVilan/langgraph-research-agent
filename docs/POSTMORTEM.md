@@ -1,12 +1,33 @@
 # Post-mortem — arXiv Agent v3
 
-**Draft for review, 2026-09-25.** Covers Phases 0–5: the audit of v2.1, the LangGraph rebuild,
+* **What it is:** a LangGraph rebuild of a ReAct research agent over a fixed 150-paper arXiv corpus, evaluated on a frozen 69-item set and deployed on Hugging Face Spaces (Phases 0–5).
+* **Better than v2.1:** more correct and fewer wrong answers on 46 answerable items (outside v3's spread; v2.1 is one draw), and it asks which paper is meant; structurally bounded, checkpointed, fail-closed and traced (§4, `make metrics-spread`).
+* **Not better:** no retrieval gain, and it refuses 26 of 46 answerable questions — the largest failure in the project (§4, D-029).
+* **Spend:** $7.60 of Gemini on the side assumed free, against $0.18 of OpenAI under strict controls; 76% of the Gemini usage was recorded by nothing (§5, D-046, `make gemini-reconcile`).
+* **What kept recurring:** reports that did not match what happened, detectors that could not fire, numbers with no producing command, two populations in one ratio, and tools that trusted their environment (§7).
+
+**2026-09-25.** Covers Phases 0–5: the audit of v2.1, the LangGraph rebuild,
 guardrails, observability, evaluation with a regression gate, and the deployed service. Every
 figure below names the command that regenerates it or the decision record that holds its
 evidence (`docs/DECISIONS.md`, `D-nnn`). Where a figure has no command, that is stated.
 
 This is written to be useful to whoever works on this next, including me. It is not a summary of
 what went well.
+
+---
+
+## How this was built
+
+A two-agent build-and-review loop with a human deciding. The phases were executed by Claude Code
+under written phase authorizations. Each phase report was reviewed with a separate Claude chat
+acting as an independent reviewer, and I decided what to act on. I wrote the specs and made the
+decisions the reports and reviews proposed: the budget and its caps, the eval construction rules,
+the gates and their tolerances, the host, and the spend corrections. I hand-verified 25 of the 69
+eval items with the verification CLI, and separately scored 25 answers for judge validation; that
+sheet is what the judge was measured against (D-030, D-032). Three corrections named in this
+document — the three-draw baseline instead of one (D-044), the floor on outcome tolerances (D-044
+note), and the Gemini bill (D-046) — were raised in those reviews and adopted by me. Recorded
+because it explains where the checks came from.
 
 ---
 
@@ -76,9 +97,12 @@ What that made visible, in order of how much it changed the project:
    stored notional, and a recomputation from tokens all give $0.236004, 0 duplicate roots, blended
    $0.3433 per 1M (`make reconcile-cost`).
 2. **What a query actually costs.** Median 4 model calls per query, maximum 4, $0.0033 notional
-   median and $0.0057 maximum over the 69 frozen items (`make run-report`) — against v2.1's worst
-   case of about 43. The per-request reservation of $0.025 (16 × the maximum observed per-call
-   cost) and the daily ceiling were derived from these, not guessed (docs/BUDGET.md, D-037).
+   median and $0.0057 maximum — over all 69 frozen items in one local batch run, guardrail-blocked
+   one-call items included (`make run-report`) — against v2.1's worst case of about 43. The load
+   check's median of 3 is a different population: the 32 answers served on the deployed Space from
+   the 43 factual questions (`make load-report`). The per-request reservation of $0.025 is 16 × the
+   maximum observed per-*call* cost and about 4.4 × the $0.0057 maximum per *query*; it and the
+   daily ceiling were derived from these, not guessed (docs/BUDGET.md, D-037).
 3. **What tracing costs.** 43 Langfuse units per traced query, so the Hobby plan's 50k units cover
    about 38 traced queries a day (`make trace-units`, D-039).
 4. **What a crash loses.** SIGTERM leaves a complete trace (32 observations); SIGKILL leaves 15 of
@@ -102,48 +126,58 @@ Same frozen 69 items (sha `de699d68`), same 150-paper corpus, same generator
 (`gemini-3.5-flash-lite`), v2.1 a clone of published `main` pinned at `8d3e67f` and asserted clean
 before the run, retriever frozen identical (D-002, D-033). Judge: `gpt-5.6-luna` at `low`,
 two-stage, validated against 25 human-scored answers (D-030, D-032). Local batch, single user —
-not serving figures. v3 is three unpinned runs; v2.1 is one. `make metrics-compare`,
-`make metrics-spread`.
+not serving figures. v3 is three unpinned runs; **v2.1 is one draw, and its variance is
+unmeasured** — nor is its retrieval deterministic, because the model chooses its searches. So
+"outside the spread" below means outside *v3's* spread, and no row names a winner where the
+difference is one or two items. `make metrics-compare`, `make metrics-spread`, and
+`make metrics-versus` for per-item counts.
 
 **Retrieval, n=43 factual items** (v3's retrieval spread across three runs is 0.000):
 
 | | v3 | v2.1 | Better |
 |---|---:|---:|---|
-| Recall@5, chunk level | 0.267 | 0.233 | v3 |
-| MRR | 0.175 | 0.196 | **v2.1** |
-| gold paper in the top 5 | 21–22 of 43 | 28 of 43 | **v2.1** |
+| Recall@5, chunk level | 0.267 | 0.233 | none named — the difference is 2 items (`sp-023`, `sp-033`) |
+| MRR | 0.175 | 0.196 | v2.1 — higher reciprocal rank on 11 items, v3 on 4 (identical for r1–r3) |
+| gold paper in the first 5 retrieved | 21–22 of 43 | 22 of 43 | none named — 0–1 items |
+| gold paper anywhere in what was retrieved | 21–22 of 43 (5 chunks) | 28 of 43 (median 18 chunks) | v2.1, at 3–4× the depth |
 | items where neither retrieves the gold chunk | 30 of 43, the same 30 | | neither |
+
+The fourth row was published for a phase as "gold paper in the top 5", while counting all of
+v2.1's retrieval; at equal depth the two are level (D-021, fourth instance).
 
 **Outcomes, n=46 answerable, n=10 ambiguous** (v3 shown as r1 / r2 / r3, spread in brackets):
 
 | | v3 | v2.1 | Better |
 |---|---:|---:|---|
-| correct answers | 15 / 16 / 16 (1) | 6 | v3, outside the spread |
-| wrong answers | 5 / 4 / 6 (2) | 11 | v3, outside the spread |
-| hallucinated refusals — refused an answerable item | 26 / 26 / 24 (2) | 29 | v3 by 3, just outside the spread; **both are bad** |
-| ambiguous items where it asked which paper | 4 / 3 / 3 (1) | 0 | v3 |
+| correct answers | 15 / 16 / 16 (1) | 6 | v3 — outside v3's spread; v2.1's is unmeasured |
+| wrong answers | 5 / 4 / 6 (2) | 11 | v3 — outside v3's spread; v2.1's is unmeasured |
+| hallucinated refusals — refused an answerable item | 26 / 26 / 24 (2) | 29 | v3 by 3–5 — outside v3's spread; v2.1's is unmeasured; **both are bad** |
+| ambiguous items where it asked which paper | 4 / 3 / 3 (1) | 0 | v3 — outside v3's spread; v2.1's is unmeasured |
 | attribute refusals, n=11 | 11 / 11 / 11 (0) | 11 | tie — a ceiling; this stratum cannot separate systems |
 
 The mechanism behind every row: v2.1's loop issues several searches and unions them — a median of
 18 chunks from 6 papers per item, against v3's 5 from 3 (docs/PHASE4.md §2). The wider net finds
-the gold paper more often and ranks worse, and it hands the generator more wrong papers: 7 of
+the gold paper more often *somewhere* in what it retrieves and ranks worse, and it hands the generator more wrong papers: 7 of
 v2.1's 11 wrong answers cite only non-anchor papers. v3, given less, refuses more and answers
 wrongly less. **It is a precision-for-recall trade, not an improvement**, and neither system is
 good at this set.
 
 **Where v3 is worse, stated plainly:**
 
-* It ranks worse (MRR 0.175 vs 0.196) and finds the gold paper less often (21–22 vs 28 of 43).
+* It ranks worse on MRR (0.175 vs 0.196; v2.1 higher on 11 items, v3 on 4), against one v2.1
+  draw. Its first page finds the gold paper as often as v2.1's (21–22 vs 22 of 43); v2.1 finds it
+  more often only by retrieving 3–4× as much.
 * **It refuses 26 of 46 answerable questions.** That is the largest single failure in the
   artifact. D-029 traces it to one construction rule failing on three surfaces (§7).
-* Its input guardrail refuses in-scope questions v2.1 answered. Pinned, as it ships, the scope
-  classifier refuses the same 5 of 43 verified factual questions on every call; unpinned it
-  refused 3 to 6 per draw, mean 4.3 over 7 draws on identical input (`make guardrail-probe`,
-  `make guardrail-variance`, D-035). Pinning fixed the stricter end in place: `sp-016`, refused in
-  2 of 7 unpinned draws, is now refused every time, and a user who hits one of the five no longer
-  has a chance on retry.
-  v2.1's own scope check marked 3 of the 69 out of scope in its one run (`make metrics-compare`):
-  fewer than v3's pinned 5.
+* **Pinned, as it ships, the scope guardrail refuses 5 of 43 verified in-scope questions on every
+  call, and a user who asks one of them has no chance on retry** (`make guardrail-probe`, D-035).
+  Unpinned it refused 3 to 6 per draw, mean 4.3 over 7 draws on identical input
+  (`make guardrail-variance`); pinning fixed the stricter end in place — `sp-016`, refused in 2 of
+  7 unpinned draws, is now refused every time. v2.1's scope check did not block those five, which
+  is not the same as answering them. It marked 3 of the 69 out of scope in its one run
+  (`make metrics-compare`): `sp-003`, `sp-014` and `sp-026`, the three that unpinned v3 blocked on
+  every draw. The 3-versus-5 comparison is **not claimed** as a difference — two items, against
+  v2.1's unmeasured variance.
 
 **Not claimed:** anything about multi-hop (n=3, a per-item case study, EVALS.md) or unanswerable
 topics (n=2, effectively 1 clean, D-031); any confidence interval (three draws cannot support one);
@@ -153,10 +187,12 @@ any latency comparison (the two systems were never timed under the same conditio
 on its own baseline: hallucinated refusals 27, 27, 25 against the unpinned 26, 26, 24 — a +1.0
 difference inside either spread, not shown to be a difference (D-044,
 `evals/baseline_metrics_pinned.json`). A pinned run of the deployed commit passes that gate
-(D-049 addendum).
+(D-049 addendum). **Every gate result here was verified locally; until the D-056 fix the gate had
+never executed in CI** (§7.2).
 
 **Serving, deployed instance, one client machine, not live traffic** (`make load-report`,
-`make load-report LABEL=single_user`): single user, warm, n=10, p50 7.1 s, p95 14.3 s; ten
+`make load-report LABEL=single_user`): single user, warm, n=10, p50 7.1 s, p95 14.3 s — one of the
+ten was a one-call guardrail refusal (`sp-003`), counted, which pulls the p50 down; ten
 concurrent users, n=32 served of 169, p50 48.4 s, p95 88.3 s, 3.2 served queries a minute —
 the ceiling is the model's free-tier quota, not the service; cold start 39.6 s to ready.
 
@@ -184,9 +220,11 @@ pinned thinking budget.
 
 **76% of the billed prompt tokens were never recorded by anything in the repo.** Google billed
 27,277,355 prompt tokens; every source of instrumentation together saw 6,530,193; the gap is
-20,747,162, about 210 multi-hop construction candidates' worth (`make gemini-reconcile`). Eval-set
-construction, the necessity fixtures, v2.1's baseline run and the probes all discarded the usage
-the wrapper handed them. Recording is now structural — every call through the wrapper appends a
+20,747,162, about 210 multi-hop construction candidates' worth (`make gemini-reconcile`). **Which
+unrecorded path dominated is unknown.** Eval-set construction and the necessity tests make the same
+kind of full-text call and neither was recorded, so the gap is consistent with construction
+dominating — not confirmed. Construction, the necessity fixtures, v2.1's baseline run and the
+probes all discarded the usage the wrapper handed them. Recording is now structural — every call through the wrapper appends a
 row to the usage log whether or not the caller keeps the usage, and a test fails any code path
 that builds a model or calls the Gemini API around it (`tests/test_usage_log.py`). That fixes the
 future, not the $7.60.
@@ -196,22 +234,30 @@ assumed free had none. The rule that came out of it: **a billed figure comes fro
 own record, or it is shown as "unverified" — never 0 by default** (D-046). Both keys now sit in
 separate no-billing projects.
 
+**Total project cost:** Gemini $7.60 (D-046, `docs/billing/gemini.json`) + OpenAI $0.1827
+(`make judge-spend`) = **$7.78 in API usage**, plus **Hugging Face PRO at $9/month from
+2026-09-24** for the Docker Space (D-038). Upstash and Langfuse Cloud ran on free plans. Nothing
+else was paid.
+
 ---
 
 ## 6. Provider churn, and what each change cost
 
-Seven external changes under one build. None was caused by anything in the repo, and pinning a
-version would have prevented none of them.
+Six provider changes under one build, plus one inherited from v2.1. None was caused by anything
+in this repo, and pinning a version would have prevented none of them.
 
-| # | What changed | Cost | Record |
+**Inherited:** v2.1's corpus had been swapped and its benchmark deleted before this project
+started — no baseline to inherit; the 69-item eval set was built from scratch (AUDIT §5). Not a
+provider change, but the same kind of cost.
+
+| # | What the provider changed | Cost | Record |
 |---|---|---|---|
-| 1 | v2.1's corpus swapped and its benchmark deleted | no inherited baseline; the 69-item eval set was built from scratch | AUDIT §5 |
-| 2 | `gemini-2.5-flash-lite` retired for new keys | a mid-phase model switch, loss of determinism, and a 3.6× pricing error caught by `verified: bool` | D-012 |
-| 3 | Cerebras pruned its free catalog | a judge arm re-costed | D-034 |
-| 4 | Hugging Face included credit exhausted, `402` at 7 of 25 | the open-weights judge arm left partial; no rate computed from it | D-030b |
-| 5 | OpenAI account deactivated for four days, at about $0.022 spent, no policy issue found | judging blocked; recovered because batch ids were archived at submit time and every judge input was persisted provider-independently | D-034 |
-| 6 | Hugging Face Docker Spaces moved behind PRO | $9/month and a host decision at the ship gate | D-038 |
-| 7 | Langfuse Cloud answers `410` on the legacy traces API for orgs created from 2026-09-16 | the read-back rewritten to the v2 observations API; the local stack (v3) can no longer test it, and v4 needs ClickHouse ≥ 26 | D-046 (note), D-047 |
+| 1 | `gemini-2.5-flash-lite` retired for new keys | a mid-phase model switch, loss of determinism, and a 3.6× pricing error caught by `verified: bool` | D-012 |
+| 2 | Cerebras pruned its free catalog | a judge arm re-costed | D-034 |
+| 3 | Hugging Face included credit exhausted, `402` at 7 of 25 | the open-weights judge arm left partial; no rate computed from it | D-030b |
+| 4 | OpenAI account deactivated for four days, at about $0.022 spent, no policy issue found | judging blocked; recovered because batch ids were archived at submit time and every judge input was persisted provider-independently | D-034 |
+| 5 | Hugging Face Docker Spaces moved behind PRO | $9/month and a host decision at the ship gate | D-038 |
+| 6 | Langfuse Cloud answers `410` on the legacy traces API for orgs created from 2026-09-16 | the read-back rewritten to the v2 observations API; the local stack (v3) can no longer test it, and v4 needs ClickHouse ≥ 26 | D-046 (note), D-047 |
 
 What made these survivable generalises: the work was provider-independent (runs persist
 everything a judge needs), handles were archived at the moment of submission, fallbacks were
@@ -225,7 +271,10 @@ substituted (D-030b).
 Individual defects were fixed as found. These are the shapes that kept coming back. Each has more
 than one instance, and the later instances happened after the earlier ones were recorded.
 
-### 7.1 A step that reports success without having happened — the D-026 family
+### 7.1 A report that does not match what happened — the D-026 family
+
+Mostly success reported for a step that did not happen; once, a failure reported from input that
+was not finished.
 
 * A check written to catch a rejected item, imported by nothing (D-026).
 * A grounding check that always ran with an empty answer, so it always passed (D-026).
@@ -237,14 +286,26 @@ than one instance, and the later instances happened after the earlier ones were 
   completed write — and for a run that overshot its reservation, a lost settlement under-counts
   the daily ceiling (D-054).
 * A regression gate that computed outcomes over a half-judged sheet (49 of 69) and reported
-  correct answers 0 against 15 as a regression (D-053).
+  correct answers 0 against 15 as a regression — a false *failure*: the report was wrong in the
+  other direction, for the same reason (D-053).
 
 The fix that generalises is the one from D-026's fourth instance: **assert the effect, not the
 status**. Read back what was written; count what was scored; refuse input that is not complete.
 
 ### 7.2 Running is not blocking — the D-023 family
 
-Detectors that existed and could not fire: a CI workflow that never triggered because the project
+**The largest instance: CI was red for every run from #9 to the D-056 fix, and the regression
+gate never once executed in it.** Two tests read files the repository does not hold — `CLAUDE.md`
+(untracked) and the FAISS index (gitignored) — so they passed on this machine and failed on every
+runner. They sat in the unit-test step, first in the job; the integration suite, the dataset
+re-verification and both gate steps came after it and were skipped every time. Those four were
+added in the same commit whose run first failed, so **none of them ever ran on GitHub**. Every "the
+gate passed", "the gate fired on an injected regression" and "a skip is an error" in this project
+until then described a workflow file and local replays, and nobody noticed for a month because
+every green reported was local. The fix: independent jobs, tests that read only tracked files, and
+`make ci-local`, which runs CI's own commands in a clean export of HEAD (D-056).
+
+Other detectors that existed and could not fire: a CI workflow that never triggered because the project
 never opens pull requests; a docs test calling `.venv/bin/python`, absent on every runner, and
 skipping its own failure; a `pytest.skip` swallowing "Event loop is closed" as "could not reach
 the model" inside the very fix written for this class; and CI's injected-regression step, which
@@ -269,11 +330,18 @@ tests that fail a stale or hand-typed copy.
 
 ### 7.4 Two populations in one ratio — the D-021 family
 
-The spend table's blend (6 priced traces over 214), the dashboard's `retrieval_recall5` over 56
-items against the documents' 43 (D-021 on a metric), and — while drafting this document — the
-Gemini reconciliation counting a run from outside the billing period, which moved the published
-gap from 76% to 74% (D-021, third instance). Where a bound is structurally knowable, assert it;
-where a population is defined by an external record, filter to it.
+* The spend table divided cost from 6 priced traces by tokens from 214, and published a blended
+  rate below the input-only price (D-021).
+* The dashboard's `retrieval_recall5` covered 56 items against the documents' 43 (D-021 on a
+  metric).
+* While drafting this document, the Gemini reconciliation counted a run from outside the billing
+  period and moved the published gap from 76% to 74% (D-021, third instance).
+* "Gold paper in the top 5" counted all of v2.1's retrieval — a median of 18 chunks against v3's
+  5 — and was published in four documents before a review asked for item counts (D-021, fourth
+  instance).
+
+Where a bound is structurally knowable, assert it; where a population is defined by an external
+record, filter to it.
 
 ### 7.5 External-facing tools that trust their environment
 
@@ -323,8 +391,12 @@ cannot be bypassed (D-046).
 5. **Run shared input through every component before trusting any component's validation** — the
    D-029 lesson, which cost the project its largest failure.
 6. **Test pinned sampling in Phase 1.** D-014 concluded determinism was unrecoverable after trying
-   temperature and thinking budget; `seed=0, top_k=1` recovers it for both the classifier and the
-   generator (D-035, D-042). Knowing that before Phase 4 would have changed the variance design.
+   temperature and thinking budget. `seed=0, top_k=1` made the scope classifier byte-identical on
+   140 of 140 probe calls (D-035, `make guardrail-probe`), and the generator 5 of 5 byte-identical
+   on each of the two prompts D-042 probed, against 5 and 3 distinct outputs of 5 unpinned
+   (`make generator-determinism REPORT=1`) — one day, one model
+   version, not a provider guarantee. Knowing that before Phase 4 would have changed the variance
+   design.
 7. **Run measurement tools from a host that cannot sleep and has backoff by default.** D-048 and
    D-052 were both the client, not the service.
 8. **Write the gate's input contract with the gate**, not after it misfired (D-053).
@@ -354,9 +426,16 @@ cannot be bypassed (D-046).
   fetch is off on the public endpoint (D-036).
 * **Report billed cost from its own instrumentation.** Billed figures come only from the
   provider's record, entered by hand (D-046).
+* **Show its regression gate passing on GitHub — not verified yet.** Until the D-056 fix the gate
+  had never executed in CI; the first run after that fix is the first time it will. The gate
+  compares committed artifacts, not the pushed code (D-050).
+* **Run 42 of its tests in CI.** 35 marked `slow` load the embedding model or the FAISS index,
+  which a runner does not have; 7 need the network or a live Langfuse (`pytest --collect-only -q
+  -m "slow or network or integration"`). They run only locally (`make test`), and the Langfuse
+  integration suite has never run on GitHub (D-056).
 
 ---
 
-*Sources: `docs/DECISIONS.md` (D-001–D-054), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
+*Sources: `docs/DECISIONS.md` (D-001–D-056), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
 `docs/AUDIT.md`, `docs/MIGRATION_MAP.md`, `docs/PHASE4.md`, `docs/EVALS.md`, `docs/BUDGET.md`,
 `docs/OBSERVABILITY.md`, `docs/SERVING.md`.*

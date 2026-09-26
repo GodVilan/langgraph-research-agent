@@ -24,6 +24,26 @@ def readme() -> str:
     return README.read_text(encoding="utf-8")
 
 
+def tracked(rel: str) -> bool:
+    """Whether ``rel`` is part of the repository, as CI sees it.
+
+    In a git checkout, what git tracks. In an export (`make ci-local` runs the suite in a
+    `git archive` of HEAD, with no .git), every file present *is* tracked by construction. A
+    docs test that reads an untracked file passes on the machine holding it and fails on every
+    runner: this test's CLAUDE.md read did exactly that from run #9 on (D-056).
+    """
+    import subprocess
+
+    if not (REPO / ".git").exists():
+        return (REPO / rel).is_file()
+    return (
+        subprocess.run(
+            ["git", "ls-files", "--error-unmatch", rel], cwd=REPO, capture_output=True
+        ).returncode
+        == 0
+    )
+
+
 class TestReadmeStats:
     def test_generated_block_is_present(self) -> None:
         assert STATS_BLOCK.search(readme()), "run `make readme-stats`"
@@ -128,10 +148,23 @@ class TestPerfectAgreementCarriesItsAmendment:
     "amendment".
     """
 
-    DOCS: ClassVar[list[Path]] = [
-        Path(__file__).resolve().parent.parent / p
-        for p in ("README.md", "CLAUDE.md", "docs/EVALS.md", "docs/DECISIONS.md")
-    ]
+    # CLAUDE.md is the local operating brief and is not tracked, so it is not checked here: a
+    # test of a file the repository does not contain cannot pass on a clean checkout (D-056).
+    CANDIDATES: ClassVar[tuple[str, ...]] = (
+        "README.md",
+        "CLAUDE.md",
+        "docs/EVALS.md",
+        "docs/DECISIONS.md",
+        "docs/POSTMORTEM.md",
+    )
+    DOCS: ClassVar[list[Path]] = [REPO / p for p in CANDIDATES if tracked(p)]
+
+    def test_the_tracked_docs_are_the_ones_checked(self) -> None:
+        """Filtering to tracked files must not quietly empty the list."""
+        names = {p.relative_to(REPO).as_posix() for p in self.DOCS}
+        assert {"README.md", "docs/EVALS.md", "docs/DECISIONS.md"} <= names
+        assert "CLAUDE.md" not in names
+        assert all(p.is_file() for p in self.DOCS)
 
     def test_every_25_of_25_line_names_the_amendment_or_is_cross_arm(self) -> None:
         import re

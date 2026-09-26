@@ -164,7 +164,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 729, all passing | `make test` |
+| Tests | 747, all passing | `make test` |
 | First-party Python | 44 files, 6,372 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -174,7 +174,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-09-25.*
+*Measured 2026-09-26.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
@@ -245,7 +245,7 @@ built or downloaded at start.
   classifier gave byte-identical output on 140 of 140 probe calls on 2026-09-24 — one day, one
   model version, not a provider guarantee — so a classifier decision is still reported
   `deterministic: false`. Re-measured end to end: the pinned configuration passes the
-  regression gate and its runs are now the baseline CI replays through the gate ([D-035](docs/DECISIONS.md),
+  regression gate and its runs are now the gate's baseline — verified locally; the gate never executed in CI before [D-056](docs/DECISIONS.md) ([D-035](docs/DECISIONS.md),
   [D-044](docs/DECISIONS.md)).
 - **v3 refuses 26 of 46 answerable items** in Phase 4 — the largest single failure in this
   project, and the reason refusal accuracy is never quoted without it
@@ -461,12 +461,24 @@ with `make test-integration` after `make langfuse-up`.
 
 ### CI reports; it does not block
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs lint, `mypy --strict`, the fast
-suite, the Langfuse integration suite, a re-verification of the frozen eval set, the regression
-gate, and a clean-install job on every push to every branch.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is configured to run four independent
+jobs on every push to every branch: lint, `mypy --strict` and the fast suite; the Langfuse
+integration suite; a re-verification of the frozen eval set and the regression gate; and a
+clean-install job.
 
-**What the regression gate in CI does, exactly: it replays committed run artifacts through the
-gate.** It reads `evals/runs/v3_de699d68_pinned.json` and its judge sheet — outputs recorded
+**What CI actually executed, from 2026-09-24 until the [D-056](docs/DECISIONS.md) fix: nothing
+after the unit tests.** Every run from #9 failed at the unit-test step, on two tests that passed
+only on a machine holding files the repository does not (`CLAUDE.md` and the gitignored index).
+The integration suite, the dataset re-verification and both gate steps were later steps of that
+job, and — having been added in the commit whose run first failed — **never executed on GitHub
+at all.** Every gate result in this repository until then was a local replay. The jobs are now
+independent, and `make ci-local` runs CI's own commands in a clean `git archive` export of HEAD,
+so a green can no longer come from files git does not hold. Tests that need the network or a live
+Langfuse, and those marked `slow` because they load the embedding model or the index, are
+deselected in CI and run only locally; `make ci-local` prints how many.
+
+**What the regression gate in CI is built to do, exactly: replay committed run artifacts through
+the gate.** It reads `evals/runs/v3_de699d68_pinned.json` and its judge sheet — outputs recorded
 when the pinned configuration was last run and judged — and checks them against
 `evals/baseline_metrics_pinned.json`, then checks that a deliberately regressed copy fails. **It
 does not run the agent on the pushed code.** A change that alters answers or retrieval passes CI
@@ -539,8 +551,8 @@ Stated plainly, because a reader should not have to infer it:
 | | Phase | Status |
 |---|---|---|
 | Eval dataset | 4 | **Frozen: 69 items** (43 factual / 3 multi-hop / 2 unanswerable-topic / 11 unanswerable-attribute / 10 ambiguous), `evals/datasets/phase4.json`, `make verify-dataset`. Why 69 and not 100: [EVALS.md](docs/EVALS.md). |
-| Metrics, baseline, CI regression gate | 4 | **Built** — metrics over all 69 with a three-draw spread; a regression gate that CI runs over **committed run artifacts** (not the pushed code — [D-050](docs/DECISIONS.md)), demonstrated failing on an injected regression ([PHASE4.md](docs/PHASE4.md)). |
-| v2.1-vs-v3 comparison | 4 | **Run.** Same frozen 69 items, same corpus, same generator, v2.1 pinned at `8d3e67f`, retriever frozen identical. **Retrieval: no gain for v3** — Recall@5 0.267 (v3, three runs, spread 0.000) vs 0.233 (v2.1), and v2.1 is *ahead* on MRR (0.196 vs 0.175) and on finding the gold paper (28 vs 21–22 of 43), with the same 30 of 43 items missed by both; the number belongs to the eval set's paraphrasing, not to either system. **Outcomes: v3 ahead outside the spread** — 15 correct of 46 answerable vs 6, and 5 wrong vs 11 (7 of v2.1's 11 answered from the wrong paper). v3's justification is orchestration, checkpointing and observability — **not retrieval quality**. Detail and the places v3 is worse: [EVALS.md](docs/EVALS.md). |
+| Metrics, baseline, CI regression gate | 4 | **Built** — metrics over all 69 with a three-draw spread; a regression gate over **committed run artifacts** (not the pushed code — [D-050](docs/DECISIONS.md)), demonstrated failing on an injected regression **locally** — it never executed in CI until the [D-056](docs/DECISIONS.md) fix ([PHASE4.md](docs/PHASE4.md)). |
+| v2.1-vs-v3 comparison | 4 | **Run.** Same frozen 69 items, same corpus, same generator, v2.1 pinned at `8d3e67f`, retriever frozen identical. **Retrieval: no gain for v3** — Recall@5 0.267 (v3, three runs, spread 0.000) vs 0.233 (v2.1), and v2.1 is *ahead* on MRR (0.196 vs 0.175) and finds the gold paper somewhere in what it retrieves more often (28 vs 21–22 of 43) — but over a median of 18 chunks against v3's 5; in its first 5 it is 22 of 43 (`make metrics-versus`) — with the same 30 of 43 items missed by both; the number belongs to the eval set's paraphrasing, not to either system. **Outcomes: v3 ahead outside v3's spread; v2.1's is unmeasured (one draw)** — 15 correct of 46 answerable vs 6, and 5 wrong vs 11 (7 of v2.1's 11 answered from the wrong paper). v3's justification is orchestration, checkpointing and observability — **not retrieval quality**. Detail and the places v3 is worse: [EVALS.md](docs/EVALS.md). |
 | FastAPI service, Docker | 5 | **Built and run locally** ([SERVING.md](docs/SERVING.md)). |
 | Deployment | 5 | **Live** at <https://godvillain-scholium.hf.space>, verified by `make smoke-live` and on-host checks ([D-047](docs/DECISIONS.md)); the deployed commit is mapped file by file to git (`make verify-deploy`) and a pinned run of it passes the regression gate ([D-049](docs/DECISIONS.md)). |
 | Load figures | 5 | **Published** — one load check against the deployed instance, one client machine, in [Serving](#serving). Two earlier attempts are not results: the first found a reservation leak (fixed) and was itself a runaway ([D-048](docs/DECISIONS.md)); the second measured a sleeping laptop ([D-052](docs/DECISIONS.md)). |

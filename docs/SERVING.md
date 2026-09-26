@@ -198,7 +198,8 @@ by fixing the stricter end in place — `sp-016`, refused in 2 of 7 unpinned dra
 refused every time. The pinned configuration was re-judged end to end and passes the
 regression gate — three pinned draws: Recall@5 0.267 as pre-registered, hallucinated refusals
 27, 27, 25 against unpinned 26, 26, 24, a +1.0 shift inside either spread and so not shown
-to be a difference (D-044) — and its three-draw baseline is what CI gates. Every response still
+to be a difference (D-044) — and its three-draw baseline is the gate's (verified locally; the
+gate never executed in CI before D-056). Every response still
 names the deciding stage and reports a classifier decision as `deterministic: false`.
 
 ---

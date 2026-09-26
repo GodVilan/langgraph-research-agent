@@ -54,7 +54,8 @@ identical between the two (D-002)**.
 |---|---:|---:|
 | Recall@5, chunk level | **0.267** | 0.233 |
 | MRR | 0.175 | **0.196** |
-| gold paper in the top 5 | 21–22 of 43 | **28 of 43** |
+| gold paper in the first 5 retrieved | 21–22 of 43 | 22 of 43 |
+| gold paper anywhere in what was retrieved | 21–22 of 43 (5 chunks) | **28 of 43** (a median of 18 chunks) |
 | items where neither retrieves the gold chunk | 30 of 43 — the same 30 | |
 
 | n=46 answerable | v3 (r1 / r2 / r3) | v2.1 |
@@ -92,9 +93,11 @@ draws, no confidence interval — n=3 cannot support one.
 
 The gate's tolerances *are* this spread (`evals/baseline_metrics.json`), so the gate fires on
 real movement and not on noise. It has been shown to fire three ways: on a real regression
-(`section_filter`, four metrics named), on an injected retrieval collapse (test plus two CI
-steps, one of which errors if the injection ever passes), and it passes the clean run. CI replays
-committed run artifacts through the gate; it does not run the agent on pushed code (D-050).
+(`section_filter`, four metrics named), on an injected retrieval collapse (a test, plus two CI
+steps written to error if the injection ever passes), and it passes the clean run. **Every one of
+those was a local replay: the two CI steps never executed on GitHub** — every run from the one
+this phase's commit triggered failed at the unit-test step of the same job, until the D-056 fix.
+The gate compares committed run artifacts; it does not run the agent on pushed code (D-050).
 
 ---
 

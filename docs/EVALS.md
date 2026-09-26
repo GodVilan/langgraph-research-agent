@@ -924,7 +924,8 @@ Retrieval `make metrics-compare`; outcomes `make metrics-spread`, judged by
 |---|---:|---:|
 | Recall@5 (chunk level) | **0.267** | 0.233 |
 | MRR | 0.175 | **0.196** |
-| gold paper in the top 5 | 21–22 of 43 | **28 of 43** |
+| gold paper in the first 5 retrieved | 21–22 of 43 | 22 of 43 |
+| gold paper anywhere in what was retrieved | 21–22 of 43 (5 chunks) | **28 of 43** (a median of 18 chunks) |
 | items where neither retrieves the gold chunk | **30 of 43, the same 30** | |
 
 **v3 is not better at retrieval.** It edges chunk-level Recall@5 by one and a half items;
@@ -939,7 +940,7 @@ several searches per question and unions the results — median **18 chunks from
 papers** per item, against v3's **5 chunks from 3**. A wider net contains the right paper more
 often. It also contains more wrong ones.
 
-### Outcomes: v3 is ahead, outside the spread, and the mechanism is the wider net
+### Outcomes: v3 is ahead, outside v3's spread (v2.1's is unmeasured: one draw), and the mechanism is the wider net
 
 | n=46 answerable | v3 (r1 / r2 / r3) | v2.1 |
 |---|---:|---:|
@@ -998,13 +999,14 @@ shown to gate anything, so all three are asserted rather than described:
    the gate would have caught had someone shipped it.
 2. **An injected regression.** `tests/test_gate.py::TestTheGateFiresEndToEnd` copies the
    baseline run, drops every retrieved chunk, and asserts the gate CLI exits 1. The same two
-   steps run in `.github/workflows/ci.yml` — the baseline must pass, and the regressed copy
-   must fail; if the injected regression ever passes, CI errors with "the gate PASSED an
-   injected regression — it does not gate anything".
+   steps are in `.github/workflows/ci.yml` — the baseline must pass, and the regressed copy
+   must fail with exit 1 naming recall. **Until the D-056 fix they had never executed on
+   GitHub:** every run from the Phase 4 close-out on failed at the unit-test step before them.
+   The demonstration was local (`tests/test_gate.py`, `make gate`, and now `make ci-local`).
 3. **The clean run.** The committed r1 artifact passes its own gate, so the gate is not simply
    failing everything.
 
-**What CI does with the gate, exactly.** CI replays **committed run artifacts** — today the
+**What CI is built to do with the gate, exactly** (it first executes with the D-056 fix). CI replays **committed run artifacts** — today the
 pinned run `evals/runs/v3_de699d68_pinned.json` and its judge sheet — through `evals/gate.py`
 against `evals/baseline_metrics_pinned.json`, and checks that an injected regression of the same
 artifact fails. **It does not run the agent against the pushed code**: no model is called in CI,

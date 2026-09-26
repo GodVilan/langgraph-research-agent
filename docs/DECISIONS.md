@@ -896,7 +896,11 @@ much weaker claim than a gate that blocks, and the eval gate is the first check 
 difference genuinely matters — a silent regression is exactly what it exists to stop.
 Revisit then, with pull requests and branch protection on both jobs.
 
-
+**Correction (D-056, 2026-09-25).** The integration step described above — CI standing Langfuse
+up and failing if the suite did not run — **never executed on GitHub.** It was added in
+`eaa5e4b` (run #9), and every run from #9 failed at the unit-test step of the same job, so every
+later step was skipped. The eighth instance's fix was itself an instance of this decision until
+the workflow was split into independent jobs.
 
 ---
 
@@ -1893,6 +1897,14 @@ fact.
 a gate that is routinely overridden is worse than a looser one, and the stratum needs hardening
 (more, harder attribute items) rather than a wider tolerance.
 
+**Correction (D-056, 2026-09-25).** "CI gates the shipped configuration", "both CI steps replay
+correctly" and the interim stricter-of-both gate above describe what the workflow was *written*
+to do. **None of it executed on GitHub:** the gate steps followed the unit-test step in one job,
+and every run from #9 (before the pinned baseline existed) to the fix failed at that step. Every
+gate result recorded here — pass, fail, injected regression — was a local replay, which is what
+`tests/test_gate.py` and `make gate` verify. The gate first runs in CI, in its own job, with the
+D-056 fix.
+
 ---
 
 ## D-045 — The Phase 4 baseline's stated derivation had no producing code
@@ -2169,6 +2181,11 @@ Tested rather than assumed (Phase 5 review): the README request five times on th
 serving update in the same window **cannot be excluded**, so this is recorded as a time-bound
 change coinciding with the tier switch — not as "caused by the free tier". No doc claims more.
 
+**Correction (D-056, 2026-09-25).** This entry is right about *what* the gate compares — committed
+artifacts, not the pushed code — and wrong by implication about *whether* it ran: until the
+D-056 fix the gate had never executed in CI at all. Before that fix, "CI replays committed
+artifacts through the gate" described the workflow file, not anything that happened.
+
 ---
 
 ## D-051 — Keep all 150 papers; credit every one; publish a takedown route
@@ -2380,4 +2397,98 @@ change itself, uncommitted.
 
 **Reverses if:** never silently. A deploy that must go out before a commit uses the override,
 and the record says so.
+
+## D-021, fourth instance — "gold paper in the top 5" counted v2.1's whole retrieval
+
+**2026-09-25, found while applying Srikanth's POSTMORTEM review** (no winner on a 1–2 item
+difference, which needed per-item counts). PHASE4, EVALS, README and the post-mortem draft all
+published *"gold paper in the top 5: v3 21–22 of 43, v2.1 28 of 43"*. The metric
+(`gold_paper_hit` in `evals/metrics.py`) counted a hit anywhere in what the run retrieved, and
+`make metrics-compare` printed it as `gold-paper-in-top5`. v3 retrieves 5 chunks, so for v3 the
+two are the same; v2.1's loop unions several searches, a median of 18 chunks from 6 papers. **In
+v2.1's first 5 retrieved chunks the gold paper appears for 22 of 43 — level with v3.** The 28 is
+real, but it is the wide-net mechanism PHASE4 §2 already describes, not a better first page, and
+"v2.1 finds the gold paper more often" is true only at 3–4× the depth.
+
+Two populations under one label again: the same shape as D-021 (6 priced traces over 214) and
+its metric instance (`retrieval_recall5` over 56 items against 43). **Fixed:** the metric now
+records both depths (`gold_paper_hit_at5` beside `gold_paper_hit`); `make metrics-compare` prints
+"in first 5" and "in all retrieved (max k)"; `make metrics-versus` gives per-item counts and the
+median retrieved per run. The table rows in PHASE4 and EVALS are split into the two depths, and
+README's line states the depth. No gated metric used it; MRR and Recall@5 are unchanged.
+
+Found only because a review asked for item counts instead of means. The per-item view also shows
+Recall@5 0.267 vs 0.233 is two items (`sp-023`, `sp-033`), both v3's.
+
+## D-056 — CI was red from run #9 to this fix, and the regression gate never once ran in it
+
+**Found by Srikanth, 2026-09-25, from the Actions tab.** The last green run was #8 (`ee95155`,
+2026-08-25). Every run from #9 (`eaa5e4b`, the Phase 4 close-out, 2026-09-24) through
+`c7c7e63` failed — six consecutive, plus the duplicate runs pushes produced. Nobody noticed,
+because every "green" reported in this project over that month was a local run.
+
+**What failed** (`gh run view … --log-failed`, read-only):
+
+| From run | Test | Why it passed locally |
+|---|---|---|
+| #9 | `tests/test_docs.py::…test_every_25_of_25_line_names_the_amendment_or_is_cross_arm` — `FileNotFoundError: …/CLAUDE.md` | `CLAUDE.md` is gitignored; it exists only on this machine |
+| #10 | `tests/test_deploy_guards.py::…refuses_the_compose_file` and `…refuses_the_provisioning_block` — `ContextError: data/indices/… missing` | the tests assembled the real deploy context, which needs the gitignored FAISS index |
+
+Everything else passed, nothing was skipped.
+
+**What that switched off — worse than the failures.** The unit-test step came first in its job,
+and the integration suite, the dataset re-verification and both regression-gate steps were later
+steps of the same job, so each was skipped on every run. Run #8, the last green, predates all
+four: they were added in `eaa5e4b`, the commit whose run first failed. **So none of them has ever
+executed on GitHub.** Every "the gate passed", "the gate fired on an injected regression", "CI
+replays committed artifacts" and "a skip is an error" in this repository described the workflow
+file and local replays. The gate *logic* is verified — `tests/test_gate.py`, `make gate`, and now
+`make ci-local` — but it had never run in CI.
+
+It is the D-023 family's largest instance: not a detector that cannot fire, but **four detectors
+switched off by an unrelated failure upstream of them**, with a local environment that made the
+upstream failure invisible — the D-022 lesson ("a working local environment is not evidence of a
+working declared one") one level up, applied to *files* rather than dependencies.
+
+**Fixed:**
+* **The tests read only what git holds.** The docs test checks tracked files only (`tracked()`:
+  `git ls-files`, or presence in an export), and a test asserts the filtered list still holds
+  README, EVALS and DECISIONS so the filter cannot quietly empty it. The deploy-context tests build
+  a fake repository in `tmp_path` — the real `.dockerignore`, Dockerfile and `src/`, stand-in data
+  files with manifests that checksum them — and gained a checksum-mismatch and a missing-file case.
+* **Mutation-checked.** Disabling each of `check_context`'s four refusals in turn (compose/env
+  filename, provisioning block, checksum, missing admitted file) now fails a test each time. The
+  check found the compose-file test had never tested the filename rule: it wrote the real compose
+  file, whose `LANGFUSE_INIT_` block tripped the text scan with a message that also contains
+  "compose", so the filename check could be deleted and it still passed. It now writes a compose
+  file with no provisioning block, and a `.env` case was added.
+* **The workflow is four independent jobs** — `check` (lint, type, unit tests), `integration`,
+  `gate` (dataset re-verification and both gate steps), `clean-install` — with no `needs:`, and
+  each gate-job step runs `if: !cancelled()`, so one failure cannot hide the others.
+  `tests/test_ci_local.py` fails if a job gains a `needs:` or a gate step leaves the gate job.
+* **`make ci-local`** runs the workflow's own `run:` blocks, parsed from `ci.yml`, in a `git
+  archive` export of HEAD committed as a one-commit repository (what `actions/checkout` gives the
+  runner), in a minimal environment with no `.env` and no shell keys, after asserting the code
+  under test is the export's and not this checkout's editable install. `WORKTREE=1` exports the
+  working tree's tracked changes via `git stash create` (writes nothing) and lists the untracked
+  files it leaves out. What it cannot run — the Docker integration suite, the from-scratch clean
+  install — it names as NOT RUN. Its first run found one more gap in itself: a bare archive has no
+  `.git`, so `test_space_secrets` (which asks git whether `.env.deploy` is ignored) failed there
+  and would have passed on GitHub; hence the one-commit repository.
+* **`pyyaml` declared** in the dev extras: `tests/test_deploy_guards.py` had imported it all
+  along and only had it transitively through LangChain (D-022's class).
+
+**Result:** `make ci-local` green — Lint, Type check, Tests (691 passed, 42 deselected), dataset
+re-verification, gate baseline passes, injected regression fails on recall. **Not verified until
+Srikanth pushes:** the GitHub run itself, and in particular the integration job, which has never
+run anywhere but locally and needs Docker on the runner; it is independent of the gate now, so if
+it fails it fails alone.
+
+**Still not covered by CI, stated:** 42 tests are deselected there — the 7 `network` /
+`integration` ones and 35 marked `slow`, which load the embedding model or the FAISS index, absent
+on a runner (`pytest --collect-only -q -m "slow or network or integration"`). They run only
+under `make test` locally.
+
+**Reverses if:** never. The rule it adds: a green that was not produced from what git holds is not
+evidence about CI; run `make ci-local` before reporting CI state, and read the Actions tab.
 

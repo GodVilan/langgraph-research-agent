@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics guardrail-variance guardrail-probe generator-determinism gemini-reconcile corpus-licenses trace-units smoke-live verify-deploy serve docker-build docker-run deploy-space space-secrets load-check latency-single load-report check clean
+.PHONY: help install lint fmt type test test-all test-fast test-integration test-necessity graph index index-verify compare-index verify-corpus corpus-info corpus-diversity audit-entities verify-evals select-attributes prune-gold gold-report rubric judge-sample run-set run-report bypass-probe score judge-print judge-estimate judge-agreement metrics-report metrics-compare metrics-versus metrics-spread judge-spend push-scores gate run-v21 integrity readme-stats injection-report injection-live screen-corpus langfuse-up langfuse-down langfuse-reset budget reconcile-cost reconcile-d021 metrics guardrail-variance guardrail-probe generator-determinism gemini-reconcile corpus-licenses trace-units smoke-live verify-deploy serve docker-build docker-run deploy-space space-secrets load-check latency-single load-report check ci-local clean
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -36,7 +36,10 @@ test-necessity:  ## the multi_hop_necessity fixtures (needs GOOGLE_API_KEY, 27 c
 test-integration:  ## one real trace against a live local Langfuse (needs make langfuse-up)
 	$(PY) -m pytest -q -m integration
 
-check: lint type test-fast  ## what CI runs on every push
+check: lint type test-fast  ## a quick local subset (not CI — use ci-local for that)
+
+ci-local:  ## CI's own run: blocks in a clean git-archive export of HEAD [WORKTREE=1 for uncommitted tracked changes]
+	$(PY) scripts/ci_local.py $(if $(WORKTREE),--worktree,)
 
 graph:  ## regenerate docs/img/graph.mmd from the compiled topology
 	$(PY) -m src.cli graph
@@ -114,6 +117,9 @@ metrics-report:  ## Phase 4 metrics per stratum with n (SHEET=path to a score sh
 
 metrics-compare:  ## judge-free retrieval across runs and arms, with the repeat-run spread
 	$(PY) -m evals.metrics --compare r1,r2,r3,dense_only,section_filter,embedding_small,v21
+
+metrics-versus:  ## per-item retrieval differences between two runs: [A=r1] [B=v21]
+	$(PY) -m evals.metrics --versus $(or $(A),r1),$(or $(B),v21)
 
 metrics-spread:  ## the three-draw outcome spread, and each arm measured against it
 	$(PY) -m evals.metrics --spread dense_only,section_filter,v21

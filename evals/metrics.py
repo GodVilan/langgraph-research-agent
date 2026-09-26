@@ -89,9 +89,17 @@ def retrieval_rows(evalset: EvalSet, record: RunRecord) -> list[dict[str, Any]]:
                 "recall@5": recall_at(hits, item.gold_chunk_ids, 5),
                 "recall@10": recall_at(hits, item.gold_chunk_ids, 10),
                 "rr": reciprocal_rank(hits, item.gold_chunk_ids),
+                # Over everything the run retrieved — 5 chunks for v3, a median of 18 for v2.1,
+                # whose loop unions several searches — and over the first 5 alone. Published for
+                # a phase as "gold paper in the top 5" while counting the whole list (D-021,
+                # fourth instance): at equal depth v2.1's 28 of 43 is 22.
                 "gold_paper_hit": any(
                     c.paper_id in {g.split("_")[0] for g in item.gold_chunk_ids}
                     for c in run.retrieved
+                ),
+                "gold_paper_hit_at5": any(
+                    c.paper_id in {g.split("_")[0] for g in item.gold_chunk_ids}
+                    for c in run.retrieved[:5]
                 ),
                 "guardrail_blocked": run.status == "guardrail_blocked",
             }
@@ -124,6 +132,7 @@ def retrieval_summary(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             "n_reached_retrieval": len(reached),
             "mrr": round(_mean([float(r["rr"]) for r in group]), 3),
             "gold_paper_in_hits": sum(1 for r in group if r["gold_paper_hit"]),
+            "gold_paper_in_first5": sum(1 for r in group if r["gold_paper_hit_at5"]),
             "guardrail_blocked": sum(1 for r in group if r["guardrail_blocked"]),
             "k_retrieved": k_max,
         }
@@ -219,6 +228,52 @@ def run_summary(record: RunRecord) -> dict[str, Any]:
     }
 
 
+def versus(evalset: EvalSet, a: str, b: str) -> str:
+    """Per-item retrieval differences between two runs on the factual stratum.
+
+    A mean over 43 items can hide how many items moved: Recall@5 0.267 vs 0.233 is two items.
+    The post-mortem names no winner on a row whose difference is one or two items, so the count
+    has to be regenerable, not inferred from the means.
+    """
+    recs = {t: load_record(run_path(evalset.sha256, "" if t == "r1" else t)) for t in (a, b)}
+    missing = [t for t, r in recs.items() if r is None]
+    if missing:
+        return f"no run for {', '.join(missing)}"
+    rows = {
+        t: {
+            x["item_id"]: x
+            for x in retrieval_rows(evalset, r)  # type: ignore[arg-type]
+            if x["stratum"] == "single_paper_factual"
+        }
+        for t, r in recs.items()
+    }
+    ids = sorted(set(rows[a]) & set(rows[b]))
+    out = [f"per-item, factual, n={len(ids)}: {a} vs {b}"]
+    for key, label in (("recall@5", "Recall@5"), ("rr", "reciprocal rank")):
+        hi = [i for i in ids if rows[a][i][key] > rows[b][i][key]]
+        lo = [i for i in ids if rows[a][i][key] < rows[b][i][key]]
+        out.append(
+            f"  {label:16} {a} higher on {len(hi)} {hi if len(hi) <= 5 else ''}; "
+            f"{b} higher on {len(lo)} {lo if len(lo) <= 5 else ''}; equal on "
+            f"{len(ids) - len(hi) - len(lo)}"
+        )
+    for key, label in (
+        ("gold_paper_hit_at5", "in the first 5"),
+        ("gold_paper_hit", "in all retrieved"),
+    ):
+        gp = {t: sum(rows[t][i][key] for i in ids) for t in (a, b)}
+        n_ret = {t: statistics.median(rows[t][i]["n_retrieved"] for i in ids) for t in (a, b)}
+        out.append(
+            f"  gold paper {label:17} {a} {gp[a]} of {len(ids)}; {b} {gp[b]} of {len(ids)}"
+            + (
+                f"  (median retrieved: {a} {n_ret[a]:g}, {b} {n_ret[b]:g})"
+                if key == "gold_paper_hit"
+                else ""
+            )
+        )
+    return "\n".join(out)
+
+
 def compare(evalset: EvalSet, tags: list[str]) -> str:
     """Retrieval metrics side by side across runs, with the max-min spread over repeats.
 
@@ -247,7 +302,8 @@ def compare(evalset: EvalSet, tags: list[str]) -> str:
             f"{tag:16} arm={record.arm:16} factual recall@5 {s['recall@5']:.3f} "
             f"(reached-retrieval {s['recall@5_reached_retrieval']:.3f}, "
             f"n={s['n_reached_retrieval']})  "
-            f"mrr {s['mrr']:.3f}  gold-paper-in-top5 {s['gold_paper_in_hits']}/43  "
+            f"mrr {s['mrr']:.3f}  gold-paper in first 5 {s['gold_paper_in_first5']}/43, "
+            f"in all retrieved {s['gold_paper_in_hits']}/43 (max k {s['k_retrieved']})  "
             f"guardrail-blocked {s['guardrail_blocked']}"
         )
     repeats = [v for t, v in values.items() if t in {"r1", "r2", "r3"}]
@@ -361,9 +417,14 @@ def main() -> int:
         default="",
         help="comma-separated run tags (r1,r2,r3,dense_only,…): judge-free retrieval side by side",
     )
+    parser.add_argument("--versus", default="", help="A,B: per-item retrieval differences")
     args = parser.parse_args()
 
     evalset = EvalSet.read(args.set)
+    if args.versus:
+        a, b = (t.strip() for t in args.versus.split(",", 1))
+        print(versus(evalset, a, b))
+        return 0
     if args.spread:
         print(
             spread(
