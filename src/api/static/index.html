@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>arXiv Agent v3</title>
+<style>
+:root { --fg: #1a1a1a; --muted: #5a5a5a; --bg: #ffffff; --line: #d8d8d8; --warn: #8a4b00; --err: #a01818; --box: #f6f6f4; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg: #e8e8e6; --muted: #a8a8a4; --bg: #161616; --line: #3a3a3a; --warn: #f0b060; --err: #ff8a80; --box: #202020; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+p.about { margin: 0.2rem 0; color: var(--muted); }
+a { color: inherit; }
+form { margin: 1.5rem 0 0.5rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+textarea { width: 100%; min-height: 5.5rem; padding: 0.6rem; font: inherit; color: var(--fg); background: var(--box); border: 1px solid var(--line); border-radius: 6px; resize: vertical; }
+.row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.6rem; }
+button { font: inherit; padding: 0.45rem 1rem; border-radius: 6px; border: 1px solid var(--line); background: var(--fg); color: var(--bg); cursor: pointer; }
+button.secondary { background: transparent; color: var(--fg); }
+button:disabled { opacity: 0.5; cursor: wait; }
+#status { color: var(--muted); min-height: 1.5rem; margin-top: 0.8rem; }
+#result { margin-top: 1rem; }
+.answer { white-space: pre-wrap; background: var(--box); border: 1px solid var(--line); border-radius: 6px; padding: 0.8rem; }
+.note { color: var(--warn); margin: 0.6rem 0; }
+.error { color: var(--err); margin: 0.6rem 0; }
+h2 { font-size: 1rem; margin: 1.2rem 0 0.4rem; }
+ol { padding-left: 1.4rem; margin: 0; }
+.meta { color: var(--muted); font-size: 0.85rem; margin-top: 0.8rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>arXiv Agent v3</h1>
+  <p class="about">It answers from a fixed corpus: 150 arXiv cs.LG papers published on one day (2026-05-28). It does not search the web.</p>
+  <p class="about">It refuses often, including questions the corpus can answer — see <a href="https://github.com/GodVilan/langgraph-research-agent#known-limitations">Known limitations</a>.</p>
+  <p class="about">Code, measurements and what went wrong: <a href="https://github.com/GodVilan/langgraph-research-agent">the repository</a> and its <a href="https://github.com/GodVilan/langgraph-research-agent/blob/main/docs/POSTMORTEM.md">post-mortem</a>.</p>
+
+  <form id="ask">
+    <label for="question">Question</label>
+    <textarea id="question" name="question" maxlength="2000" required></textarea>
+    <div class="row">
+      <button type="submit" id="send">Ask</button>
+      <button type="button" class="secondary" id="example">Use the example question</button>
+    </div>
+  </form>
+  <div id="status" role="status" aria-live="polite"></div>
+  <div id="result"></div>
+</main>
+<script>
+"use strict";
+// The one example: the README's smoke-live question, verified to cite a source (D-061).
+const EXAMPLE = "__EXAMPLE_QUESTION__";
+const form = document.getElementById("ask");
+const box = document.getElementById("question");
+const send = document.getElementById("send");
+const statusEl = document.getElementById("status");
+const result = document.getElementById("result");
+box.placeholder = EXAMPLE;
+document.getElementById("example").addEventListener("click", () => { box.value = EXAMPLE; box.focus(); });
+
+function el(tag, text, cls) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;  // text only: server output is never parsed as HTML
+  if (cls) node.className = cls;
+  return node;
+}
+
+function explainError(status, body) {
+  const code = body && body.error;
+  if (status === 429 && code === "daily_cost_ceiling")
+    return "Today's cost ceiling for this public demo is used up. It resets at 00:00 UTC.";
+  if (status === 429)
+    return "Too many questions from your address. Wait a minute and try again.";
+  if (status === 503 && code === "busy")
+    return "The service is answering other questions right now (it takes two at a time). Try again in a few seconds.";
+  if (status === 503 && code === "cost_ledger_unavailable")
+    return "The service cannot record spend right now, so it is not answering. Try again later.";
+  if (status === 503) return "The service is not ready yet. Try again in a minute.";
+  if (status === 502 || status === 504 || body === null)
+    return "The service did not answer in time. After a quiet period it sleeps and takes about a minute to wake; the model provider can also be slow. Try again shortly.";
+  if (status === 422) return "The question could not be read. Keep it to one question of up to 2,000 characters.";
+  return "Something went wrong (HTTP " + status + ").";
+}
+
+function render(body) {
+  result.replaceChildren();
+  if (body.guardrail_blocked) {
+    result.append(el("p", "Refused before answering.", "note"));
+  }
+  result.append(el("div", body.answer || "(no answer)", "answer"));
+  if (body.truncated) {
+    result.append(el("p", "This answer was cut short: " + (body.truncation_reason || "a budget limit was reached") + ".", "note"));
+  }
+  const g = body.guardrail || {};
+  if (g.decision === "refused") {
+    const why = el("p", "", "note");
+    why.textContent = "Refused at stage “" + g.stage + "”: " + g.reason + (g.deterministic ? "" : " (this check is not deterministic)");
+    result.append(why);
+  }
+  const sources = body.sources || [];
+  if (sources.length) {
+    result.append(el("h2", "Sources"));
+    const list = el("ol");
+    for (const s of sources) {
+      const item = el("li");
+      const link = el("a", s.paper_id);
+      link.href = "https://arxiv.org/abs/" + encodeURIComponent(s.paper_id);
+      link.rel = "noopener";
+      item.append(link, document.createTextNode(" — " + (s.title || "")));
+      list.append(item);
+    }
+    result.append(list);
+  }
+  const meta = [];
+  if (typeof body.latency_ms === "number") meta.push((body.latency_ms / 1000).toFixed(1) + " s");
+  if (body.trace_id) meta.push("trace " + body.trace_id.slice(0, 12));
+  if (meta.length) result.append(el("p", meta.join(" · "), "meta"));
+}
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const question = box.value.trim() || EXAMPLE;
+  box.value = question;
+  send.disabled = true;
+  result.replaceChildren();
+  const started = Date.now();
+  const tick = () => { statusEl.textContent = "Thinking… " + Math.round((Date.now() - started) / 1000) + " s (usually under 15 s; up to two minutes when the model provider is busy)"; };
+  tick();
+  const timer = setInterval(tick, 1000);
+  try {
+    const response = await fetch("/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: question, stream: false }),
+    });
+    let body = null;
+    try { body = await response.json(); } catch (_) { body = null; }
+    statusEl.textContent = "";
+    if (response.ok && body) render(body);
+    else result.append(el("p", explainError(response.status, body), "error"));
+  } catch (_) {
+    statusEl.textContent = "";
+    result.append(el("p", explainError(0, null), "error"));
+  } finally {
+    clearInterval(timer);
+    send.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

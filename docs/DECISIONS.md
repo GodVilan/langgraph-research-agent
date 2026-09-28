@@ -2492,6 +2492,13 @@ under `make test` locally.
 **Reverses if:** never. The rule it adds: a green that was not produced from what git holds is not
 evidence about CI; run `make ci-local` before reporting CI state, and read the Actions tab.
 
+**Note, 2026-09-28 — what GitHub has actually run since the fix.** Run #15 (`a17b522`) was the
+regression gate's **first execution on GitHub**: the gate job passed both steps — "gate passed"
+on the baseline, and the injected regression failing on `factual_recall@5: 0.000` — while the run
+failed on the integration job's MinIO pull (D-057). Run #16 (`766b097`) failed on the integration
+tests skipping (D-058). **Run #17 (`69bde02`) is the first fully green run since #8**: all four
+jobs, the integration job reaching "2 passed, 752 deselected" against Langfuse 3.225.4 with no
+skips, read from its log. Run #18 (`6fa2e5d`) is green as well.
 
 ## D-057 — A local image cache masked a missing dependency: MinIO's public images are gone
 
@@ -2651,6 +2658,12 @@ its volumes unchanged, its six containers still running.
 equivalent tests the command someone remembered, and here it silently read a file only this
 machine has. The D-022 / D-056 / D-057 family again.
 
+**Provider record, 2026-09-28** (D-046's rule: a billed figure comes from the provider's own
+record). Checked by Srikanth in the provider consoles on 2026-09-28, not by me: **Google Cloud
+Billing shows $0.00 from 2026-09-26**, the day of the 27 Gemini calls D-057 records (local key,
+no-billing project), and **Upstash shows $0.00**. The $0.0858 in D-057 remains a notional figure
+from the usage log, not a charge.
+
 ## D-059 — The published spend table reads a fixed window, not the last 30 days
 
 **Fixed 2026-09-28** (moved from BACKLOG, where D-058 filed it). `make budget` and `make
@@ -2704,4 +2717,104 @@ runs; the running MinIO container is untouched. Tests (`tests/test_langfuse_guar
 faked): the root-run volume is refused with the steps, a fresh and a migrated volume pass, only
 read-only mounts are used, the protected volume follows the project name, and the recipe runs the
 guard before `up`; a mutant that treats every path as writable fails two of them.
+
+
+## D-060 — What writes to Langfuse Cloud: the Space, and nothing else
+
+**Audited 2026-09-28, read-only**, with the `.env.deploy` key pair loaded in-process (the legacy
+traces, scores and sessions endpoints answer 410 for this organisation — D-046 — so the v2
+observations and v2 metrics APIs are the record). Prompted by the Cloud dashboard for project
+`Scholium` listing two environments, `deployed` and `default`.
+
+| Environment | Traces | Observations | Langfuse-computed cost | First .. last observation |
+|---|---:|---:|---:|---|
+| `deployed` | 114 | 3,926 | $0.368944 **notional** | 2026-09-24 21:12 .. 2026-09-25 13:19 UTC |
+| `default` | 0 | 0 | — | — |
+
+`v2/metrics` agrees (observations by environment: `deployed` 3,926, nothing else) and holds no
+scores in any environment; an explicit `environment=default` filter from 2026-01-01 returns 0.
+**Through the API, `default` holds nothing.** Langfuse assigns `default` to data sent without an
+environment, and its UI may list the name regardless; that the dashboard entry is empty is not
+verified from the UI.
+
+**Every observation came from the Space.** All 3,926 carry Langfuse SDK **4.15.6** — the version
+in the Space image — where this checkout's venv has 4.14.4; all carry the deploy key pair's public
+key and release `0.1.0`; and their eight writing processes (`service.instance.id`) line up with
+the Space's container lifetimes: the deploy-day smoke and host checks (2026-09-24 21:12–21:35,
+across restarts), the container that served the invalid slept-through rerun (00:44–02:49), the
+load check (02:54–03:05) and the redeploy's smoke and single-user run (2026-09-25 13:13–13:19).
+**Nothing else writes to the Cloud project, so there is no other path to close.** What keeps it
+so: local runs read `.env`, whose host is the local stack (D-046 round), and the integration test
+refuses any non-local host.
+
+**The dashboard's cost is notional.** Langfuse computes it from its own model list prices; it is
+neither our notional figure (D-004) nor anything billed (D-046). Nothing published quotes it
+today; `tests/test_docs.py::TestCloudDashboardCostIsNotional` fails any line naming Langfuse Cloud
+with a dollar figure and without "notional".
+
+**Deleted nothing.** One slip during the audit: an exploratory read printed one observation's full
+metadata, which includes the deploy key pair's *public* key, to this session's output (written
+nowhere). The secret was never printed; the analysis after that compared keys and printed only
+booleans.
+
+## D-061 — A landing page at `/`, one example question everywhere, and a CSP that enforces "no external requests"
+
+**Decided (Srikanth, 2026-09-28):** `GET /` serves one static HTML file (`src/api/static/index.html`)
+with no framework and no external requests; the JSON description moves to `GET /api`.
+
+**The page.** A question box calling `POST /query` with `stream=false`; the answer with its
+cited sources (arXiv links); a refusal with its guardrail stage, reason and whether that check is
+deterministic; a truncated answer's reason; and readable messages for 429 (daily ceiling, or the
+per-IP limit), 503 (busy, or the ledger unavailable) and a Space that is asleep or slow (502/504,
+or no JSON). Three plain lines: the corpus (150 cs.LG papers, one day), that it refuses often
+(linking Known limitations), and links to the repository and the post-mortem. Server text is
+inserted with `textContent`, never parsed as HTML.
+
+**"No external requests" is enforced by the browser, not by the page's good behaviour.** The route
+sends a Content-Security-Policy built from the SHA-256 of the page's inline script and style —
+`default-src 'none'`, `connect-src 'self'`, no `unsafe-inline` — so a request to any other origin
+is blocked even if the page were changed to make one. `frame-ancestors` admits huggingface.co,
+which shows a Space's app in an iframe on its own page.
+
+**One example question, verified, not "What is LoRA?".** The README's smoke-live question *was*
+"What is LoRA?" — the example D-047 found citing only on some draws — so the brief's "the README's
+smoke-live question, not LoRA" was resolved by replacing it everywhere: the page, `/api`, the
+README curl that `make smoke-live` runs, the Space card and SERVING's example now ask *"What is the
+top-1 error rate achieved by LPA (mean + varied bound) using ResNet-110 on the CIFAR-100
+dataset?"* — eval item `sp-001`, judged a correct answer in all seven judged runs of the frozen
+set, served and cited twice in the load check, and cited `2605.29525` in **3 of 3** answers that
+returned from the live Space on 2026-09-28 (two further draws timed out, below). One copy lives in
+`src/api/landing.py`; the HTML carries a placeholder, substituted as a JSON literal; tests fail if
+the README curl or the Space card disagree. The scope classifier's prompt and the refusal message
+still name LoRA as an in-scope example; they are in the agent path and were left alone.
+
+**Found while verifying: Gemini was overloaded, and the wall-clock budget does not bound a call in
+flight.** The Space had slept (48 h idle); its first request woke it. Then every query met
+`503 UNAVAILABLE — This model is currently experiencing high demand`, the Google client retried
+with backoff inside single calls, and queries took 128–339 s against the graph's 120 s budget,
+which trips only between nodes ("Budget tripped after critique") and returned a truncated answer.
+Two of five draws outlived the client's timeout. The page therefore shows the truncation reason
+and says waits can reach two minutes. The budget gap is in BACKLOG; it is behaviour the load check
+measured, so it is not changed here.
+
+**Seen working, locally** (`make serve`, the browser pane): the page loads under its CSP with no
+console errors; the example question returned *21.92% [2605.29525_0010]* with sources and the
+truncation notice (Gemini still overloaded — 337 s); the error messages and a refusal render as
+above.
+
+**Tests** (`tests/test_landing.py`): `/` is HTML carrying the example and its CSP; `/api` is the
+JSON with the same example; every `fetch` is a same-origin path; nothing is loaded from anywhere
+(no script `src`, `<link>`, media tags, `@import`, `url(`, XHR/WebSocket/EventSource/beacon/dynamic
+import); the CSP admits exactly the page's own inline code and no `unsafe-*`; no `innerHTML`;
+the README curl and the Space card carry the one question; and smoke-live's new `check_landing`
+(`/` loads, is HTML, carries the question, has the CSP; `/api` carries it) passes on the real page
+and fails on a page without the example.
+
+**Deployed diff against the live commit** (`957b711` = Space `7745886e`), every deployed path:
+`src/api/app.py` — the `/` route, the new `/api` route and one import; `src/api/landing.py` and
+`src/api/static/index.html`, new, used only by `/`; `pyproject.toml` — package data for the HTML,
+and the D-056 `pyyaml` dev extra, which the image does not install; the Space card — its example
+question and one sentence. Nothing on the `/query` path — graph, retrieval, guardrails, ledger,
+limits — changed, so **the load check and the item-4 gate result carry over**, by the D-054
+reasoning.
 

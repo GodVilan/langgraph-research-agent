@@ -446,6 +446,6 @@ cannot be bypassed (D-046).
 
 ---
 
-*Sources: `docs/DECISIONS.md` (D-001–D-059), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
+*Sources: `docs/DECISIONS.md` (D-001–D-061), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
 `docs/AUDIT.md`, `docs/MIGRATION_MAP.md`, `docs/PHASE4.md`, `docs/EVALS.md`, `docs/BUDGET.md`,
 `docs/OBSERVABILITY.md`, `docs/SERVING.md`.*

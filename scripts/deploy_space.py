@@ -64,12 +64,13 @@ documents the endpoints, the limits, the measured numbers, and what the system c
 
 ```bash
 curl -s -X POST https://{host}/query -H 'Content-Type: application/json' \\
-  -d '{{"question": "What is LoRA?", "stream": false}}'
+  -d '{{"question": "What is the top-1 error rate achieved by LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset?", "stream": false}}'
 ```
 
 On free hardware this Space sleeps when idle; the first request after a sleep waits for the
-container to start and the 1.3 GB embedding model to load.
-"""
+container to start and the 1.3 GB embedding model to load. The page at https://{host}/ asks
+the same question from a browser.
+"""  # noqa: E501 — the curl carries the README's example question on one line, as bash needs
 
 # Strings whose presence in a deploy context means the local Langfuse fixture is going with
 # it: the compose file's name, and the headless-provisioning variables that create the

@@ -83,6 +83,41 @@ def readme_curl() -> str:
     return match.group(1).strip()
 
 
+def readme_question() -> str:
+    """The question inside the README's curl — the one example, also on the landing page."""
+    import re
+
+    match = re.search(r'"question":\s*"((?:[^"\\]|\\.)*)"', readme_curl())
+    if match is None:
+        raise SmokeFailureError("FAIL readme-question: no question in the README's curl")
+    return str(json.loads(f'"{match.group(1)}"'))
+
+
+def check_landing(url: str) -> None:
+    """GET / is the page and carries the README's example; GET /api carries it too (D-061)."""
+    question = readme_question()
+    page = httpx.get(f"{url}/", timeout=30)
+    check(page.status_code == 200, "landing-loads", f"GET / answered {page.status_code}")
+    check(
+        page.headers.get("content-type", "").startswith("text/html"),
+        "landing-is-html",
+        page.headers.get("content-type", ""),
+    )
+    check(question in page.text, "landing-example", "GET / carries the README's question")
+    csp = page.headers.get("content-security-policy", "")
+    check(
+        "connect-src 'self'" in csp and "default-src 'none'" in csp,
+        "landing-csp",
+        "the browser may contact only this origin",
+    )
+    api = httpx.get(f"{url}/api", timeout=30)
+    check(
+        api.status_code == 200 and question in str(api.json().get("example", "")),
+        "api-example",
+        "GET /api carries the same question",
+    )
+
+
 def expected_index_sha() -> str:
     for line in (REPO / "data" / "INDEX.sha256").read_text(encoding="utf-8").splitlines():
         digest, name = line.split(None, 1)
@@ -279,6 +314,7 @@ def main() -> None:
     url = args.url.rstrip("/")
     try:
         check_ready(url, args.sample_rate)
+        check_landing(url)
         body = run_readme_curl(url)
         check_client_key(url, args.my_ip)
         if not args.no_trace:

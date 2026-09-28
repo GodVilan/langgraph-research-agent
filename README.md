@@ -166,8 +166,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 768, all passing | `make test` |
-| First-party Python | 44 files, 6,372 lines under `src/` | `make readme-stats` |
+| Tests | 780, all passing | `make test` |
+| First-party Python | 45 files, 6,443 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -193,11 +193,12 @@ extracted from this file, against the deployed Space:
 
 <!-- CURL:START -->
 ```bash
-curl -s -X POST https://godvillain-scholium.hf.space/query -H 'Content-Type: application/json' -d '{"question": "What is LoRA?", "stream": false}'
+curl -s -X POST https://godvillain-scholium.hf.space/query -H 'Content-Type: application/json' -d '{"question": "What is the top-1 error rate achieved by LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset?", "stream": false}'
 ```
 <!-- CURL:END -->
 
-`make smoke-live URL=…` runs that exact command, extracted from this file, and asserts the
+The same question is on the page at the live URL, which asks it from a browser. `make
+smoke-live URL=…` runs that exact command, extracted from this file, and asserts the
 answer cites a returned source — so this example cannot drift from what is tested. The same
 image runs locally with `make docker-build` and `make docker-run` (:7860, volume-backed ledger).
 

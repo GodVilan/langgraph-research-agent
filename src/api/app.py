@@ -36,6 +36,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 from src.agent.graph import Graph, build_graph, sqlite_checkpointer
 from src.agent.runner import new_thread_id, run_config, run_query
 from src.agent.state import AgentState, RequestOptions, Usage
+from src.api import landing
 from src.api.ledger import (
     Ledger,
     LedgerUnavailableError,
@@ -258,12 +259,23 @@ def create_app(
         response.headers["X-Client-Key"] = client_key(address)
         return response
 
-    @app.get("/")
-    async def index() -> dict[str, Any]:
+    @app.get("/", include_in_schema=False)
+    async def index() -> Response:
+        html, csp = landing.page()
+        return Response(
+            html,
+            media_type="text/html; charset=utf-8",
+            headers={"Content-Security-Policy": csp, "X-Content-Type-Options": "nosniff"},
+        )
+
+    @app.get("/api")
+    async def api() -> dict[str, Any]:
         return {
             "service": "arXiv Agent v3",
             "corpus": "150 arXiv cs.LG papers (fixed; the agent does not search the web)",
             "endpoints": {
+                "GET /": "a page to ask a question from a browser",
+                "GET /api": "this description",
                 "POST /query": "ask a question; SSE by default, JSON with stream=false",
                 "POST /threads/{thread_id}/query": "continue a checkpointed thread",
                 "GET /threads/{thread_id}": "read a thread's transcript",
@@ -273,8 +285,8 @@ def create_app(
                 "GET /docs": "OpenAPI",
             },
             "example": (
-                "curl -sN -X POST <base>/query -H 'Content-Type: application/json' "
-                '-d \'{"question": "What is LoRA?", "stream": false}\''
+                "curl -s -X POST <base>/query -H 'Content-Type: application/json' "
+                f'-d \'{{"question": "{landing.EXAMPLE_QUESTION}", "stream": false}}\''
             ),
         }
 

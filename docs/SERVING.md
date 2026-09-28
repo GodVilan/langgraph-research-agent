@@ -13,6 +13,8 @@ Decisions are D-035…D-044 in [DECISIONS.md](DECISIONS.md).
 | `POST /query` | Ask a question. **SSE by default**; `"stream": false` returns one JSON body. Starts a new thread. |
 | `POST /threads/{thread_id}/query` | A new turn on an existing, checkpointed thread. 404 if the thread does not exist on this instance. |
 | `GET /threads/{thread_id}` | The thread's transcript and last outcome. |
+| `GET /` | A page to ask one question from a browser (`src/api/static/index.html`, one file, no framework): calls `POST /query` with `stream=false`, shows the answer with its cited sources, a refusal with its guardrail stage and reason, a truncated answer's reason, and readable messages for 429 (daily ceiling or rate limit), 503 (busy) and a sleeping or slow Space. Served with a Content-Security-Policy built from the SHA-256 of its inline script and style and `connect-src 'self'`, so the browser blocks any request to another origin (D-061). |
+| `GET /api` | The JSON description `GET /` used to return: the endpoints and a curl example with the README's smoke-live question. |
 | `GET /health` | Liveness: the process is up. Always 200 while it is. |
 | `GET /ready` | Readiness: index and model loaded, ledger reachable. 503 with a reason otherwise. Also reports today's committed notional spend against the ceiling. |
 | `GET /metrics` | Prometheus exposition of the existing registry (`src/observability/metrics.py`) — the same series the CLI and eval harness write. No new definitions. |
@@ -21,7 +23,7 @@ Decisions are D-035…D-044 in [DECISIONS.md](DECISIONS.md).
 Request body (`src/api/schemas.py`, `extra` fields rejected):
 
 ```json
-{"question": "What is LoRA?", "stream": false, "top_k": 5, "paper_ids": ["2605.30179"]}
+{"question": "What is the top-1 error rate achieved by LPA (mean + varied bound) using ResNet-110 on the CIFAR-100 dataset?", "stream": false, "top_k": 5, "paper_ids": ["2605.29525"]}
 ```
 
 `question` 1–2,000 chars; `top_k` 1–10; `paper_ids` up to 20 arXiv ids restricting retrieval

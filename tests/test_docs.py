@@ -398,6 +398,30 @@ class TestLoadCheckIsRendered:
             rs.render_uncited()
 
 
+class TestCloudDashboardCostIsNotional:
+    """D-060: Langfuse Cloud's cost is computed from Langfuse's own list prices — a notional
+    figure, never a charge. A published line quoting it must say so."""
+
+    DOCS: ClassVar[list[Path]] = [
+        REPO / "README.md",
+        *sorted((REPO / "docs").glob("*.md")),
+    ]
+
+    def test_a_langfuse_cloud_dollar_figure_is_labelled_notional(self) -> None:
+        cloud = re.compile(r"(?i)langfuse cloud|cloud\.langfuse\.com")
+        dollars = re.compile(r"\$\d")
+        offending = [
+            f"{doc.name}:{n}: {line.strip()[:110]}"
+            for doc in self.DOCS
+            if doc.name != "DECISIONS.md"  # the record of how figures were found
+            for n, line in enumerate(doc.read_text(encoding="utf-8").splitlines(), 1)
+            if cloud.search(line) and dollars.search(line) and "notional" not in line.lower()
+        ]
+        assert not offending, "Langfuse Cloud cost quoted without 'notional':\n" + "\n".join(
+            offending
+        )
+
+
 class TestCiClaimIsExact:
     """D-050: CI replays committed run artifacts through the gate; it never runs the agent."""
 
