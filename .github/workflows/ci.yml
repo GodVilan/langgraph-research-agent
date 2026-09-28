@@ -93,11 +93,15 @@ jobs:
         env:
           LANGFUSE_PUBLIC_KEY: pk-lf-1a1a1a1a-2b2b-4c4c-8d8d-3e3e3e3e3e3e
           LANGFUSE_SECRET_KEY: sk-lf-4f4f4f4f-5a5a-4b6b-8c7c-6d6d6d6d6d6d
-          LANGFUSE_HOST: http://localhost:3000
         run: |
+          # Port and compose project are overridable so `make ci-local INTEGRATION=1` can run
+          # this block verbatim on a throwaway stack; unset here, they are 3000 and the file's
+          # own project name (D-058).
+          port="${LANGFUSE_WEB_PORT:-3000}"
+          export LANGFUSE_HOST="http://localhost:${port}"
           docker compose -f infra/docker-compose.langfuse.yml up -d
           for i in $(seq 1 60); do
-            curl -sf http://localhost:3000/api/public/health && break
+            curl -sf "${LANGFUSE_HOST}/api/public/health" && break
             sleep 5
           done
           # `integration and not network`: the trace suite only. The multi-hop necessity

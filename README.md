@@ -1,6 +1,8 @@
-# arXiv Agent v3
+   # Scholium — arXiv Agent v3
 
-A graph-orchestrated research agent over a 150-paper arXiv machine-learning corpus.
+   A graph-orchestrated research agent over a 150-paper arXiv machine-learning corpus,
+   deployed as **Scholium**. The repository, packages and metrics keep the project's
+   working name, `arxiv-agent`.
 
 This is a rebuild of **[arXiv-Agent v2.1](https://github.com/GodVilan/arXiv-Agent)**, which used a hand-rolled ReAct loop.
 v3 keeps v2.1's retrieval unchanged and replaces the orchestration, guardrails,
@@ -164,7 +166,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 748, all passing | `make test` |
+| Tests | 754, all passing | `make test` |
 | First-party Python | 44 files, 6,372 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -174,7 +176,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-09-26.*
+*Measured 2026-09-28.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus

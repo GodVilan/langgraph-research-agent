@@ -38,8 +38,8 @@ test-integration:  ## one real trace against a live local Langfuse (needs make l
 
 check: lint type test-fast  ## a quick local subset (not CI — use ci-local for that)
 
-ci-local:  ## CI's own run: blocks in a clean git-archive export of HEAD [WORKTREE=1 for uncommitted tracked changes]
-	$(PY) scripts/ci_local.py $(if $(WORKTREE),--worktree,)
+ci-local:  ## CI's own run: blocks in a clean git-archive export of HEAD [WORKTREE=1] [INTEGRATION=1: the integration step on a throwaway stack]
+	$(PY) scripts/ci_local.py $(if $(WORKTREE),--worktree,) $(if $(INTEGRATION),--integration,)
 
 graph:  ## regenerate docs/img/graph.mmd from the compiled topology
 	$(PY) -m src.cli graph

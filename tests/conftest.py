@@ -11,6 +11,9 @@ from pydantic import SecretStr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# First: the environment before any fixture edits it (the integration test reads its key pair
+# from here — D-058).
+import tests.process_env  # noqa: F401
 from src.config import BudgetLimits, GraphLimits, RetrievalSettings, Settings, get_settings
 from src.observability.config import ObservabilitySettings, get_observability_settings
 

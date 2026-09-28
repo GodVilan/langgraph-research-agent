@@ -63,8 +63,22 @@ TEST_ENVIRONMENT = "integration-test"
 
 @pytest.fixture
 def live_settings() -> ObservabilitySettings:
-    """Real observability settings, bypassing the suite-wide isolation on purpose."""
-    settings = ObservabilitySettings(_env_file=".env")  # type: ignore[call-arg]
+    """Real observability settings, bypassing the suite-wide isolation on purpose.
+
+    The key pair and host come from the environment *as the session started* — the suite's
+    isolation fixture has deleted them from `os.environ` by now — and otherwise from `.env`.
+    Reading `.env` alone skipped in CI, where the workflow step sets them as variables and
+    there is no `.env` (D-058); passing them explicitly also lets them beat `.env` locally, as
+    real environment variables would.
+    """
+    from tests.process_env import SNAPSHOT
+
+    explicit = {
+        field: SNAPSHOT[field.upper()]
+        for field in ("langfuse_public_key", "langfuse_secret_key", "langfuse_host")
+        if SNAPSHOT.get(field.upper())
+    }
+    settings = ObservabilitySettings(_env_file=".env", **explicit)  # type: ignore[call-arg, arg-type]
     if not settings.langfuse_enabled:
         pytest.skip("Langfuse is not configured; run `make langfuse-up` and set the key pair")
     if not settings.host_is_local:

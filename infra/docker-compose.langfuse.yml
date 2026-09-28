@@ -52,7 +52,9 @@ services:
       minio: { condition: service_healthy }
       redis: { condition: service_healthy }
     ports:
-      - "127.0.0.1:3000:3000"
+      # LANGFUSE_WEB_PORT: 3000 unless set. `make ci-local INTEGRATION=1` sets it, with
+      # COMPOSE_PROJECT_NAME, to run CI's integration step on a throwaway stack (D-058).
+      - "127.0.0.1:${LANGFUSE_WEB_PORT:-3000}:3000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
       SALT: "b169bb464500368109fddff7742b1fed"

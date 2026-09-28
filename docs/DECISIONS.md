@@ -2564,6 +2564,15 @@ it.
 **Reverses if:** never for the pins. A digest is changed deliberately, with the reason in this
 record; `make langfuse-up` on a fresh clone is the test.
 
+**Correction (D-058, 2026-09-28).** The paragraph above says the trace integration suite
+"passed against" the fresh stack. **It did not run against it.** The suite's isolation fixture
+deletes `LANGFUSE_HOST` (with the key pair) for every test, and the integration test then read
+`.env`, whose host is `http://localhost:3000` — the *existing* stack. Both local runs wrote their
+traces there: 4 traces, environment `integration-test`, 2026-09-26 05:25–05:26 UTC. What the
+fresh stack did establish stands — pulled by digest with no cached MinIO, healthy, v3.225.4,
+MinIO as uid 65532 owning its bucket — but the trace path was first shown working on a throwaway
+stack by `make ci-local INTEGRATION=1` (D-058).
+
 **Same round, two follow-ups.**
 * **`make ci-local` now reads `ci.yml` from the export**, not the checkout: the commands run are
   the commit's own. Read from the checkout, an edited-but-uncommitted workflow would have been
@@ -2582,3 +2591,63 @@ record; `make langfuse-up` on a fresh clone is the test.
   prompt-cache task manager before the stubs close, and asserts every thread the client started
   has stopped: 0 left, the file ~0.3 s slower. Reaching the prompt-cache manager uses private SDK
   attributes; if they move, the test errors rather than passing.
+
+## D-058 — The integration step was verified by a hand-written command, and that command hid why it skips
+
+**Found 2026-09-28 by the integration job's second run** (after D-057 fixed MinIO): every image
+pulled on a clean runner, the stack came up healthy at Langfuse 3.225.4 — and both trace tests
+**skipped**, "Langfuse is not configured; run `make langfuse-up` and set the key pair". pytest
+exited 0; the any-skip check D-057 added turned the job red, which is the check doing its job.
+
+**Cause, from the committed files.** `ci.yml`'s step does set `LANGFUSE_PUBLIC_KEY`,
+`LANGFUSE_SECRET_KEY` and `LANGFUSE_HOST` (overriding the workflow's empty top-level values), and
+nothing about port 3100 reached it — that was a local override only. But
+`tests/conftest.py::_sever_settings_from_the_environment` is autouse and, for **every** test,
+deletes each environment variable named after a settings field — the three above included — and
+clears `env_file`. The integration fixture then built `ObservabilitySettings(_env_file=".env")`:
+it opted back into `.env` but not into the variables the fixture had just deleted. On a runner
+there is no `.env`, so the key pair was gone before the test read it.
+
+**Why nobody saw it: it was verified with a hand-written command, not the workflow.** D-057's
+proof ran `pytest -m integration` by hand with a key pair and `LANGFUSE_HOST=…:3100` typed in.
+The fixture deleted those too, and the test fell back to the local `.env` — which exists here and
+points at port 3000. So the hand run "passed", against the *wrong stack*: the four traces it
+wrote went into the existing store (environment `integration-test`, 2026-09-26 05:25–05:26 UTC),
+and D-057 reported a pass against the fresh stack that never happened. That is exactly the gap
+`make ci-local` exists to close — CI's own commands, from what git holds, in CI's environment —
+and `ci-local` listed this job as NOT RUN, so it was closed for every job but this one.
+
+**No published figure moved.** `make budget --dry-run` and `make reconcile-cost` against the
+existing stack: the `development` row and the totals match the committed table exactly (276 priced
+traces, $0.93917; total $0.94605) and every priced trace reconciles. The four traces sit in the
+`integration-test` row, labelled test traffic and excluded from totals. That row reads 6 traces
+now against the committed 8 — not because of these four alone: `make budget` uses a rolling
+30-day window, so older test traces have aged out (BACKLOG).
+
+**Fixed:**
+* **The cause.** `tests/process_env.py` snapshots the process environment when `conftest` is
+  imported, before any fixture runs; the integration fixture passes the `LANGFUSE_*` values from
+  that snapshot explicitly and falls back to `.env` for anything unset. CI's step variables now
+  reach the test, and still beat `.env` locally as real variables would.
+* **The step is configurable without changing CI.** The compose file's web port is
+  `${LANGFUSE_WEB_PORT:-3000}`; the run block exports `LANGFUSE_HOST` from that port; the project
+  follows `COMPOSE_PROJECT_NAME`, which Compose ranks above the file's `name:`. Unset — as in CI —
+  both keep today's values (`docker compose config`: `arxiv-agent-langfuse`, 3000).
+* **`make ci-local INTEGRATION=1`** runs the workflow's own integration `run:` block, verbatim,
+  adding only `COMPOSE_PROJECT_NAME=ci-local-integration-<random>` and a free
+  `LANGFUSE_WEB_PORT`, then removes that stack and its volumes whatever happened. **It refuses**
+  if the project is the compose file's default, or already has volumes — so it can never recreate
+  the developer's stack on its root-owned MinIO volume or write into the store the spend table
+  reads. Tests: the default project and a project with volumes are refused, a fresh one accepted,
+  the protected name is read from the compose file, and `run_integration` refuses before calling
+  Docker at all.
+
+**Result:** `make ci-local WORKTREE=1 INTEGRATION=1` green, 7 of 7 executed steps, the integration
+step reaching **"2 passed, 752 deselected"** with no skips from the workflow's own commands, on a
+throwaway stack (Langfuse 3.225.4). Checked afterwards: **0 traces** reached the existing stack,
+its volumes unchanged, its six containers still running.
+
+**Rule:** a step is verified by running *its* `run:` block in *its* environment. A hand-written
+equivalent tests the command someone remembered, and here it silently read a file only this
+machine has. The D-022 / D-056 / D-057 family again.
+

@@ -48,7 +48,7 @@ VENV_BIN = REPO / ".venv" / "bin"
 # Steps not run here, by (job, step-name prefix), each with the reason printed in the report.
 # Job-specific entries first: the first match wins.
 NOT_RUN = {
-    ("integration", "Integration"): "needs Docker and a six-container Langfuse stack",
+    ("integration", "Integration"): "needs Docker; run with INTEGRATION=1 (throwaway stack)",
     ("clean-install", ""): "installs from scratch into a fresh environment (network, minutes)",
     ("*", "Install"): "this repo's .venv stands in for `pip install -e .[dev]`",
 }
@@ -109,8 +109,11 @@ def export(rev: str, dest: Path) -> None:
 
 def environment(export_dir: Path, *levels: dict[str, Any]) -> dict[str, str]:
     git_dir = str(Path(shutil.which("git") or "/usr/bin/git").parent)
+    docker_dir = str(Path(shutil.which("docker") or "/usr/local/bin/docker").parent)
     env = {
-        "PATH": os.pathsep.join([str(VENV_BIN), git_dir, "/usr/bin", "/bin", "/usr/sbin", "/sbin"]),
+        "PATH": os.pathsep.join(
+            [str(VENV_BIN), git_dir, docker_dir, "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
+        ),
         "HOME": os.environ.get("HOME", "/tmp"),
         "LANG": "C.UTF-8",
         "TMPDIR": tempfile.gettempdir(),
@@ -146,10 +149,99 @@ def assert_code_is_exported(export_dir: Path, env: dict[str, str]) -> None:
         )
 
 
+COMPOSE = Path("infra") / "docker-compose.langfuse.yml"
+
+
+def compose_default_project(export_dir: Path) -> str:
+    """The project name the compose file uses when nothing overrides it."""
+    doc = yaml.safe_load((export_dir / COMPOSE).read_text(encoding="utf-8"))
+    return str(doc.get("name") or "")
+
+
+def docker_volumes() -> list[str]:
+    out = subprocess.run(
+        ["docker", "volume", "ls", "--format", "{{.Name}}"], capture_output=True, text=True
+    )
+    if out.returncode != 0:
+        raise SystemExit(f"refusing: cannot list Docker volumes ({out.stderr.strip()[:200]})")
+    return out.stdout.split()
+
+
+def integration_refusal(project: str, default_project: str, volumes: list[str]) -> str:
+    """Why the integration step must not run on this compose project, or "" if it may.
+
+    The step runs `docker compose … up -d`. Against the default project that would recreate the
+    developer's stack with the pinned Chainguard MinIO on a volume its non-root user cannot
+    write, and put test traces into the store the published spend table reads (D-057, D-058).
+    So only a project with no volumes yet is accepted: throwaway by construction.
+    """
+    if not project:
+        return "no compose project name"
+    if project == default_project:
+        return f"{project!r} is the compose file's default project — the developer's own stack"
+    existing = sorted(v for v in volumes if v.startswith(f"{project}_"))
+    if existing:
+        return f"{project!r} already has volumes ({', '.join(existing)}); not a throwaway project"
+    return ""
+
+
+def free_port() -> int:
+    import socket
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def run_integration(
+    export_dir: Path, workflow: dict[str, Any], job: dict[str, Any], step: dict[str, Any]
+) -> int:
+    """The workflow's own integration `run:` block, verbatim, on a throwaway stack.
+
+    Only two variables are added to the step's env: COMPOSE_PROJECT_NAME (which Compose ranks
+    above the file's `name:`) and LANGFUSE_WEB_PORT. The stack and its volumes are removed
+    afterwards whatever happened.
+    """
+    import uuid
+
+    project = f"ci-local-integration-{uuid.uuid4().hex[:8]}"
+    refusal = integration_refusal(project, compose_default_project(export_dir), docker_volumes())
+    if refusal:
+        raise SystemExit(f"refusing the integration step: {refusal}")
+    port = free_port()
+    env = environment(
+        export_dir,
+        workflow.get("env") or {},
+        job.get("env") or {},
+        step.get("env") or {},
+        {"COMPOSE_PROJECT_NAME": project, "LANGFUSE_WEB_PORT": str(port)},
+    )
+    print(f"  throwaway compose project {project}, web on 127.0.0.1:{port}", flush=True)
+    try:
+        return subprocess.run(
+            ["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", step["run"]],
+            cwd=export_dir,
+            env=env,
+        ).returncode
+    finally:
+        subprocess.run(
+            ["docker", "compose", "-p", project, "-f", str(COMPOSE), "down", "-v"],
+            cwd=export_dir,
+            env=env,
+            capture_output=True,
+        )
+        print(f"  removed {project} and its volumes", flush=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--worktree", action="store_true")
     parser.add_argument("--keep", action="store_true", help="keep the export directory")
+    parser.add_argument(
+        "--integration",
+        action="store_true",
+        help="also run the integration step, verbatim, on a throwaway compose project and port",
+    )
     args = parser.parse_args()
 
     rev, label = source_rev(args.worktree)
@@ -166,6 +258,11 @@ def main() -> int:
                 continue
             name = str(step.get("name", step["run"].splitlines()[0]))
             why = skipped(job_id, name)
+            if args.integration and job_id == "integration" and name.startswith("Integration"):
+                print(f"\n=== [{job_id}] {name} (throwaway stack)", flush=True)
+                code = run_integration(export_dir, workflow, job, step)
+                results.append((job_id, name, "pass" if code == 0 else f"FAIL (exit {code})"))
+                continue
             if why:
                 results.append((job_id, name, f"NOT RUN — {why}"))
                 continue

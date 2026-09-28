@@ -100,3 +100,60 @@ class TestCiLocal:
 
         assert not ci_local.WORKFLOW.is_absolute()
         assert "export_dir / WORKFLOW" in inspect.getsource(ci_local.main)
+
+
+class TestIntegrationNeverTouchesTheDevelopersStack:
+    """`make ci-local INTEGRATION=1` runs `docker compose … up -d`. On the default project that
+    would recreate the developer's stack with a MinIO that cannot write its root-owned volume
+    and put test traces into the store the spend table reads (D-057, D-058)."""
+
+    def test_the_default_project_is_refused(self) -> None:
+        from scripts.ci_local import integration_refusal
+
+        why = integration_refusal("arxiv-agent-langfuse", "arxiv-agent-langfuse", [])
+        assert "default project" in why
+
+    def test_a_project_that_already_has_volumes_is_refused(self) -> None:
+        from scripts.ci_local import integration_refusal
+
+        why = integration_refusal(
+            "ci-local-integration-x", "arxiv-agent-langfuse", ["ci-local-integration-x_minio"]
+        )
+        assert "already has volumes" in why
+
+    def test_a_fresh_throwaway_project_is_accepted(self) -> None:
+        from scripts.ci_local import integration_refusal
+
+        volumes = ["arxiv-agent-langfuse_langfuse-minio", "arxiv-agent-langfuse_langfuse-postgres"]
+        assert integration_refusal("ci-local-integration-x", "arxiv-agent-langfuse", volumes) == ""
+
+    def test_the_compose_file_default_is_what_is_protected(self) -> None:
+        from scripts.ci_local import compose_default_project
+
+        assert compose_default_project(REPO) == "arxiv-agent-langfuse"
+
+    @pytest.mark.parametrize("collision", ["default", "volumes"])
+    def test_run_integration_refuses_before_calling_docker(
+        self, collision: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import uuid
+
+        import scripts.ci_local as ci
+
+        monkeypatch.setattr(uuid, "uuid4", lambda: uuid.UUID(int=0xDEADBEEF))
+        project = "ci-local-integration-00000000"
+        monkeypatch.setattr(
+            ci,
+            "compose_default_project",
+            lambda export_dir: project if collision == "default" else "arxiv-agent-langfuse",
+        )
+        monkeypatch.setattr(
+            ci, "docker_volumes", lambda: [f"{project}_minio"] if collision == "volumes" else []
+        )
+
+        def no_subprocess(*args: object, **kwargs: object) -> None:
+            raise AssertionError(f"called {args[0]!r} after a refusal")
+
+        monkeypatch.setattr(ci.subprocess, "run", no_subprocess)
+        with pytest.raises(SystemExit, match="refusing the integration step"):
+            ci.run_integration(tmp_path, {}, {}, {"run": "true"})
