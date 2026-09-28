@@ -157,7 +157,8 @@ injection-live:  ## drive undetected injections through the live graph (needs GO
 screen-corpus:  ## run the injection detector over all committed chunks (no API calls)
 	$(PY) scripts/screen_corpus.py
 
-langfuse-up:  ## start the self-hosted Langfuse stack
+langfuse-up:  ## start the self-hosted Langfuse stack (refuses while the MinIO volume is unwritable — D-057)
+	$(PY) scripts/langfuse_guard.py
 	docker compose -f infra/docker-compose.langfuse.yml up -d
 	@echo "Langfuse starting at http://localhost:3000 (first boot takes a minute)"
 

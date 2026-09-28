@@ -348,7 +348,7 @@ class TestTestTrafficIsNotAgentSpend:
                 trace(tid="b", usage=priced_usage(2000, 200), environment="integration-test"),
             ]
         )
-        block = render(rows, days=30, n_traces=2)
+        block = render(rows, window_label="2026-09-01 to 2026-09-24 (UTC, inclusive)", n_traces=2)
 
         assert "_(test traffic)_" in block
         assert "| **total** | **0** | **0** | **0** | | **$0.00000** |" in block

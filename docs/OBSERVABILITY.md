@@ -197,7 +197,8 @@ wrong**. Two separate contaminations produced the illusion:
 2. **`$0.01528` of the dashboard total is double-counted.** It sits on five orphan
    `LangGraph` roots — the residue of the double-trace bug described above, whose `query`
    twins carry the metadata and none of the cost. Those runs are already counted; the
-   duplicate roots predate the fix and remain in any 30-day window.
+   duplicate roots predate the fix and remain in the trace store (the published spend table now
+   reads a fixed window, 2026-09-01 to 2026-09-24 — D-059).
 
 Restated on the priced population alone, the blend is **`$0.4056` per 1M**, between the
 `$0.30` input and `$2.50` output rates exactly where a mostly-input workload lands.

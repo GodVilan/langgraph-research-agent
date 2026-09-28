@@ -35,8 +35,8 @@ its numbers. A documented finding whose evidence has been deleted is exactly wha
 catalogues in v2.1; this is the same mistake declined.
 
 Usage:
-    python scripts/reconcile_cost.py                 # live store, last 30 days
-    python scripts/reconcile_cost.py --days 7
+    python scripts/reconcile_cost.py                 # live store, the pinned window (D-059)
+    python scripts/reconcile_cost.py --days 7        # an ad-hoc rolling window
     python scripts/reconcile_cost.py --from-fixture   # reproduce D-021 (make reconcile-d021)
     python scripts/reconcile_cost.py --dump           # capture the live window to a fixture
     python scripts/reconcile_cost.py --json
@@ -55,6 +55,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from scripts.trace_window import PUBLISHED_WINDOW, fetch, label
 from src.config import ModelPricing, get_settings
 from src.observability.config import get_observability_settings
 from src.observability.langfuse import get_client
@@ -70,7 +71,7 @@ TOLERANCE_USD = 1e-9
 FIXTURE = Path(__file__).resolve().parent.parent / "data" / "traces_d021.json"
 
 
-def fetch_traces(days: int) -> list[Any]:
+def fetch_traces(window: tuple[datetime, datetime]) -> list[Any]:
     """Page through every trace in the window, or exit if Langfuse is unreachable."""
     client = get_client()
     if client is None:
@@ -84,17 +85,7 @@ def fetch_traces(days: int) -> list[Any]:
         )
         raise SystemExit(2)
 
-    since = datetime.now(UTC) - timedelta(days=days)
-    traces: list[Any] = []
-    page = 1
-    while True:
-        response = client.api.trace.list(from_timestamp=since, page=page, limit=100)
-        batch = getattr(response, "data", []) or []
-        traces.extend(batch)
-        if len(batch) < 100:
-            break
-        page += 1
-    return traces
+    return fetch(client, window)
 
 
 def to_fixture_row(trace: Any) -> dict[str, Any]:
@@ -377,7 +368,12 @@ def report(groups: dict[str, Any], duplicates: list[Any], pricing: ModelPricing)
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--days", type=int, default=30)
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=None,
+        help="an ad-hoc rolling window instead of the pinned one the spend table uses",
+    )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable output")
     parser.add_argument(
         "--from-fixture",
@@ -406,10 +402,16 @@ def main() -> int:
         traces = load_fixture(path)
         source = f"fixture {path}"
     else:
-        traces = fetch_traces(args.days)
-        source = f"the live store, last {args.days} days"
+        if args.days is not None:
+            now = datetime.now(UTC)
+            window = (now - timedelta(days=args.days), now)
+            source = f"the live store, last {args.days} days (ad hoc)"
+        else:
+            window = PUBLISHED_WINDOW
+            source = f"the live store, {label(window)}"
+        traces = fetch_traces(window)
         if args.dump:
-            fixture = dump_fixture(traces, Path(args.dump), args.days)
+            fixture = dump_fixture(traces, Path(args.dump), args.days or 0)
             print(
                 f"Wrote {args.dump}: {fixture['n_traces']} traces, "
                 f"sha256 {fixture['sha256'][:16]}…\n"

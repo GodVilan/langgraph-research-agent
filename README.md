@@ -11,7 +11,7 @@ observability, evaluation, and serving layers. The audit that opened this projec
 
 <!-- STATUS:START -->
 <!-- Rendered from docs/status.json by `make readme-stats`. -->
-**Status: Phase 5 of 5 — deployed on Hugging Face Spaces, verified by `make smoke-live`, load-checked from one client machine, and the deployed commit's pinned run passes the regression gate (DECISIONS D-049, D-052) — Phase 5 complete, awaiting review.** **Live: <https://godvillain-scholium.hf.space>**
+**Status: Phase 5 of 5 — deployed on Hugging Face Spaces, verified by `make smoke-live`, load-checked from one client machine, and the deployed commit's pinned run passes the regression gate (DECISIONS D-049, D-052) — Phase 5 closed, post-mortem accepted (docs/POSTMORTEM.md).** **Live: <https://godvillain-scholium.hf.space>** [![CI](https://github.com/GodVilan/langgraph-research-agent/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GodVilan/langgraph-research-agent/actions/workflows/ci.yml?query=branch%3Amain)
 <!-- STATUS:END -->
 
 Hosted on Hugging Face Spaces under PRO — Docker Spaces now need a paid plan
@@ -166,7 +166,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 754, all passing | `make test` |
+| Tests | 768, all passing | `make test` |
 | First-party Python | 44 files, 6,372 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -486,6 +486,10 @@ when the pinned configuration was last run and judged — and checks them agains
 does not run the agent on the pushed code.** A change that alters answers or retrieval passes CI
 unchanged until someone reruns `make run-set`, judges it, and gates the new artifact. Why the
 spec's fast-subset live eval is not in CI: [D-050](docs/DECISIONS.md).
+
+**The badge beside the live URL** shows the latest run on `main` across all four jobs. It is
+there because CI was red from run #9 until the [D-056](docs/DECISIONS.md) fix and nobody looked;
+it reports, and — as below — requires nothing.
 
 **Nothing enforces any of it.** There
 is no branch protection and no required check, so a red run does not stop a commit reaching

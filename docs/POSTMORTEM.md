@@ -290,6 +290,11 @@ was not finished.
   correct answers 0 against 15 as a regression — a false *failure*: the report was wrong in the
   other direction, for the same reason (D-053).
 
+*Addendum, 2026-09-28:* a verification run against the wrong stack, reported as passing — a
+hand-typed integration command whose host a test fixture deleted, so it fell back to `.env` and
+wrote to the existing store, and D-057 recorded a pass against the fresh stack that never ran
+there (D-057, D-058).
+
 The fix that generalises is the one from D-026's fourth instance: **assert the effect, not the
 status**. Read back what was written; count what was scored; refuse input that is not complete.
 
@@ -325,6 +330,10 @@ A number without a producing command survives every review if it looks authorita
   its own derivation (D-045).
 * Every "Gemini billed $0", which had no source at all — only a default (D-046).
 * D-047's "about 2 of ~10 draws" citation estimate, replaced by a measurement (D-047 note).
+
+*Addendum, 2026-09-28:* `make budget` read "the last 30 days" and stamped the generation date, so
+the committed spend table could not be regenerated after the window moved; it now reads a fixed
+window (D-059).
 
 Now: generated blocks in README and BUDGET, rendered from artifacts by `make readme-stats`, with
 tests that fail a stale or hand-typed copy.
@@ -437,6 +446,6 @@ cannot be bypassed (D-046).
 
 ---
 
-*Sources: `docs/DECISIONS.md` (D-001–D-056), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
+*Sources: `docs/DECISIONS.md` (D-001–D-059), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
 `docs/AUDIT.md`, `docs/MIGRATION_MAP.md`, `docs/PHASE4.md`, `docs/EVALS.md`, `docs/BUDGET.md`,
 `docs/OBSERVABILITY.md`, `docs/SERVING.md`.*

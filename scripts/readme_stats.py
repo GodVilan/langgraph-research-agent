@@ -340,6 +340,12 @@ def render_status() -> str:
     status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
     url = status.get("live_url")
     live = f"**Live: <{url}>**" if url else "**No live endpoint yet.**"
+    repo = status.get("repo")
+    if repo:
+        # The latest run on `main`, all four jobs. It reports; nothing requires it (D-023), and
+        # it was red from run #9 until D-056 without anyone looking — hence beside the URL.
+        workflow = f"https://github.com/{repo}/actions/workflows/ci.yml"
+        live += f" [![CI]({workflow}/badge.svg?branch=main)]({workflow}?query=branch%3Amain)"
     start, end = BLOCKS["STATUS"]
     return (
         f"{start}\n<!-- Rendered from docs/status.json by `make readme-stats`. -->\n"

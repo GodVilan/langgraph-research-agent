@@ -198,6 +198,15 @@ class TestGeneratedStatusAndSpend:
         assert match is not None, f"missing {name} markers"
         return match.group(0)
 
+    def test_the_ci_badge_sits_beside_the_live_url_and_points_at_this_workflow(self) -> None:
+        import json
+
+        status = json.loads((REPO / "docs" / "status.json").read_text(encoding="utf-8"))
+        block = self._block(readme(), "STATUS")
+        line = next(ln for ln in block.splitlines() if "**Live:" in ln)
+        workflow = f"https://github.com/{status['repo']}/actions/workflows/ci.yml"
+        assert f"({workflow}/badge.svg?branch=main)" in line
+
     def test_the_readme_status_is_the_rendered_one(self) -> None:
         sys.path.insert(0, str(REPO))
         from scripts.readme_stats import render_status
