@@ -2818,3 +2818,42 @@ question and one sentence. Nothing on the `/query` path — graph, retrieval, gu
 limits — changed, so **the load check and the item-4 gate result carry over**, by the D-054
 reasoning.
 
+**Deployed, 2026-09-28: tag `deploy-2026-09-28` = git `a7b65b3` = Space `2b9570c4`** — the first
+deploy through the D-055 guard (HEAD tagged, 0 dirty deployed paths; `infra/deploy_log.jsonl`
+records it with `allow_dirty: false`). New container boot `a9de2550`, index sha unchanged.
+`make verify-deploy REV=deploy-2026-09-28`: **62 identical, 0 mismatched** (`.gitattributes`
+listed). `make smoke-live`: every check passed, the five new ones included — `/` loads, is HTML,
+carries the README's question and the CSP; `/api` carries the same question — and the README
+question answered in 6.6 s citing `[2605.29525_0010]`, trace complete (32 observations). Gemini's
+overload from earlier the same day had passed.
+
+**`verify-deploy` had been broken since D-055, and this deploy was the first to run it.** It renders
+the expected Space card by loading `scripts/deploy_space.py` as committed at the revision; since
+D-055 that file defines a `@dataclass`, which needs its module in `sys.modules`, and the loader
+never registered it — so the command crashed for every tag from D-055 on. Fixed (register, then
+remove); `tests/test_verify_deploy.py` renders the card from `HEAD`'s committed file and a mutant
+without the registration fails it. The same family as D-053: a check that nothing had exercised
+since the change that broke it.
+
+## D-062 — The 120 s wall-clock budget was documented as enforced; it is checked only between steps
+
+**Corrected 2026-09-28, docs only, before any code change.** README ("token / cost / wall-clock /
+tool-call ceilings", twice), BUDGET (`max_wall_clock_s 120` and "breaching any one returns a
+partial answer"), MIGRATION_MAP ("enforced in every routing function") and OBSERVABILITY ("the
+per-request wall-clock ceiling") all presented the wall clock as a bound on a request. It is not:
+`budget_ok` runs in the routing functions, between steps, so a model call in flight is never
+interrupted. On 2026-09-28, with Gemini answering `503 — high demand` and the Google client
+retrying inside single calls, requests ran **128–339 s** against the 120 s budget, tripped it only
+"after critique", and — two at a time — could hold both concurrency slots for minutes (D-061).
+Each of those passages now says the ceilings are checked between steps and that the wall clock can
+be overrun; BUDGET adds that the counted ceilings can be overshot by one call (D-054). SERVING
+made no timing claim; DECISIONS had only D-061's correct one.
+
+**Why the load check is unaffected by the coming fix.** The deadline is set when the graph starts
+(`initial_state`, after admission), so it measures graph time, not queueing. In the published load
+check the largest server-side graph time was **90.7 s** (n=32 served; the second-largest 72.6 s);
+the largest client time, queueing included, 109.2 s; the single-user run's largest graph time
+14.1 s (n=10). **No request in either reached 120 s**, so bounding model calls by the remaining
+budget would not have changed any of them. (The load check's published p95, 88.3 s, is its
+second-highest *client* time at n=32 — not its maximum.)
+

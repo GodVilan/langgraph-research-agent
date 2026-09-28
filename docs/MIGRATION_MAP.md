@@ -79,7 +79,7 @@ the merge/dedupe rule. Any of those invalidates the v2.1↔v3 comparison.
 |---|---|
 | `_is_in_scope` keyword fast-path + LLM, fails **open** (`react_agent.py:236-258`) | `src/guardrails/scope.py`, fails **closed** with a fixed refusal message, emits a `GuardrailEvent` |
 | Retrieved text spliced raw into prompts (AUDIT §4.11) | `src/guardrails/injection.py`: delimited data blocks, data-not-instruction framing, imperative-pattern detector, every detection logged to the trace |
-| `Generator._RateLimiter`, used by nothing the agent calls (AUDIT §4.8) | `src/guardrails/budget.py`: token cap, cost cap, wall-clock deadline, tool-call cap — enforced in every routing function |
+| `Generator._RateLimiter`, used by nothing the agent calls (AUDIT §4.8) | `src/guardrails/budget.py`: token cap, cost cap, wall-clock deadline, tool-call cap — checked in every routing function (so the wall clock is not enforced inside a model call — D-062) |
 | `logging` to stdout | Langfuse callback handler + OTel spans around retrieval/embedding |
 | `tests/run_evaluation.py`, 3 hardcoded questions | `evals/` — versioned JSONL + checksum, runner, committed baseline, CI regression gate |
 
@@ -216,7 +216,8 @@ Three conditional edges, each of which consults the budget guard:
 | `route_after_retrieve` | `"retrieve"` if `plan_cursor < len(plan)` and `budget_ok(state)` else `"generate"` |
 | `route_after_critique` | `"retrieve"` if `critique.verdict == "retry"` and `refinement_count < MAX_REFINEMENTS` and `budget_ok(state)` else `"finalize"` |
 
-`budget_ok` checks all four ceilings (tokens, cost, wall-clock, tool calls). When it
+`budget_ok` checks all four ceilings (tokens, cost, wall-clock, tool calls) at each routing
+decision — between steps, not during a model call (D-062). When it
 returns `False` the router sets `truncated=True` with a reason and routes to `finalize`,
 so the caller always receives a partial answer with an explicit flag rather than a silent
 stop — the Phase 2 requirement.

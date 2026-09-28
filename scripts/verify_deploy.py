@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import importlib.util
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -45,10 +46,17 @@ def space_card_at(rev: str, host: str) -> str:
         raise SystemExit(f"scripts/deploy_space.py not in {rev}")
     with tempfile.NamedTemporaryFile("wb", suffix=".py", delete=False) as fh:
         fh.write(src)
-    spec = importlib.util.spec_from_file_location("deploy_space_at_rev", fh.name)
+    name = f"deploy_space_at_{rev.replace('-', '_')}"
+    spec = importlib.util.spec_from_file_location(name, fh.name)
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    # Registered before executing: `@dataclass` (in deploy_space.py since D-055) looks its own
+    # module up in sys.modules, and without this every tag from D-055 on failed to load (D-061).
+    sys.modules[name] = mod
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.modules.pop(name, None)
     return str(mod.SPACE_CARD.format(github=mod.GITHUB, host=host))
 
 

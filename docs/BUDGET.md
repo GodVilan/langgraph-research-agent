@@ -165,12 +165,16 @@ Current per-request ceilings (`src/config.py::BudgetLimits`):
 | `max_input_tokens` | 120,000 |
 | `max_output_tokens` | 12,000 |
 | `max_notional_cost_usd` | $0.025 (derived, see below) |
-| `max_wall_clock_s` | 120 |
+| `max_wall_clock_s` | 120 — checked between steps, so not a hard bound on a request's duration (D-062) |
 | `max_tool_calls` | 12 |
 | `max_llm_calls` | 16 |
 
-Breaching any one returns a partial answer with `truncated=True` and an explicit reason —
-never a silent stop. Asserted by `tests/test_termination.py::TestBudgetTermination`.
+Every ceiling is checked at step boundaries: a breach found there returns a partial answer
+with `truncated=True` and an explicit reason — never a silent stop. Asserted by
+`tests/test_termination.py::TestBudgetTermination`. Checked at boundaries, a ceiling can be
+overshot by the step that crosses it: for tokens, cost and call counts by one call (D-054); for
+the wall clock by however long a model call runs past the deadline — on 2026-09-28, Gemini's
+retries inside single calls took requests to 128–339 s against the 120 s budget (D-062).
 
 **LLM calls per query.** The design target was ~16 worst case against v2.1's ~43
 (AUDIT §4.7). Observed on single local CLI runs, single-user, n=5 queries — an
