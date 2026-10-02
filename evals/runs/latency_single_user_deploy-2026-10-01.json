@@ -1,0 +1,119 @@
+{
+ "label": "single user, warm",
+ "url": "https://godvillain-scholium.hf.space",
+ "started_utc": "2026-10-02T01:13:09+00:00",
+ "spacing_s": 30.0,
+ "client": "scripts/load_check.py --single-user (httpx), one machine, no bypass",
+ "records": [
+  {
+   "i": 0,
+   "sent_utc": "2026-10-02T01:13:09.142151+00:00",
+   "status": 200,
+   "server_ms": 26723.6,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "bb5ba11bb27d15d7ad824968589ada19",
+   "client_ms": 27001.5,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 1,
+   "sent_utc": "2026-10-02T01:13:39.143486+00:00",
+   "status": 200,
+   "server_ms": 30243.9,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "12b7c6bbf3341814da84942ff278c7c5",
+   "client_ms": 30331.2,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 2,
+   "sent_utc": "2026-10-02T01:14:09.474604+00:00",
+   "status": 200,
+   "server_ms": 829.0,
+   "llm_calls": 1,
+   "guardrail_blocked": true,
+   "trace_id": "7a6caa98a97778cac7a49f69e4a20ae2",
+   "client_ms": 933.0,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 3,
+   "sent_utc": "2026-10-02T01:14:39.477104+00:00",
+   "status": 200,
+   "server_ms": 21427.6,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "df4cb0ce1d0cf99c759ff94467ca912d",
+   "client_ms": 21765.2,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 4,
+   "sent_utc": "2026-10-02T01:15:09.478620+00:00",
+   "status": 200,
+   "server_ms": 10933.2,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "c651d645e311e870d214a4b5d3d46143",
+   "client_ms": 11209.3,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 5,
+   "sent_utc": "2026-10-02T01:15:39.482671+00:00",
+   "status": 200,
+   "server_ms": 6945.1,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "4954d16560499aab95ce416e02d0c223",
+   "client_ms": 7175.6,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 6,
+   "sent_utc": "2026-10-02T01:16:09.485422+00:00",
+   "status": 200,
+   "server_ms": 3037.4,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "dafb882e50c9e9d3d0dfbce2cabf0b6c",
+   "client_ms": 3320.7,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 7,
+   "sent_utc": "2026-10-02T01:16:39.487175+00:00",
+   "status": 200,
+   "server_ms": 6927.8,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "0dafae8e5efbe896f67665d4d93533d4",
+   "client_ms": 7191.8,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 8,
+   "sent_utc": "2026-10-02T01:17:09.498785+00:00",
+   "status": 200,
+   "server_ms": 50713.7,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "a08ffd8eb9c780706c0549af573e36ce",
+   "client_ms": 50972.1,
+   "clock_drift_s": -0.0
+  },
+  {
+   "i": 9,
+   "sent_utc": "2026-10-02T01:18:00.473422+00:00",
+   "status": 200,
+   "server_ms": 6880.9,
+   "llm_calls": 4,
+   "guardrail_blocked": false,
+   "trace_id": "142315c45b2c5eae03ccda200a1294fd",
+   "client_ms": 6949.7,
+   "clock_drift_s": -0.0
+  }
+ ]
+}

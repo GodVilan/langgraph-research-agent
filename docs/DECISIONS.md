@@ -2946,3 +2946,45 @@ the diff.
 **Not bounded yet:** work that is not a model call — retrieval and embedding — is still only
 checked between steps. It is local CPU with no network, and runs in about a second.
 
+**Ordinary call failures settle to the usage known so far (note, 2026-10-02).** A call that fails
+for any reason other than the deadline — a `TimeoutError` of its own, a 503 after google-genai's
+retries are exhausted, a parsing failure — ends the run as an ordinary failure, and the API
+settles from the last checkpoint: the spend recorded before the failing call. **The failed call
+itself counts as $0.** That rests on one assumption: **the provider does not bill a request that
+fails** — an error response, or a connection that never completes, carries no billable tokens.
+Unlike a deadline cancellation, where the call may still be running and billed on the provider's
+side when we stop waiting (so the full reservation is kept), an ordinary failure has returned an
+error. **Reverses if** the provider's own record shows charges for failed requests — a Cloud
+Billing SKU line for a period with failures and no matching successful calls, or a documented
+billing rule for partial or errored responses — in which case failed calls keep the full
+reservation like cancelled ones, and this note is replaced.
+
+**Deployed, 2026-10-02: tag `deploy-2026-10-01` = git `bee6609` = Space `71668787`** (boot
+`53b097b5`, index sha unchanged; deploy log `allow_dirty: false`). `make verify-deploy
+REV=deploy-2026-10-01`: **62 identical, 0 mismatched**.
+
+**`make smoke-live`: one check failed — `trace-complete`.** The trace arrived with its 32
+observations, but the root `query` observation now has a parent span that is never exported, so
+the trace has no root. **Not D-063:** traced in-process with a real Langfuse client and an
+in-memory exporter, `query` is a root at both `bee6609` and `77a3860`. **The deployed environment
+changed underneath it:** the image resolves dependencies at build time without a lock, and against
+the 2026-09-24 image this rebuild resolved 22 packages to newer versions and added 2
+(`opentelemetry-exporter-http-transport`, `opentelemetry-exporter-otlp-common`; `pip freeze` of
+both images) — among the upgrades langfuse 4.15.6 → 4.16.0 (the 2026-09-28 trace was written with 4.15.6, this one with
+4.16.0), google-genai 2.25.0 → 2.27.0, langchain-core 1.6.5 → 1.6.6, OpenTelemetry 1.44 → 1.45,
+fastapi, uvicorn, torch and transformers. The local venv the suite and `ci-local` run in is older
+still (langfuse 4.14.4, google-genai 2.19.0). Which package now opens the unexported parent span is
+not identified. Every other smoke check passed, `/` and `/api` included, the README curl among them.
+
+**Single user, warm, n=10, on Space `71668787` (2026-10-02 01:13 UTC): p50 7.2 s, p95 51.0 s —
+against the published p50 7.1 s, p95 14.3 s. Moved; the load check is NOT claimed to carry over.**
+One of ten was again the one-call guardrail refusal (0.9 s). Four requests took 21.4–50.7 s of
+server-side graph time, and Langfuse Cloud shows where: single model calls of 15–25 s (the slowest
+request: calls of 24.7 s and 21.1 s), retrieval 0.2–0.3 s throughout, no request near the 120 s
+deadline, none truncated, 3–4 calls each as usual, and no retry lines in the Space log (the newer
+google-genai may not log them). The slowdown is in the provider's call latency — or in the newly
+resolved client stack — not in anything D-063 does, which adds only a timer around each call; but
+that is an explanation, not a measurement that the change is neutral. The new run is kept beside
+the published one as `evals/runs/latency_single_user_deploy-2026-10-01.json`; the published
+artifact, and so the README row, is unchanged.
+
