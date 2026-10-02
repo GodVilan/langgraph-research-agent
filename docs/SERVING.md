@@ -252,6 +252,14 @@ not downloaded), and the runtime with the prebuilt FAISS index **checksum-verifi
 Nothing is built or downloaded at start (`HF_HUB_OFFLINE=1`). One uvicorn worker: each worker
 would load its own copy of the model and keep its own limiters.
 
+**Dependencies come from one lock, and the build fails on drift** ([D-064](DECISIONS.md)). The
+deps stage installs `requirements.lock` with `--require-hashes`, the project with `--no-deps`,
+runs `pip check`, then `scripts/lock_check.py`, which fails the build unless the venv equals the
+lock package for package. The lock was read off the image that served the load check (Space
+`caefad03`: 105 packages, Python 3.13.15), and the base is pinned by digest to that build's base
+layers. Before this, each rebuild resolved `pyproject.toml`'s open ranges afresh: the 2026-10-02
+build came up on 14 newer packages and Python 3.13.16, and its traces lost their root.
+
 **BGE-large ships, 1.3 GB and all**, because Phase 4 measured the alternative: bge-small
 retrieves gold on 5 fewer of 43 factual items and on none that large misses
 ([EVALS.md](EVALS.md)).

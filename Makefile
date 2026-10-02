@@ -6,9 +6,21 @@ PIP := .venv/bin/pip
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 
-install:  ## Create the venv and install the project with dev extras
-	python3 -m venv .venv 2>/dev/null || true
-	$(PIP) install -q -e ".[dev]"
+install:  ## Create the venv and install it from requirements-dev.lock, then check it equals the lock [PYTHON=python3.13.15]
+	@# The lock check fails unless the venv runs the lock's exact Python release (3.13.15).
+	$(or $(PYTHON),python3) -m venv .venv 2>/dev/null || true
+	$(PIP) install -q --require-hashes -r requirements-dev.lock
+	$(PIP) install -q --no-deps --no-build-isolation -e .
+	$(PIP) check
+	@# pip installs but never removes: a package the lock does not name fails here. Rebuild the
+	@# venv (rm -rf .venv && make install) rather than uninstalling by hand (D-064).
+	$(PY) scripts/lock_check.py --lock requirements-dev.lock
+
+lock-check:  ## does the installed set equal the lock? [LOCK=requirements-dev.lock]
+	$(PY) scripts/lock_check.py --lock $(or $(LOCK),requirements-dev.lock)
+
+lock:  ## regenerate requirements-dev.lock from requirements-dev.in [IMAGE=… also regenerates requirements.lock from that image's set]
+	$(PY) scripts/lock_generate.py $(if $(IMAGE),--image $(IMAGE),)
 
 lint:  ## ruff check + format check
 	$(PY) -m ruff check src tests scripts evals

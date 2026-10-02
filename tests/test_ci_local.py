@@ -58,9 +58,9 @@ class TestCiLocal:
         ("job", "step", "reason"),
         [
             ("integration", "Integration tests against a real Langfuse", "Docker"),
-            ("clean-install", "Install from pyproject.toml alone", "from scratch"),
+            ("clean-install", "Install from the runtime lock alone", "from scratch"),
             ("clean-install", "Import every module from the installed distribution", "scratch"),
-            ("gate", "Install with dev extras", ".venv"),
+            ("gate", "Install from the lock", ".venv"),
         ],
     )
     def test_what_is_not_run_is_named_with_its_reason(
@@ -70,7 +70,9 @@ class TestCiLocal:
 
         assert reason in skipped(job, step)
 
-    @pytest.mark.parametrize("step", ["Tests", "Lint", "Type check", *GATE_STEPS])
+    @pytest.mark.parametrize(
+        "step", ["Tests", "Lint", "Type check", "Installed set equals the lock", *GATE_STEPS]
+    )
     def test_ci_commands_are_not_skipped(self, step: str) -> None:
         from scripts.ci_local import skipped
 
@@ -82,7 +84,7 @@ class TestCiLocal:
         ci-local would run it without anyone deciding it can run here."""
         from scripts.ci_local import skipped
 
-        run_here = {"Lint", "Type check", "Tests", *GATE_STEPS}
+        run_here = {"Lint", "Type check", "Tests", "Installed set equals the lock", *GATE_STEPS}
         jobs = workflow()["jobs"]
         assert isinstance(jobs, dict)
         for job_id, job in jobs.items():

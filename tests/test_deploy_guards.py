@@ -114,7 +114,9 @@ class TestDeployArtifactsExcludeTheFixture:
         shutil.copy2(DOCKERIGNORE, repo / ".dockerignore")
         shutil.copy2(DOCKERIGNORE.parent / "infra" / "Dockerfile", repo / "infra" / "Dockerfile")
         shutil.copytree(DOCKERIGNORE.parent / "src", repo / "src")
-        for name in ("pyproject.toml", "LICENSE"):
+        # Tracked files the image needs; the lock and its check ship too (D-064).
+        for name in ("pyproject.toml", "LICENSE", "requirements.lock", "scripts/lock_check.py"):
+            (repo / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(DOCKERIGNORE.parent / name, repo / name)
         manifests = {
             "data/CORPUS.sha256": ["data/chunks_512.json", "data/metadata.json"],

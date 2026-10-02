@@ -340,6 +340,13 @@ A number without a producing command survives every review if it looks authorita
 the committed spend table could not be regenerated after the window moved; it now reads a fixed
 window (D-059).
 
+*Addendum, 2026-10-02:* the deployed system itself could not be regenerated. The image resolved
+`pyproject.toml`'s open ranges on a moving base tag at every build, so the Space that ran the load
+check, the Space that ran the single-user row, CI and the local venv held four different sets, and
+a rebuild of unchanged code came up on 14 newer packages and Python 3.13.16 with rootless traces;
+the only record of what had been measured was the old image. One hashed lock, read off that image,
+now installs all three environments, and each fails if its set differs by one package (D-064).
+
 Now: generated blocks in README and BUDGET, rendered from artifacts by `make readme-stats`, with
 tests that fail a stale or hand-typed copy.
 
@@ -451,6 +458,6 @@ cannot be bypassed (D-046).
 
 ---
 
-*Sources: `docs/DECISIONS.md` (D-001–D-063), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
+*Sources: `docs/DECISIONS.md` (D-001–D-064), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
 `docs/AUDIT.md`, `docs/MIGRATION_MAP.md`, `docs/PHASE4.md`, `docs/EVALS.md`, `docs/BUDGET.md`,
 `docs/OBSERVABILITY.md`, `docs/SERVING.md`.*

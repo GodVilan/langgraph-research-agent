@@ -2988,3 +2988,115 @@ that is an explanation, not a measurement that the change is neutral. The new ru
 the published one as `evals/runs/latency_single_user_deploy-2026-10-01.json`; the published
 artifact, and so the README row, is unchanged.
 
+
+## D-064 — One hashed lock for the image, CI and the local venv; drift fails the build
+
+**Decided (Srikanth, 2026-10-02)**, after the `deploy-2026-10-01` rebuild lost its trace roots
+(D-063 deploy note).
+
+**What was wrong.** The image ran `pip install .` against `pyproject.toml`'s open lower bounds
+(`langfuse>=3.0`, `torch>=2.2`) on a moving base tag (`python:3.13-slim`), so every rebuild
+resolved its own set from whatever PyPI and Docker Hub held that day. Nothing recorded the result.
+Three environments had diverged, each without anyone deciding it:
+
+| | Python | langfuse | google-genai | OpenTelemetry | how it got that set |
+|---|---|---|---|---|---|
+| Space `caefad03` (load check, 2026-09-24) | 3.13.15 | 4.15.6 | 2.25.0 | 1.44.0 | resolved at build |
+| Space `7745886e` (single-user row, 09-25) | 3.13.15 | 4.15.6 | 2.25.0 | 1.45.0 | resolved at build |
+| Space `2b9570c4` (09-28, traces complete) | 3.13.15 | 4.15.6 | 2.25.0 | 1.45.0 | resolved at build |
+| Space `71668787` (10-02, **traces rootless**) | **3.13.16** | 4.16.0 | 2.27.0 | 1.45.0 | resolved at build |
+| CI (every run) | runner's 3.13 | latest that day | latest | latest | resolved per run |
+| Local venv | 3.13.7 | 4.14.4 | 2.19.0 | 1.44.0 | whenever last installed |
+
+(`pip list` of each Space build, pulled from `registry.hf.space/godvillain-scholium:cpu-<sha7>` —
+the registry keeps one tag per Space commit — and of the venv.) **Rollback was impossible:**
+redeploying `caefad03`'s *code* would have resolved a fresh set again; the only record of what it
+ran was the image itself. **The published single-user row was measured on `7745886e`, which had
+already drifted from the load-checked `caefad03`** (OpenTelemetry 1.44→1.45 and two new exporter
+packages, uvicorn, google-auth) — two published latency figures, two dependency sets, and
+nothing said so.
+
+**What changed.**
+
+* **`requirements.lock`** — read off the image that was measured, not resolved: `make lock
+  IMAGE=registry.hf.space/godvillain-scholium:cpu-caefad0` lists that image's venv (105
+  packages, Python 3.13.15, image `sha256:5f5b8c52…`) and hashes every file PyPI holds for each
+  pinned version, so one file installs on Linux and macOS. torch is the one split: the image's
+  `2.14.0+cpu` exists only on the CPU index and has no macOS build, so it gets two lines with
+  exclusive `sys_platform` markers — `+cpu` on Linux, PyPI's 2.14.0 on Darwin.
+* **`requirements-dev.lock`** = `-r requirements.lock` + the 12 dev tools at the versions the
+  suite was last verified with (`requirements-dev.in`), hashed. The runtime set is one file for
+  all three environments; the second adds only what the image never installs.
+* **The image** installs `--require-hashes -r requirements.lock`, then the project
+  `--no-deps --no-build-isolation`, then `pip check`, then **`scripts/lock_check.py`, which fails
+  the build unless the venv equals the lock package for package** — a version moved, a package
+  missing, a package the lock does not name, or one installed twice. The base is pinned by
+  digest to `python:3.13.15-slim`, whose linux/amd64 image has exactly the four base layers of
+  `caefad03`'s build. The lock and the checker are admitted by `.dockerignore`, so they ship and
+  `make verify-deploy` covers them.
+* **The interpreter is part of the set.** The lock's header states the Python release it was read
+  from (3.13.15) and the check compares it exactly: 3.13.16 fails as a moved package does. The
+  image gets it from the base digest; **CI pins `setup-python` to `3.13.15`** in all four jobs
+  (a test fails any job on another release).
+* **CI**: every job installs from the lock the same way and runs the check as its own step; the
+  clean-install job installs the runtime lock alone and checks against it. `make ci-local` runs
+  the check step against this repo's venv, so a drifted local venv fails it.
+* **The local venv** was rebuilt from the lock (`make install`, which now runs the check).
+
+**Evidence.** A `linux/amd64` build of the deps stage from the lock: `pip freeze` **identical to
+`caefad03`'s, 105 packages, Python 3.13.15**; the in-build check printed "identical". A mutant
+Dockerfile adding `RUN pip install --no-deps langfuse==4.16.0` after the lock install **failed
+the build**, naming `langfuse is 4.16.0, the lock says 4.15.6`. The dev lock installs on macOS in
+hash-checking mode (which refuses any dependency the file does not pin, so the closure is
+complete there), `pip check` clean. `tests/test_lock.py` (27 tests): the checker on fakes and on
+this interpreter's real set (a moved version and an unnamed package each exit 1, named); the
+committed locks (source image, every declared range satisfied on both platforms, the two
+platforms differing only in torch's build); every install path in the Dockerfile, CI and
+`make install` going through the lock and checked after its last install. **Mutation-checked: 10
+of 10 killed** — checker ignoring versions, extras, markers or missing hashes; the build dropping
+the check, installing the project with deps, or an unpinned base; the lock not deployed; the gate
+job dropping its check; `make install` skipping it.
+
+**What moved locally, and what broke.** The local venv moved on 38 versions and gained 4
+packages (`cloudpickle`, `httpcore2`, `httpx2`, `truststore`). Full suite on the pinned set: 808
+passed, 5 failed — 4 were this change's own fixture (the deploy-context fake repo lacked the two
+newly deployed files) and 1 the README test count; none from a version change. `mypy --strict`
+and `ruff` clean. The in-process root-span probe (`query` span, real Langfuse client, in-memory
+exporter) still finds `query` a root on the pinned set — which, as before, says nothing about
+the Space; `make smoke-live` after the next deploy is the test.
+
+**What this does not fix.** Which upgrade broke trace parentage is **not identified** (BACKLOG).
+Between the last build with complete traces (`2b9570c4`) and the first without (`71668787`), 14
+packages moved and Python went 3.13.15 → 3.13.16; OpenTelemetry was identical in both, so it is
+ruled out. **The local venv runs Python 3.13.7**, the system interpreter, not 3.13.15, so the
+lock check — and with it `make install`, `make ci-local`'s check step and the one test that runs
+the check on this interpreter — **fails locally until the venv is rebuilt on 3.13.15** (Srikanth
+installs it; then `rm -rf .venv && make install PYTHON=<path to python3.13.15>`). Its packages
+already equal the lock; the interpreter is the one difference, and the check names it. Unchanged: Hugging Face's build
+platform and the pip that ships in the base image.
+
+**Upgrade procedure — the only way the lock changes.**
+
+1. Build an image from the candidate set and regenerate the lock from that build: `make lock
+   IMAGE=<the build>` — never by editing the lock, and never from a fresh resolution that has
+   not been built.
+2. Before it ships, all of: `make test` (full suite); `make ci-local WORKTREE=1 INTEGRATION=1`;
+   commit, tag `deploy-*`, deploy from the tag and `make verify-deploy`; `make smoke-live` with
+   **trace-complete passing**; `make latency-single` (its own artifact, compared with the published
+   row before any README change); and **one pinned gated run** — `make run-set` pinned, judged,
+   and `make gate` against `evals/baseline_metrics_pinned.json`.
+3. Record it here: the source build, what moved, each result. A failure at any step stops the
+   upgrade, and the previous lock stays.
+
+**Security advisories trigger this procedure, not an ad-hoc bump.** An advisory on a locked
+package is a reason to run steps 1–3 with the fixed version, promptly — not a reason to edit one
+pin and ship it, which is how the image came to run a set nobody had measured.
+
+**Cost.** An upgrade is now a decision: regenerate the lock, record it here, re-run what was
+measured. A security fix in any of 105 packages waits for that. `pyproject.toml` keeps its
+ranges — they state what the code needs; the lock states what was run.
+
+**Reverses if** the lock cannot be installed — a pinned file withdrawn from PyPI or the CPU
+index (provider change #8 in the D-034 sense): then regenerate from the newest *measured* image
+and re-measure, never from a fresh resolution. **A security advisory on a locked package also
+reopens it** — through the upgrade procedure above, all of it, not an ad-hoc bump.

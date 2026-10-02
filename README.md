@@ -110,8 +110,10 @@ Design rationale, including a per-field reducer justification, is in
 
 ## Setup
 
-Python 3.13. The full dependency set is verified to resolve on 3.13/arm64
-([DECISIONS D-011](docs/DECISIONS.md)).
+Python 3.13.15, exactly. `make install` installs from `requirements-dev.lock` — every package
+hashed, at the version the deployed image ran — and fails if the venv differs from it by one
+package or runs another Python release
+([D-064](docs/DECISIONS.md)). The image and CI install from the same lock and fail the same way.
 
 ```bash
 make install
@@ -169,7 +171,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 792, all passing | `make test` |
+| Tests | 825, all passing | `make test` |
 | First-party Python | 45 files, 6,632 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -507,11 +509,12 @@ decision is recorded in [DECISIONS D-023](docs/DECISIONS.md). The regression gat
 and the trade stands: a gate nobody is required to pass, over artifacts rather than the pushed
 code, is a weaker claim than "CI gates regressions" sounds, and this section says so.
 
-The clean-install job is the one worth explaining. It installs from `pyproject.toml` alone
-into an uncached environment and imports every module from a directory that is not the repo
-root — so a dependency that is present in a developer's virtualenv but missing from the
-manifest fails there instead of on someone else's first clone
-([D-022](docs/DECISIONS.md)).
+The clean-install job is the one worth explaining. It installs the runtime lock alone into an
+uncached environment and imports every module from a directory that is not the repo root — so a
+dependency that is present in a developer's virtualenv but missing from the manifest fails there
+instead of on someone else's first clone ([D-022](docs/DECISIONS.md)). Every job installs from
+the hashed lock and fails if its installed set differs from the lock by one package
+([D-064](docs/DECISIONS.md)).
 
 ---
 

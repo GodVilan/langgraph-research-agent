@@ -7,9 +7,11 @@
 #
 # Three stages, each for one reason:
 #
-#   deps    Python dependencies into a venv. torch comes from the CPU-only index: the default
-#           wheel carries CUDA libraries a CPU host can never load, several GB of image for
-#           nothing.
+#   deps    Python dependencies into a venv, from requirements.lock and nothing else: every
+#           package at the version the load-checked image held, every file checked against
+#           its hash, and the build fails unless the venv then equals the lock (D-064). torch
+#           is the CPU-only build: the default wheel carries CUDA libraries a CPU host can
+#           never load, several GB of image for nothing.
 #   model   BAAI/bge-large-en at a pinned commit, safetensors only. The model repo also holds a
 #           1.3 GB pytorch_model.bin of the same weights; downloading both would double the
 #           largest layer. Phase 4 decided large over small on evidence (Recall@5 0.267 vs
@@ -22,18 +24,28 @@
 # rankings on 500 probes, DECISIONS D-006) but not bit-identical, and it takes 15-20 minutes.
 # Shipping the measured artifact is both faster and the honest choice.
 
-ARG PYTHON_VERSION=3.13
+# The base, by digest: `python:3.13-slim` is a moving tag, and the 2026-10-02 rebuild came up
+# on Python 3.13.16 where the measured image had 3.13.15 (D-064). This is the index digest of
+# `python:3.13.15-slim`; its linux/amd64 image (sha256:37134a49…) has exactly the four base
+# layers of the load-checked build, Space commit caefad03. Both stages use it.
+ARG PYTHON_IMAGE=python:3.13.15-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
 
 # ── deps ────────────────────────────────────────────────────────────────────────────────
-FROM python:${PYTHON_VERSION}-slim AS deps
+FROM ${PYTHON_IMAGE} AS deps
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN python -m venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH
-RUN pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2"
 WORKDIR /build
+COPY requirements.lock ./
+RUN pip install --require-hashes -r requirements.lock
 COPY pyproject.toml LICENSE ./
 COPY src ./src
-RUN pip install .
+# --no-deps: the lock is the dependency set; pip resolving `pyproject.toml`'s ranges here is
+# exactly how the image drifted. `pip check` then proves the lock satisfies those ranges.
+RUN pip install --no-deps --no-build-isolation . && pip check
+# The build fails here if the venv is not the lock, package for package (D-064).
+COPY scripts/lock_check.py ./
+RUN python lock_check.py --lock requirements.lock
 
 # ── model ───────────────────────────────────────────────────────────────────────────────
 FROM deps AS model
@@ -62,7 +74,7 @@ print("pinned", repo, "at", rev)
 PY
 
 # ── runtime ─────────────────────────────────────────────────────────────────────────────
-FROM python:${PYTHON_VERSION}-slim AS runtime
+FROM ${PYTHON_IMAGE} AS runtime
 
 # Hugging Face Spaces runs containers as uid 1000; any other host is fine with it too.
 # /data is where a persistent volume mounts (ledger, threads). Created here and owned by the

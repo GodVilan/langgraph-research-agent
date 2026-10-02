@@ -1,0 +1,17 @@
+# Dev tools at exact versions — the ones the suite was last verified with (D-064). Each is
+# installed only by CI and the local venv, never by the image. `make lock` hashes these into
+# requirements-dev.lock; the runtime set comes from requirements.lock, which that file includes.
+# Every package a tool needs that the runtime lock already pins (packaging, pygments,
+# typing-extensions, pyyaml, tenacity) is taken from there, not repeated here.
+ruff==0.16.3
+mypy==2.3.1
+ast-serialize==0.8.0
+librt==0.15.0
+mypy-extensions==1.1.0
+pathspec==1.1.1
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+coverage==7.15.4
+iniconfig==2.3.0
+pluggy==1.6.0

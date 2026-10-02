@@ -20,7 +20,8 @@ GitHub; every green meanwhile was local. A local run proves nothing about CI unl
   minimal environment — no `.env`, no shell exports, no API keys;
 * asserts the code under test is the export's, not this checkout's editable install;
 * reports every step it does not run, and why. Installing (this repo's venv stands in for
-  `pip install -e ".[dev]"`), the Docker-based integration suite, and the from-scratch
+  the lock install, and the step after it checks the venv equals the lock), the Docker-based
+  integration suite, and the from-scratch
   clean-install job are NOT RUN here, and are listed as such — never silently skipped.
 
 Exits non-zero if any executed step fails.
@@ -50,7 +51,10 @@ VENV_BIN = REPO / ".venv" / "bin"
 NOT_RUN = {
     ("integration", "Integration"): "needs Docker; run with INTEGRATION=1 (throwaway stack)",
     ("clean-install", ""): "installs from scratch into a fresh environment (network, minutes)",
-    ("*", "Install"): "this repo's .venv stands in for `pip install -e .[dev]`",
+    # "Install from", not "Install": the next step, "Installed set equals the lock", must run
+    # here — it is what fails when this repo's venv has drifted from the lock (D-064).
+    ("*", "Install from"): "this repo's .venv stands in for the lock install; the next step "
+    "checks it equals the lock",
 }
 
 
