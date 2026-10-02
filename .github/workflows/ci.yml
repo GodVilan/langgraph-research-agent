@@ -104,6 +104,16 @@ jobs:
             curl -sf "${LANGFUSE_HOST}/api/public/health" && break
             sleep 5
           done
+          # Health answers before the trace query path (ClickHouse) is warm. On a fresh stack the
+          # second trace test's reachability probe then timed out and skipped — reproduced twice
+          # in `make ci-local INTEGRATION=1`, while against one warm stack both code versions
+          # passed 3 of 3 (DECISIONS D-058 note). So wait for a real trace query to answer, with
+          # the step's own key pair; the any-skip check below stays as strict as before.
+          for i in $(seq 1 60); do
+            curl -sf -m 10 -u "${LANGFUSE_PUBLIC_KEY}:${LANGFUSE_SECRET_KEY}" \
+              "${LANGFUSE_HOST}/api/public/traces?limit=1" > /dev/null && break
+            sleep 5
+          done
           # `integration and not network`: the trace suite only. The multi-hop necessity
           # fixtures are marked `integration` too, but they call Gemini and CI has no key by
           # design — selected here they skip, and the first version of this check could not

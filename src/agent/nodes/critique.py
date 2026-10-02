@@ -16,7 +16,12 @@ from __future__ import annotations
 
 import logging
 
-from src.agent.llm import StructuredOutputError, call_structured
+from src.agent.llm import (
+    CallDeadlineExceededError,
+    StructuredOutputError,
+    call_structured,
+    deadline_event,
+)
 from src.agent.nodes.generate import render_context
 from src.agent.prompts import load_prompt
 from src.agent.state import AgentState, Critique, GuardrailEvent, SubQuestion, Usage
@@ -47,6 +52,15 @@ async def critique(state: AgentState) -> dict[str, object]:
             ),
             max_attempts=settings.graph.max_structured_output_attempts,
         )
+    except CallDeadlineExceededError as exc:
+        # The draft stands as the partial answer; the router sees the spent budget and
+        # finalizes with the wall-clock reason (D-063).
+        log.warning("Critique cut off at the deadline: %s", exc)
+        return {
+            "refinement_count": already,
+            "usage": exc.usage,
+            "guardrail_events": [deadline_event(NODE, exc)],
+        }
     except StructuredOutputError as exc:
         log.warning("Critique failed to parse; marking verdict=error: %s", exc)
         return {

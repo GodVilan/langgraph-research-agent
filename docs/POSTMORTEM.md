@@ -319,6 +319,11 @@ read any non-zero exit as the gate firing, so a *refusal* would have passed it (
 **Every detector needs a case that makes it fire, and the harness must check it fired for the
 right reason.**
 
+*Addendum, 2026-09-28:* a detector that could not fire until its first required use —
+`make verify-deploy` crashed for every tag from D-055 on, because the deploy script it loads at
+the tag had gained a dataclass its loader did not support, and the first deploy that needed it
+was the first to run it (D-061).
+
 ### 7.3 Numbers that cannot be regenerated — the C-1 class
 
 A number without a producing command survives every review if it looks authoritative:
@@ -446,6 +451,6 @@ cannot be bypassed (D-046).
 
 ---
 
-*Sources: `docs/DECISIONS.md` (D-001–D-061), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
+*Sources: `docs/DECISIONS.md` (D-001–D-063), `docs/BACKLOG.md` ("Reserved for the post-mortem"),
 `docs/AUDIT.md`, `docs/MIGRATION_MAP.md`, `docs/PHASE4.md`, `docs/EVALS.md`, `docs/BUDGET.md`,
 `docs/OBSERVABILITY.md`, `docs/SERVING.md`.*

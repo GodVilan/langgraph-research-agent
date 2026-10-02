@@ -165,16 +165,21 @@ Current per-request ceilings (`src/config.py::BudgetLimits`):
 | `max_input_tokens` | 120,000 |
 | `max_output_tokens` | 12,000 |
 | `max_notional_cost_usd` | $0.025 (derived, see below) |
-| `max_wall_clock_s` | 120 — checked between steps, so not a hard bound on a request's duration (D-062) |
+| `max_wall_clock_s` | 120 — checked between steps, and every model call is cut off at it (D-063) |
 | `max_tool_calls` | 12 |
 | `max_llm_calls` | 16 |
 
 Every ceiling is checked at step boundaries: a breach found there returns a partial answer
 with `truncated=True` and an explicit reason — never a silent stop. Asserted by
 `tests/test_termination.py::TestBudgetTermination`. Checked at boundaries, a ceiling can be
-overshot by the step that crosses it: for tokens, cost and call counts by one call (D-054); for
-the wall clock by however long a model call runs past the deadline — on 2026-09-28, Gemini's
-retries inside single calls took requests to 128–339 s against the 120 s budget (D-062).
+overshot by the step that crosses it: for tokens, cost and call counts by one call (D-054). The
+wall clock is enforced during model calls as well: each call, with the provider client's retries
+and backoff inside it, is cancelled at the deadline, and the run finalizes with a truncated partial
+answer (D-063). Before that it could be overrun by however long a call ran — on 2026-09-28,
+Gemini's retries took requests to 128–339 s against the 120 s budget (D-062). What is still only
+checked between steps is work that is not a model call: retrieval and embedding, local CPU, no
+network. A cancelled call's cost is unknown, so its request keeps the full $0.025 reservation on
+the daily ledger, and the usage log gets a row marked cancelled with its tokens null.
 
 **LLM calls per query.** The design target was ~16 worst case against v2.1's ~43
 (AUDIT §4.7). Observed on single local CLI runs, single-user, n=5 queries — an

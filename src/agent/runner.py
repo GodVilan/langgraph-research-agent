@@ -88,10 +88,31 @@ async def run_query(
         deadline_s=s.budget.max_wall_clock_s,
     )
 
+    from src.agent.llm import CALL_DEADLINE
+
+    deadline_at = state["usage"].deadline_at
+    deadline_token = CALL_DEADLINE.set(deadline_at if deadline_at > 0 else None)
+    started = time.monotonic()
+    try:
+        return await _run(graph, state, s, tid, options, question, on_event, flush, started)
+    finally:
+        CALL_DEADLINE.reset(deadline_token)
+
+
+async def _run(
+    graph: Graph,
+    state: AgentState,
+    s: Settings,
+    tid: str,
+    options: RequestOptions,
+    question: str,
+    on_event: EventSink | None,
+    flush: bool,
+    started: float,
+) -> AgentState:
     from src.observability import langfuse as lf
     from src.observability import metrics
 
-    started = time.monotonic()
     with lf.trace_run(
         name="query",
         thread_id=tid,

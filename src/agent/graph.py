@@ -48,7 +48,14 @@ type CritiqueRoute = Callable[[AgentState], Literal["retrieve", "finalize"]]
 
 
 def route_after_validate(state: AgentState) -> Literal["plan", "finalize"]:
-    return "finalize" if state.get("refused") else "plan"
+    if state.get("refused"):
+        return "finalize"
+    # A scope check cut off at the deadline leaves the question unscreened: nothing may run on
+    # it, and there is no time left anyway (D-063).
+    usage = state.get("usage")
+    if usage is not None and (usage.cancelled_calls or usage.remaining_s() <= 0.0):
+        return "finalize"
+    return "plan"
 
 
 def make_route_after_retrieve(settings: Settings) -> RetrieveRoute:

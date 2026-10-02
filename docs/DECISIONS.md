@@ -2664,6 +2664,18 @@ Billing shows $0.00 from 2026-09-26**, the day of the 27 Gemini calls D-057 reco
 no-billing project), and **Upstash shows $0.00**. The $0.0858 in D-057 remains a notional figure
 from the usage log, not a charge.
 
+**Note, 2026-10-01 — the step started tests before the trace API was warm.** Verifying D-063 with
+`make ci-local WORKTREE=1 INTEGRATION=1`, the second trace test skipped twice running ("Langfuse
+… is not answering: timed out" — its reachability probe, a `trace.list` query), and the any-skip
+check turned the step red, as it should. `HEAD` passed once the same way, which made the D-063
+change look responsible; it was not. Against one warm throwaway stack, a `HEAD` export and the
+working-tree export each passed 3 of 3, alternating. The step waited only for
+`/api/public/health`, which answers before the trace query path (ClickHouse) is ready on a fresh
+stack. It now also waits until `GET /api/public/traces?limit=1`, authenticated with the step's
+own key pair, answers — up to 5 minutes — before running the tests. The skip check is unchanged.
+`make ci-local WORKTREE=1 INTEGRATION=1` then went green twice running, "2 passed" each time.
+GitHub had been green on this step (runs #17–#21); the race was there all the same.
+
 ## D-059 — The published spend table reads a fixed window, not the last 30 days
 
 **Fixed 2026-09-28** (moved from BACKLOG, where D-058 filed it). `make budget` and `make
@@ -2856,4 +2868,81 @@ the largest client time, queueing included, 109.2 s; the single-user run's large
 14.1 s (n=10). **No request in either reached 120 s**, so bounding model calls by the remaining
 budget would not have changed any of them. (The load check's published p95, 88.3 s, is its
 second-highest *client* time at n=32 — not its maximum.)
+
+## D-063 — Every model call is bounded by the request's remaining wall-clock budget, retries included
+
+**Decided (Srikanth, 2026-09-28)**, after D-062 corrected the docs: the 120 s budget was checked
+only between graph steps, so on 2026-09-28 Gemini's `503 — high demand` retries ran requests to
+128–339 s, and two such requests could hold both concurrency slots for minutes.
+
+**Where the retries happen.** Every model call in the agent goes through `call_text` or
+`call_structured` (`src/agent/llm.py`; `tests/test_usage_log.py` fails any other path), which
+await LangChain's `ainvoke`. `ChatGoogleGenerativeAI._agenerate` (langchain-google-genai 4.3.4,
+`chat_models.py:3430`) awaits `client.aio.models.generate_content` natively — no worker thread.
+Inside it, google-genai 2.19.0's `BaseApiClient._async_request` (`_api_client.py:1709–1728`) runs
+`_async_request_once` under `tenacity.AsyncRetrying`: up to **6 attempts** (LangChain's
+`max_retries` default, mapped to `HttpRetryOptions(attempts=6)`), retrying 408/429/5xx with
+exponential-jitter backoff from 1 s, base 2, **capped at 60 s per wait**, and **no per-attempt
+timeout** (`timeout` defaults to `None`). The whole loop is inside the one await.
+
+**Decided: bound the whole await.** `_bounded()` wraps each `ainvoke` — every attempt and every
+backoff sleep — in `asyncio.timeout()` with the time left until the request's own deadline
+(`Usage.deadline_at`, set when the graph starts), carried to the node tasks in a context variable
+(`CALL_DEADLINE`, set by `run_query`). Everything that runs the graph goes through `run_query` and is bounded — the API, the CLI, the eval runs (`evals/run_set.py`, so the pinned runs behind the gate too) and `scripts/injection_live_probe.py`. Callers of the wrappers outside a graph run leave it unset and are not bounded: eval-set construction (`evals/build_set.py`, `draft.py`, `multihop.py`) and the probes `scripts/generator_determinism.py` and `guardrail_variance.py`. An earlier draft of this record and of the code comment said eval tooling was unbudgeted; the eval runs are not, and never were — they always carried the between-step 120 s check.
+Because the stack is native asyncio, cancellation lands wherever the loop is — mid request or mid
+backoff — and stops it: `test_the_retry_loop_itself_stops_not_just_the_await` shows no attempt
+starts after the cut. With no time left, the wrapper raises before calling at all.
+
+**Only an expired budget is a deadline cut.** A first draft used `asyncio.wait_for` and treated
+any `TimeoutError` as the deadline — including one the call raises itself before the deadline (an
+HTTP read timeout), which would then have been reported, logged and settled as "cancelled at the
+wall-clock deadline". `_bounded()` now enters `asyncio.timeout(remaining)` and converts a
+`TimeoutError` only when that context manager's `expired()` is true; any other `TimeoutError`
+propagates as an ordinary call failure — a `500 internal_error` naming it, settled from the
+checkpoint like any failed run, with no cancelled row. Tested with a model that raises
+`TimeoutError` at once: at the wrapper it propagates unchanged and leaves no cancelled row;
+through the API it is a 500, not a truncated answer, carries no wall-clock reason, and the ledger
+holds $0 rather than the full reservation. Mutation-checked: dropping the `expired()` test fails
+exactly those two tests; removing the bound still fails the six deadline tests.
+
+**On expiry.** The node catches `CallDeadlineExceededError`, records a `model_call_deadline`
+guardrail event naming itself, and returns; the routers see the spent budget and go to `finalize`,
+which returns the partial answer with `truncated=True` and "wall-clock deadline exceeded (120s)".
+A scope check cut off leaves the question unscreened, so `route_after_validate` now goes straight
+to `finalize` — nothing runs on it. The request ends, which releases its concurrency slot.
+
+**A cancelled call settles conservatively.** Its tokens are unknown — the provider may have billed
+an attempt that never returned — so: `Usage.cancelled_calls` counts it (and it counts as an LLM
+call); the API response's `usage.cancelled_calls` shows it; the usage log gets a row with
+`cancelled: true`, `usage_known: false` and **null** tokens — unknown, never zero; and the ledger
+**keeps the request's full reservation** (`max(reserved, notional)`, on the success and failure
+paths), never settling a guess, let alone $0 (D-054).
+
+**Tests** (`tests/test_deadline.py`), with the real wrappers and two fake models — one whose call
+never returns, and one that is a real `tenacity.AsyncRetrying` loop over attempts answering 503,
+google-genai's backoff shape at half scale (0.5 s doubling, six attempts ≈ 15.5 s): each call ends
+within the 1 s test budget, is recorded as cancelled with null tokens, and counts one cancelled
+call; no call starts once the budget is spent; the retry loop makes no attempt after the cut; and
+through the API, three requests on two slots — the third runs only because the first two freed
+theirs — each come back 200 within the budget, truncated with the wall-clock reason, carrying
+`cancelled_calls: 1` and the event, while the ledger keeps 3 × the reservation and the usage log
+holds three cancelled rows. **Mutation-checked:** with the bound removed, the hanging and the
+503-retrying cases, at the wrapper and through the API, all fail on the tests' 10 s timeout
+(`TimeoutError`); six of eleven tests fail, and the five that pass do not depend on the bound.
+`tenacity` is declared in the dev extras — the test imports it, and it had arrived only through
+google-genai (D-022's class).
+
+**Load check and gate carry over.** No served request in the load check reached 120 s of graph
+time (max 90.7 s, D-062). CI's gate replays committed run artifacts (D-050), so it is unaffected, and a
+re-run would be too: the pinned run's slowest item took 6.4 s. The bound changes behaviour only
+for a call still running at the deadline. **Deployed diff:** `src/agent/llm.py` (the bound),
+`src/agent/state.py` (`cancelled_calls`), `src/agent/runner.py` (sets the deadline),
+`src/agent/graph.py` (`route_after_validate`), the four nodes (catch the deadline),
+`src/api/app.py` (conservative settle), `src/api/schemas.py` (`cancelled_calls` in the response),
+and `pyproject.toml` (a dev extra the image does not install). This change is on the `/query`
+path by design; the claim that the load check carries over rests on the 90.7 s maximum, not on
+the diff.
+
+**Not bounded yet:** work that is not a model call — retrieval and embedding — is still only
+checked between steps. It is local CPU with no network, and runs in about a second.
 

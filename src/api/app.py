@@ -423,7 +423,7 @@ async def _handle(request: Request, body: QueryRequest, thread_id: str, existing
                     # Never flush on the request path; spans export in the background.
                     flush=False,
                 )
-            actual = _notional(state)
+            actual = _to_settle(state, reserved)
             response = QueryResponse.from_state(
                 state, request_id, (time.monotonic() - started) * 1000
             )
@@ -647,6 +647,21 @@ def _notional(state: AgentState) -> float:
     return usage.notional_cost_usd if isinstance(usage, Usage) else 0.0
 
 
+def _to_settle(state: AgentState, reserved: float) -> float:
+    """What the ledger keeps for a finished run.
+
+    Its notional spend — unless a model call was cancelled at the wall-clock deadline. That
+    call's tokens are unknown and the provider may have billed an attempt that never returned,
+    so the request keeps its full reservation: over-counting is the safe direction for a
+    ceiling, and settling a guess — let alone $0 — is not (D-054, D-063).
+    """
+    usage = state.get("usage")
+    actual = _notional(state)
+    if isinstance(usage, Usage) and usage.cancelled_calls:
+        return max(reserved, actual)
+    return actual
+
+
 async def _checkpointed_notional(svc: ServiceState, thread_id: str, fallback: float) -> float:
     """What a failed run had spent by its last checkpoint.
 
@@ -657,7 +672,7 @@ async def _checkpointed_notional(svc: ServiceState, thread_id: str, fallback: fl
     with contextlib.suppress(Exception):
         values = await _thread_values(svc, thread_id)
         if values is not None:
-            return _notional(values)  # type: ignore[arg-type]
+            return _to_settle(values, fallback)  # type: ignore[arg-type]
     return fallback
 
 

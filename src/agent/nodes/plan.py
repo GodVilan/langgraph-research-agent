@@ -10,7 +10,12 @@ from __future__ import annotations
 
 import logging
 
-from src.agent.llm import StructuredOutputError, call_structured
+from src.agent.llm import (
+    CallDeadlineExceededError,
+    StructuredOutputError,
+    call_structured,
+    deadline_event,
+)
 from src.agent.prompts import load_prompt
 from src.agent.state import AgentState, GuardrailEvent, Plan, SubQuestion, Usage
 from src.config import get_settings
@@ -35,6 +40,16 @@ async def plan(state: AgentState) -> dict[str, object]:
             user=f"Question: {question}",
             max_attempts=settings.graph.max_structured_output_attempts,
         )
+    except CallDeadlineExceededError as exc:
+        # No time left to plan: the question itself is the plan, and the routers will send
+        # the run to finalize, which truncates with the wall-clock reason (D-063).
+        log.warning("Planner cut off at the deadline: %s", exc)
+        return {
+            "plan": [SubQuestion(text=question, origin="plan")],
+            "plan_cursor": 0,
+            "usage": exc.usage,
+            "guardrail_events": [deadline_event(NODE, exc)],
+        }
     except StructuredOutputError as exc:
         log.warning("Planner failed; degrading to single-hop: %s", exc)
         return {

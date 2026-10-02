@@ -17,7 +17,13 @@ import unicodedata
 from langchain_core.messages import AIMessage, HumanMessage
 from pydantic import BaseModel, Field
 
-from src.agent.llm import StructuredOutputError, call_structured, get_chat_model
+from src.agent.llm import (
+    CallDeadlineExceededError,
+    StructuredOutputError,
+    call_structured,
+    deadline_event,
+    get_chat_model,
+)
 from src.agent.prompts import load_prompt
 from src.agent.state import AgentState, GuardrailEvent, Usage
 from src.config import get_settings
@@ -178,6 +184,12 @@ async def validate_input(state: AgentState) -> dict[str, object]:
             # Pinned sampling (D-035): the same question gets the same decision.
             model=get_chat_model(pinned=True) if settings.pin_scope_classifier else None,
         )
+    except CallDeadlineExceededError as exc:
+        # Not a pass: the question was never screened. `route_after_validate` sees the spent
+        # budget and goes straight to finalize, which truncates with the wall-clock reason —
+        # nothing downstream runs on an unscreened question (D-063).
+        events.append(deadline_event(NODE, exc))
+        return {"refused": False, "guardrail_events": events, "usage": exc.usage}
     except StructuredOutputError as exc:
         # Fail closed. A guard that cannot run must not wave the request through.
         events.append(

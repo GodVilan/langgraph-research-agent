@@ -96,9 +96,10 @@ Two bounds operate together, tested independently:
 
 - **the counters** — `plan_cursor` against `len(plan)`, `refinement_count` against
   `max_refinements`, plus token / cost / wall-clock / tool-call ceilings — are the intended
-  bound. The ceilings are checked **between** steps, so a model call in flight can overrun the
-  120 s wall-clock one: on 2026-09-28, with Gemini overloaded, requests ran 128–339 s
-  ([D-062](docs/DECISIONS.md));
+  bound. The ceilings are checked between steps, and every model call is also cut off at the
+  120 s wall-clock deadline, including the provider client's retry loop — before that, with
+  Gemini overloaded on 2026-09-28, requests ran 128–339 s ([D-062](docs/DECISIONS.md),
+  [D-063](docs/DECISIONS.md));
 - **`recursion_limit=25`** is the backstop that raises `GraphRecursionError` loudly if a
   counter is ever wrong. The longest legal path is 17 steps.
 
@@ -168,8 +169,8 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 781, all passing | `make test` |
-| First-party Python | 45 files, 6,443 lines under `src/` | `make readme-stats` |
+| Tests | 792, all passing | `make test` |
+| First-party Python | 45 files, 6,632 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
 | Mean tokens per chunk | 380.0 (whitespace tokens) | `make corpus-info` |
@@ -178,7 +179,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-09-28.*
+*Measured 2026-10-02.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
@@ -283,7 +284,7 @@ What changed is everything around them:
 | Orchestration | 760-line ReAct loop, model picks tools by emitting JSON | Typed `StateGraph`, 6 nodes, 3 conditional edges |
 | Tool choice | model's free choice, guarded by prompts | deterministic rule: dense → BM25 when dense under-delivers → live arXiv on opt-in |
 | Loop bound | `AGENT_MAX_STEPS`, plus ~90 lines of loop-guard prompting | explicit counters + `recursion_limit` backstop |
-| Cost control | none | token / cost / wall-clock / tool-call ceilings, per request, checked between steps — the wall-clock one is not yet a hard bound ([D-062](docs/DECISIONS.md)) |
+| Cost control | none | token / cost / wall-clock / tool-call ceilings, per request; the wall clock also cuts off a model call in flight ([D-063](docs/DECISIONS.md)) |
 | Scope guard failure | fails **open** — proceeds | fails **closed** — refuses, logs the event |
 | Critique failure | returns `pass` | returns `error`, routes to finalize, flagged in the answer |
 | Structured output | regex-strip fences, `json.loads`, permissive default | `with_structured_output` + 2 bounded repair attempts |

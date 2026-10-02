@@ -9,6 +9,7 @@ requiring bespoke bookkeeping (docs/MIGRATION_MAP.md §2.2).
 
 from __future__ import annotations
 
+import asyncio
 import contextvars
 import datetime as dt
 import functools
@@ -16,6 +17,8 @@ import json
 import logging
 import os
 import sys
+import time
+from collections.abc import Awaitable, Callable
 from typing import Any, cast
 
 from langchain_core.language_models import BaseChatModel
@@ -35,6 +38,72 @@ class StructuredOutputError(RuntimeError):
     degraded-but-flagged result — never into a silent permissive default. v2.1 returned a
     clean ``pass`` on exactly this failure (AUDIT §4.3).
     """
+
+
+class CallDeadlineExceededError(RuntimeError):
+    """A model call was cut off, or never started, because the request's wall-clock budget ran
+    out. Carries the usage to charge in ``.usage``: a cancelled call counts as one LLM call and
+    one cancelled call, with its tokens unknown (D-063)."""
+
+    def __init__(self, message: str, usage: Usage) -> None:
+        super().__init__(message)
+        self.usage = usage
+
+
+def deadline_event(node: str, exc: CallDeadlineExceededError) -> Any:
+    """The trace record of a call the deadline cut off or prevented."""
+    from src.agent.state import GuardrailEvent
+
+    return GuardrailEvent(kind="model_call_deadline", severity="warn", node=node, detail=str(exc))
+
+
+# The absolute `time.monotonic()` instant by which every model call in this request must end.
+# Set by `run_query` from the request's own deadline (`Usage.deadline_at`) and inherited by the
+# graph's node tasks, which copy the context. Everything that runs the graph goes through
+# `run_query` and is bounded: the API, the CLI, the eval runs (`evals/run_set.py`, so the pinned
+# runs behind the gate too) and `scripts/injection_live_probe.py`. Callers of `call_text` /
+# `call_structured` outside a graph run leave it unset (None) and are not bounded: eval-set
+# construction (`evals/build_set.py`, `draft.py`, `multihop.py`) and the probes
+# `scripts/generator_determinism.py` and `scripts/guardrail_variance.py` (D-063).
+CALL_DEADLINE: contextvars.ContextVar[float | None] = contextvars.ContextVar(
+    "call_deadline", default=None
+)
+
+
+async def _bounded[R](call: Callable[[], Awaitable[R]], model_name: str) -> R:
+    """Await one model call, cut off at the request's deadline.
+
+    The bound is around the *whole* `ainvoke`: google-genai retries a 408/429/5xx inside that
+    one await (`_api_client.BaseApiClient._async_request`, a `tenacity.AsyncRetrying` over
+    `_async_request_once` — up to 6 attempts from LangChain's `max_retries`, with exponential
+    backoff up to 60 s per wait and no per-attempt timeout). Bounding a single attempt would
+    leave the retry loop, and its sleeps, unbounded; this cancels it wherever it is — mid
+    request or mid backoff — because the whole stack is native asyncio (D-063). The graph's
+    between-step check alone let requests run 128 to 339 s against a 120 s budget (D-062).
+    """
+    deadline = CALL_DEADLINE.get()
+    if deadline is None:
+        return await call()
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        # No call made, so nothing to record: the node reports the deadline, finalize truncates.
+        raise CallDeadlineExceededError("wall-clock deadline reached before the call", Usage())
+    budget = asyncio.timeout(remaining)
+    try:
+        async with budget:
+            return await call()
+    except TimeoutError as exc:
+        # Only a cut by *this* timeout is a deadline cancellation. A TimeoutError the call raises
+        # itself before the deadline (an HTTP read timeout, say) is an ordinary failure and must
+        # propagate as one — not be reported, logged or settled as cancelled at the deadline.
+        # `wait_for` could not tell the two apart; `asyncio.timeout().expired()` can.
+        if not budget.expired():
+            raise
+        record_usage(model_name, None, None, cancelled=True)
+        raise CallDeadlineExceededError(
+            f"model call cancelled at the wall-clock deadline after {remaining:.1f} s",
+            Usage(llm_calls=1, cancelled_calls=1),
+        ) from exc
 
 
 # ── The usage log ──────────────────────────────────────────────────────────────
@@ -67,9 +136,10 @@ def current_activity() -> str:
 
 def record_usage(
     model: str,
-    input_tokens: int,
-    output_tokens: int,
+    input_tokens: int | None,
+    output_tokens: int | None,
     *,
+    cancelled: bool = False,
     cached_input_tokens: int = 0,
     reasoning_tokens: int = 0,
     notional_cost_usd: float | None = None,
@@ -78,7 +148,11 @@ def record_usage(
     activity: str | None = None,
 ) -> None:
     """Append one row to the usage log. Never raises into a query: a log that cannot be written
-    is reported loudly (error log) rather than taking the request down with it."""
+    is reported loudly (error log) rather than taking the request down with it.
+
+    ``cancelled`` marks a call cut off at the wall-clock deadline: its tokens are ``None`` —
+    unknown, not zero — because the provider may have billed an attempt that never returned
+    (D-063)."""
     path = get_settings().usage_log
     row = {
         "ts": dt.datetime.now(dt.UTC).isoformat(timespec="milliseconds"),
@@ -91,6 +165,8 @@ def record_usage(
         "reasoning_tokens": reasoning_tokens,
         "notional_cost_usd": notional_cost_usd,
         "missing_usage_metadata": missing_usage_metadata,
+        "cancelled": cancelled,
+        "usage_known": not cancelled,
         "pid": os.getpid(),
     }
     try:
@@ -233,7 +309,9 @@ async def call_text(
 ) -> tuple[str, Usage]:
     """One free-text call. Returns the text and the usage delta."""
     llm = model or get_chat_model()
-    response = await llm.ainvoke([("system", system), ("user", user)])
+    response = await _bounded(
+        functools.partial(llm.ainvoke, [("system", system), ("user", user)]), _model_name(llm)
+    )
     assert isinstance(response, AIMessage)
     return str(response.text).strip(), usage_from_message(response)
 
@@ -259,7 +337,15 @@ async def call_structured[T: BaseModel](
     messages: list[tuple[str, str]] = [("system", system), ("user", user)]
 
     for attempt in range(1, max_attempts + 1):
-        result: dict[str, Any] = await structured.ainvoke(messages)  # type: ignore[assignment]
+        try:
+            raw_result = await _bounded(
+                functools.partial(structured.ainvoke, messages), _model_name(llm)
+            )
+        except CallDeadlineExceededError as exc:
+            # Charge what the earlier attempts spent, plus the cancelled one.
+            exc.usage = _merge(total, exc.usage)
+            raise
+        result = cast(dict[str, Any], raw_result)
 
         raw = result.get("raw")
         if isinstance(raw, AIMessage):
@@ -287,6 +373,10 @@ async def call_structured[T: BaseModel](
     )
     error.usage = total  # type: ignore[attr-defined]
     raise error
+
+
+def _model_name(llm: Any) -> str:
+    return str(getattr(llm, "model", None) or getattr(llm, "model_name", None) or "unknown")
 
 
 def _merge(left: Usage, right: Usage) -> Usage:

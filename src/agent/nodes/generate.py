@@ -17,7 +17,7 @@ import logging
 
 from langchain_core.messages import AIMessage
 
-from src.agent.llm import call_text
+from src.agent.llm import CallDeadlineExceededError, call_text, deadline_event
 from src.agent.prompts import load_prompt
 from src.agent.state import AgentState, RetrievedChunk
 from src.guardrails.injection import neutralise
@@ -76,10 +76,16 @@ async def generate(state: AgentState) -> dict[str, object]:
             + "\n".join(f"- {g}" for g in critique.gaps[:4])
         )
 
-    answer, usage = await call_text(
-        system=load_prompt("generate", state["request"].prompt_version),
-        user=f"Question: {question}\n\nRetrieved passages:\n{context}{gap_note}",
-    )
+    try:
+        answer, usage = await call_text(
+            system=load_prompt("generate", state["request"].prompt_version),
+            user=f"Question: {question}\n\nRetrieved passages:\n{context}{gap_note}",
+        )
+    except CallDeadlineExceededError as exc:
+        # Whatever draft an earlier round produced stays the partial answer; finalize adds the
+        # truncation note with the wall-clock reason (D-063).
+        log.warning("Generation cut off at the deadline: %s", exc)
+        return {"usage": exc.usage, "guardrail_events": [deadline_event(NODE, exc)]}
 
     return {
         "draft_answer": answer,

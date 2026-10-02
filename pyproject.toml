@@ -55,6 +55,9 @@ dev = [
     # Imported by tests/test_deploy_guards.py and scripts/ci_local.py; it arrived only
     # transitively through LangChain until declared (D-022's class, found by D-056).
     "pyyaml>=6.0",
+    # Imported by tests/test_deadline.py to reproduce google-genai's own retry loop; present
+    # only transitively through google-genai until declared (D-022's class, D-063).
+    "tenacity>=8.2",
 ]
 
 [project.scripts]

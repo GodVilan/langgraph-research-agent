@@ -57,6 +57,9 @@ BILLED_UNVERIFIED = (
 
 class UsageOut(BaseModel):
     llm_calls: int
+    # Calls cut off at the wall-clock deadline; their tokens are unknown, so a non-zero count
+    # means the token and cost figures here understate the request (D-063).
+    cancelled_calls: int = 0
     tool_calls: int
     input_tokens: int
     cached_input_tokens: int
@@ -72,6 +75,7 @@ class UsageOut(BaseModel):
     def of(cls, usage: Usage) -> UsageOut:
         return cls(
             llm_calls=usage.llm_calls,
+            cancelled_calls=usage.cancelled_calls,
             tool_calls=usage.tool_calls,
             input_tokens=usage.input_tokens,
             cached_input_tokens=usage.cached_input_tokens,

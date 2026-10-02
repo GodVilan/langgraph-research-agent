@@ -149,6 +149,10 @@ class Usage(BaseModel):
     # Counts LLM responses that arrived with no usage_metadata. Non-zero means the token
     # figures below understate reality, so it is surfaced rather than assumed to be zero.
     missing_usage_metadata: int = 0
+    # Model calls cancelled at the wall-clock deadline (D-063). Their usage is unknown — the
+    # provider may have billed tokens for an attempt that never returned — so a non-zero count
+    # makes the API keep the request's full reservation rather than settle a guess.
+    cancelled_calls: int = 0
     # Set only by `initial_state`. Because `usage` is checkpointed and `merge_usage` sums,
     # a second turn on the same thread would otherwise inherit the first turn's spend, and
     # the "per-request" ceilings would quietly become per-thread ceilings — a thread would
@@ -221,6 +225,7 @@ def merge_usage(left: Usage | None, right: Usage | None) -> Usage:
         tool_calls=left.tool_calls + right.tool_calls,
         deadline_at=min(deadlines) if deadlines else 0.0,
         missing_usage_metadata=left.missing_usage_metadata + right.missing_usage_metadata,
+        cancelled_calls=left.cancelled_calls + right.cancelled_calls,
     )
 
 

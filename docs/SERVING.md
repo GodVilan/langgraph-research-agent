@@ -59,7 +59,11 @@ to those papers. There is no `use_arxiv`: live arXiv fetch is off on the public 
 * **`guardrail_blocked`** is true only when the *input* guardrail refused. An answer saying
   the corpus does not cover the question is not a block.
 * **`truncated`** means a per-request ceiling stopped the run; `answer` is the partial answer
-  and ends with a note naming the ceiling. Never a silent stop.
+  and ends with a note naming the ceiling. Never a silent stop. The 120 s wall clock also cuts
+  off a model call in flight, retries included (D-063): such a request comes back truncated
+  with `usage.cancelled_calls` > 0, a `model_call_deadline` guardrail event naming the node, and
+  its token and cost figures understating the request, since the cancelled call's usage is
+  unknown. It keeps its full reservation on the daily ledger.
 * **`usage`** carries notional cost — the tokens at paid standard rates, cached input at
   $0.03/1M — which every ceiling checks, and `billed_cost_usd: null` with a
   `billed_cost_basis`: billing is known only from the provider's record, never assumed to be

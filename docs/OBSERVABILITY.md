@@ -229,7 +229,7 @@ harness, and the Phase 5 service all report the same series. Phase 5 mounts it a
 | Metric | Labels | Note |
 |---|---|---|
 | `arxiv_agent_requests_total` | `outcome` | `answered` / `refused` / `truncated` / `error` |
-| `arxiv_agent_request_latency_seconds` | `outcome` | Buckets to 120s, the per-request wall-clock budget — checked between steps, so a request can exceed it (D-062) |
+| `arxiv_agent_request_latency_seconds` | `outcome` | Buckets to 120s, the per-request wall-clock budget, which cuts off model calls in flight (D-063); non-model steps are checked between steps |
 | `arxiv_agent_errors_total` | `error_type` | |
 | `arxiv_agent_guardrail_triggers_total` | `category`, **`severity`**, `node` | |
 | `arxiv_agent_chunks_quarantined_total` | `source` | |
