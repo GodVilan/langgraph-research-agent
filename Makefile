@@ -241,6 +241,9 @@ load-check:  ## G-3 load check: URL=... [SPACE=owner/name] [C=10] [SERVED=30] [M
 	@# clock check marks the run INVALID if the machine sleeps anyway (D-052).
 	$(shell command -v caffeinate >/dev/null 2>&1 && echo caffeinate -i) $(PY) scripts/load_check.py --url $(URL) $(if $(SPACE),--space $(SPACE),) --concurrency $(or $(C),10) --min-served $(or $(SERVED),30) --max-minutes $(or $(MAX_MIN),15) --label $(or $(LABEL),deployed) $(if $(NO_TOKEN),--no-token,) --key-exclusive
 
+landing-shot:  ## screenshot the live landing page answering the README example -> docs/img/landing.png + .json [URL=…]
+	$(PY) scripts/capture_landing.py --url $(or $(URL),https://godvillain-scholium.hf.space)
+
 latency-single:  ## single user, warm: N=10 sequential requests SPACING=30 s apart -> evals/runs/latency_single_user.json
 	$(shell command -v caffeinate >/dev/null 2>&1 && echo caffeinate -i) $(PY) scripts/load_check.py --url $(URL) --single-user $(or $(N),10) --spacing $(or $(SPACING),30)
 

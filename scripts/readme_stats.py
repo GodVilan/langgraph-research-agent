@@ -116,6 +116,7 @@ def render() -> str:
 STATUS_JSON = REPO / "docs" / "status.json"
 SPEND_JSON = REPO / "evals" / "runs" / "judge_spend.json"
 BLOCKS = {
+    "HEADER": ("<!-- HEADER:START -->", "<!-- HEADER:END -->"),
     "STATUS": ("<!-- STATUS:START -->", "<!-- STATUS:END -->"),
     # Not "SPEND": that marker belongs to `make budget`'s trace table. Sharing it let each
     # generator overwrite the other's block in BUDGET.md (caught 2026-09-24).
@@ -359,6 +360,91 @@ def render_gemini() -> str:
     )
 
 
+# ── The header: one sentence, badges, the landing page, four links — all rendered ─────────
+# Badges are a claim in a picture. Allowed (tests/test_docs.py enforces it): a link to the Space,
+# static stack badges whose only number is the Python release read from the lock, the licence
+# read from LICENSE, and the base-image pin read from the Dockerfile. No metric, and no status
+# that is not live — the CI badge, which GitHub renders from the latest run, sits in the status
+# line directly below rather than twice.
+HF_BADGE = (
+    "https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg"
+)
+LANDING_PNG = REPO / "docs" / "img" / "landing.png"
+LANDING_JSON = REPO / "docs" / "img" / "landing.json"
+WORTH_A_LOOK = (
+    ("Evaluation", "docs/PHASE4.md"),
+    (
+        "Where the rebuild is worse",
+        "docs/POSTMORTEM.md#4-v21-versus-v3--the-numbers-including-where-v3-is-worse",
+    ),
+    ("The spend finding", "#cost"),
+    ("Post-mortem", "docs/POSTMORTEM.md"),
+)
+
+
+def shields(label: str, message: str, color: str) -> str:
+    """A static shields.io badge: '-' is escaped as '--', a space as '_'."""
+
+    def esc(text: str) -> str:
+        return text.replace("-", "--").replace("_", "__").replace(" ", "_")
+
+    path = f"{esc(label)}-{esc(message)}-{color}" if message else f"{esc(label)}-{color}"
+    return f"https://img.shields.io/badge/{path}"
+
+
+def badges() -> list[str]:
+    from scripts.lock_check import lock_python
+
+    status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
+    python = lock_python(REPO / "requirements.lock")
+    dockerfile = (REPO / "infra" / "Dockerfile").read_text(encoding="utf-8")
+    if not re.search(r"^ARG PYTHON_IMAGE=\S+@sha256:[0-9a-f]{64}$", dockerfile, re.M):
+        raise SystemExit("infra/Dockerfile's base is not pinned by digest; no badge says it is")
+    licence = (REPO / "LICENSE").read_text(encoding="utf-8").splitlines()[0].strip()
+    if licence != "MIT License":
+        raise SystemExit(f"LICENSE says {licence!r}; the badge says MIT")
+    space = status["space"]
+    return [
+        f"[![Open in Spaces]({HF_BADGE})](https://huggingface.co/spaces/{space})",
+        f"![Python {python}]({shields('python', python, '3776AB')})",
+        f"![LangGraph]({shields('LangGraph', '', '1C3C3C')})",
+        f"![FastAPI]({shields('FastAPI', '', '009688')})",
+        f"![Langfuse]({shields('Langfuse', '', '0A0A0A')})",
+        f"![Docker: pinned by digest]({shields('docker', 'pinned by digest', '2496ED')})",
+        f"[![code: MIT]({shields('code', 'MIT', 'blue')})](LICENSE)",
+    ]
+
+
+def render_header() -> str:
+    papers = len(json.loads((REPO / "data" / "metadata.json").read_text(encoding="utf-8")))
+    shot = json.loads(LANDING_JSON.read_text(encoding="utf-8"))
+    if not LANDING_PNG.exists() or not shot.get("cited_papers"):
+        raise SystemExit(
+            "docs/img/landing.png needs its record with a cited source: make landing-shot"
+        )
+    when = str(shot["captured_utc"])[:16].replace("T", " ")
+    width = shot["viewport_css_px"][0]
+    links = " · ".join(f"[{name}]({target})" for name, target in WORTH_A_LOOK)
+    start, end = BLOCKS["HEADER"]
+    return (
+        f"{start}\n<!-- Rendered by `make readme-stats`: the paper count from data/metadata.json, "
+        f"badges from requirements.lock, infra/Dockerfile, LICENSE and docs/status.json, the "
+        f"caption from docs/img/landing.json (`make landing-shot`). -->\n"
+        f"A grounded question-answering agent over {papers} arXiv ML papers, rebuilt on "
+        f"LangGraph, with an evaluation harness, guardrails, tracing and a public API.\n\n"
+        + " ".join(badges())
+        + f"\n\n[![The live landing page answering the README's example question, with the "
+        f"cited source listed]({LANDING_PNG.relative_to(REPO).as_posix()})]({shot['url']})\n\n"
+        f"*The live page at <{shot['url']}> answering the README's example question, citing "
+        f"{', '.join(f'`{p}`' for p in shot['cited_papers'])} — captured {when} UTC from Space "
+        f"`{shot['space_commit']}` with headless Chrome at {width} px wide (`make "
+        f"landing-shot`). The answer is generated per request, so another draw may word it "
+        f"differently.*\n\n"
+        f"**Worth a look:** {links}\n"
+        f"{end}"
+    )
+
+
 def render_status() -> str:
     status = json.loads(STATUS_JSON.read_text(encoding="utf-8"))
     url = status.get("live_url")
@@ -450,6 +536,7 @@ def main() -> int:
     updated = re.sub(
         re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.DOTALL
     )
+    updated = replace_block(updated, "HEADER", render_header())
     updated = replace_block(updated, "STATUS", render_status())
     updated = replace_block(updated, "JUDGESPEND", render_spend())
     updated = replace_block(updated, "GEMINI", render_gemini())

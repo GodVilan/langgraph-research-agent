@@ -468,3 +468,133 @@ class TestCorpusAttribution:
 
     def test_the_readme_carries_a_takedown_route(self) -> None:
         assert "github.com/GodVilan/langgraph-research-agent/issues" in readme()
+
+
+# ── The header: badges carry no metric and no status that is not live ────────────────────
+
+
+def header_block() -> str:
+    match = re.search(r"<!-- HEADER:START -->.*?<!-- HEADER:END -->", readme(), re.DOTALL)
+    assert match is not None, "missing HEADER markers"
+    return match.group(0)
+
+
+def shields_parts(url: str) -> tuple[str, str]:
+    """(label, message) of a static shields.io badge URL, unescaped; message may be empty."""
+    path = url.removeprefix("https://img.shields.io/badge/")
+    parts = [p.replace("\0", "-") for p in path.replace("--", "\0").split("-")]
+    unescape = lambda t: t.replace("__", "\1").replace("_", " ").replace("\1", "_")  # noqa: E731
+    if len(parts) == 2:
+        return unescape(parts[0]), ""
+    assert len(parts) == 3, f"not a static label-message-colour badge: {url}"
+    return unescape(parts[0]), unescape(parts[1])
+
+
+class TestTheHeader:
+    """A badge is a claim in a picture. The header may carry a link to the Space, static stack
+    badges, the licence and the base-image pin — nothing that reads as a measurement, and no
+    status unless something renders it live (the CI badge, in the status line below)."""
+
+    HF_BADGE = (
+        "https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg"
+    )
+    # label -> what its message may be; None means no message at all.
+    STATIC: ClassVar[dict[str, str | None]] = {
+        "LangGraph": None,
+        "FastAPI": None,
+        "Langfuse": None,
+        "python": "lock",
+        "docker": "pinned by digest",
+        "code": "MIT",
+    }
+
+    def test_the_header_is_the_rendered_one(self) -> None:
+        sys.path.insert(0, str(REPO))
+        from scripts.readme_stats import render_header
+
+        assert header_block() == render_header(), "run `make readme-stats`"
+
+    def test_the_title_and_the_header_open_the_readme(self) -> None:
+        assert readme().startswith("# Scholium\n\n<!-- HEADER:START -->")
+        assert readme().index("<!-- HEADER:END -->") < readme().index("<!-- STATUS:START -->")
+
+    def test_the_paper_count_is_the_corpus_s_not_a_typed_one(self) -> None:
+        import json
+
+        papers = len(json.loads((REPO / "data" / "metadata.json").read_text(encoding="utf-8")))
+        assert f"over {papers} arXiv ML papers" in header_block()
+
+    def test_every_badge_is_allowed_and_carries_no_metric(self) -> None:
+        import json
+
+        sys.path.insert(0, str(REPO))
+        from scripts.lock_check import lock_python
+
+        python = lock_python(REPO / "requirements.lock")
+        status = json.loads((REPO / "docs" / "status.json").read_text(encoding="utf-8"))
+        images = re.findall(r"!\[[^\]]*\]\(([^)\s]+)\)", header_block())
+        badges = [u for u in images if not u.startswith("docs/img/")]
+        assert badges, "the header has no badge row"
+        assert f"](https://huggingface.co/spaces/{status['space']})" in header_block()
+        for url in badges:
+            if url == self.HF_BADGE:
+                continue
+            assert url.startswith("https://img.shields.io/badge/") and "?" not in url, (
+                f"{url}: only static shields badges — a dynamic one renders a status or a "
+                f"number this test cannot vouch for"
+            )
+            label, message = shields_parts(url)
+            assert label in self.STATIC, f"badge {label!r} is not on the allowed list"
+            rule = self.STATIC[label]
+            if rule is None:
+                assert message == "", f"{label} badge carries a message: {message!r}"
+            elif rule == "lock":
+                assert message == python, f"python badge says {message}, the lock says {python}"
+            else:
+                assert message == rule, f"{label} badge says {message!r}"
+            # The one number a badge may carry is the Python release.
+            assert not re.search(r"\d|%", f"{label} {message}".replace(python, "")), url
+        # The CI badge is live and belongs to the status line, not twice in the header.
+        assert "badge.svg" not in header_block()
+
+    def test_the_pinned_and_licence_badges_are_true(self) -> None:
+        dockerfile = (REPO / "infra" / "Dockerfile").read_text(encoding="utf-8")
+        assert re.search(r"^ARG PYTHON_IMAGE=\S+@sha256:[0-9a-f]{64}$", dockerfile, re.M)
+        assert (REPO / "LICENSE").read_text(encoding="utf-8").startswith("MIT License")
+
+    def test_every_worth_a_look_link_resolves(self) -> None:
+        def slug(heading: str) -> str:
+            text = re.sub(r"[^\w\- ]", "", heading.strip().lower())
+            return text.replace(" ", "-")
+
+        line = next(ln for ln in header_block().splitlines() if ln.startswith("**Worth a look"))
+        links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", line)
+        assert [name for name, _ in links] == [
+            "Evaluation",
+            "Where the rebuild is worse",
+            "The spend finding",
+            "Post-mortem",
+        ]
+        for _, target in links:
+            path, _, anchor = target.partition("#")
+            doc = REPO / path if path else README
+            assert doc.exists(), target
+            if anchor:
+                headings = re.findall(r"^#+ (.+)$", doc.read_text(encoding="utf-8"), re.M)
+                assert anchor in {slug(h) for h in headings}, f"{target}: no such heading"
+
+    def test_the_screenshot_matches_its_record(self) -> None:
+        import json
+        import struct
+
+        record = json.loads((REPO / "docs" / "img" / "landing.json").read_text(encoding="utf-8"))
+        png = (REPO / "docs" / "img" / "landing.png").read_bytes()
+        assert png[:8] == b"\x89PNG\r\n\x1a\n"
+        width, height = struct.unpack(">II", png[16:24])
+        css_w, css_h = record["viewport_css_px"]
+        scale = record["device_scale_factor"]
+        assert (width, height) == (css_w * scale, css_h * scale)
+        assert record["cited_papers"] and set(record["cited_papers"]) <= set(
+            record["sources_listed"]
+        )
+        assert record["captured_utc"][:16].replace("T", " ") in header_block()

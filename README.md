@@ -1,18 +1,27 @@
-   # Scholium — arXiv Agent v3
+# Scholium
 
-   A graph-orchestrated research agent over a 150-paper arXiv machine-learning corpus,
-   deployed as **Scholium**. The repository, packages and metrics keep the project's
-   working name, `arxiv-agent`.
+<!-- HEADER:START -->
+<!-- Rendered by `make readme-stats`: the paper count from data/metadata.json, badges from requirements.lock, infra/Dockerfile, LICENSE and docs/status.json, the caption from docs/img/landing.json (`make landing-shot`). -->
+A grounded question-answering agent over 150 arXiv ML papers, rebuilt on LangGraph, with an evaluation harness, guardrails, tracing and a public API.
 
-This is a rebuild of **[arXiv-Agent v2.1](https://github.com/GodVilan/arXiv-Agent)**, which used a hand-rolled ReAct loop.
-v3 keeps v2.1's retrieval unchanged and replaces the orchestration, guardrails,
-observability, evaluation, and serving layers. The audit that opened this project is in
-[docs/AUDIT.md](docs/AUDIT.md).
+[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg)](https://huggingface.co/spaces/godvillain/Scholium) ![Python 3.13.15](https://img.shields.io/badge/python-3.13.15-3776AB) ![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C) ![FastAPI](https://img.shields.io/badge/FastAPI-009688) ![Langfuse](https://img.shields.io/badge/Langfuse-0A0A0A) ![Docker: pinned by digest](https://img.shields.io/badge/docker-pinned_by_digest-2496ED) [![code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE)
+
+[![The live landing page answering the README's example question, with the cited source listed](docs/img/landing.png)](https://godvillain-scholium.hf.space/)
+
+*The live page at <https://godvillain-scholium.hf.space/> answering the README's example question, citing `2605.29525` — captured 2026-10-04 02:58 UTC from Space `d96cd36e` with headless Chrome at 1100 px wide (`make landing-shot`). The answer is generated per request, so another draw may word it differently.*
+
+**Worth a look:** [Evaluation](docs/PHASE4.md) · [Where the rebuild is worse](docs/POSTMORTEM.md#4-v21-versus-v3--the-numbers-including-where-v3-is-worse) · [The spend finding](#cost) · [Post-mortem](docs/POSTMORTEM.md)
+<!-- HEADER:END -->
 
 <!-- STATUS:START -->
 <!-- Rendered from docs/status.json by `make readme-stats`. -->
 **Status: Phase 5 of 5 — deployed on Hugging Face Spaces, verified by `make smoke-live`, load-checked from one client machine, and the deployed commit's pinned run passes the regression gate (DECISIONS D-049, D-052) — Phase 5 closed, post-mortem accepted (docs/POSTMORTEM.md).** **Live: <https://godvillain-scholium.hf.space>** [![CI](https://github.com/GodVilan/langgraph-research-agent/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GodVilan/langgraph-research-agent/actions/workflows/ci.yml?query=branch%3Amain)
 <!-- STATUS:END -->
+
+Working name in the code, packages and metrics: `arxiv-agent`. A rebuild of
+**[arXiv-Agent v2.1](https://github.com/GodVilan/arXiv-Agent)**, a hand-rolled ReAct loop: v3
+keeps its retrieval unchanged and replaces orchestration, guardrails, observability, evaluation
+and serving ([docs/AUDIT.md](docs/AUDIT.md) is the audit that opened the project).
 
 Hosted on Hugging Face Spaces under PRO — Docker Spaces now need a paid plan
 ([DECISIONS D-038](docs/DECISIONS.md)). The Space sleeps when idle; the first request after a
@@ -171,7 +180,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 826, all passing | `make test` |
+| Tests | 839, all passing | `make test` |
 | First-party Python | 45 files, 6,632 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |

@@ -1,0 +1,21 @@
+{
+ "url": "https://godvillain-scholium.hf.space/",
+ "captured_utc": "2026-10-04T02:58:55+00:00",
+ "space_commit": "d96cd36e",
+ "browser": "Chrome/154.0.8037.98, headless, fresh profile",
+ "viewport_css_px": [
+  1100,
+  744
+ ],
+ "device_scale_factor": 2,
+ "color_scheme": "light",
+ "question": "the README's example question, via 'Use the example question'",
+ "attempts": 1,
+ "sources_listed": [
+  "2605.29525",
+  "2605.30103"
+ ],
+ "cited_papers": [
+  "2605.29525"
+ ]
+}
