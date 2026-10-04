@@ -144,23 +144,33 @@ def _loadcheck() -> dict[str, object]:
     return data
 
 
-SINGLE_USER_JSON = REPO / "evals" / "runs" / "latency_single_user.json"
+# The single-user rows: two runs on the locked set (D-064), Space d96cd36e, a day apart. The
+# earlier row (evals/runs/latency_single_user.json, Space 7745886e) was measured on a dependency
+# set that had drifted from the load-checked one; it is kept as history in DECISIONS D-064, not
+# rendered here.
+SINGLE_USER_RUNS = (
+    REPO / "evals" / "runs" / "latency_single_user_deploy-2026-10-02_run1.json",
+    REPO / "evals" / "runs" / "latency_single_user_deploy-2026-10-02_run2.json",
+)
 
 
-def _single_user() -> dict[str, object]:
-    """The single-user warm run — refused if the client slept or any request was not served."""
+def _single_user(path: Path) -> dict[str, object]:
+    """One single-user warm run — refused if the client slept, any request was not served, or
+    the run does not say which Space it measured."""
     sys.path.insert(0, str(REPO))
     from scripts.load_check import ClientClock, invalid_reason
 
-    data = dict(json.loads(SINGLE_USER_JSON.read_text(encoding="utf-8")))
+    data = dict(json.loads(path.read_text(encoding="utf-8")))
     recs = data["records"]
     assert isinstance(recs, list)
     drift = max((float(r.get("clock_drift_s", 0.0)) for r in recs), default=0.0)
     if data.get("invalid") or drift > ClientClock.TOLERANCE_S:
-        raise SystemExit(f"{SINGLE_USER_JSON.name} is invalid: {invalid_reason(drift)}")
+        raise SystemExit(f"{path.name} is invalid: {invalid_reason(drift)}")
     unserved = [r for r in recs if r["status"] != 200]
     if unserved:
-        raise SystemExit(f"{SINGLE_USER_JSON.name}: {len(unserved)} request(s) not served")
+        raise SystemExit(f"{path.name}: {len(unserved)} request(s) not served")
+    if not data.get("space_commit"):
+        raise SystemExit(f"{path.name} does not record the Space commit it measured")
     return data
 
 
@@ -189,15 +199,27 @@ def render_loadcheck() -> str:
     cold = data["cold_start"]
     assert isinstance(cold, dict)
 
-    single = _single_user()
-    srecs = single["records"]
-    assert isinstance(srecs, list)
-    s_lat = [r["client_ms"] / 1000 for r in srecs]
-    s_srv = [r["server_ms"] / 1000 for r in srecs if r.get("server_ms") is not None]
-    sn = len(srecs)
-    s_blocked = sum(1 for r in srecs if r.get("guardrail_blocked"))
     day = str(data["started_utc"])[:10]
-    sday = str(single["started_utc"])[:10]
+    single_rows = []
+    sizes = set()
+    for path in SINGLE_USER_RUNS:
+        single = _single_user(path)
+        srecs = single["records"]
+        assert isinstance(srecs, list)
+        s_lat = [r["client_ms"] / 1000 for r in srecs]
+        s_srv = [r["server_ms"] / 1000 for r in srecs if r.get("server_ms") is not None]
+        sn = len(srecs)
+        sizes.add(sn)
+        s_blocked = sum(1 for r in srecs if r.get("guardrail_blocked"))
+        when = str(single["started_utc"])[:16].replace("T", " ")
+        single_rows.append(
+            f"| Single user, warm, one request at a time {single['spacing_s']:.0f} s apart "
+            f"({when} UTC, Space `{single['space_commit']}`) | {sn} | {pct(s_lat, 50):.1f} s "
+            f"| {pct(s_lat, 95):.1f} s (slowest of {sn}) | server-side graph time p50 "
+            f"{pct(s_srv, 50):.1f} s / slowest {max(s_srv):.1f} s; {s_blocked} of {sn} refused "
+            f"by the scope guardrail in one model call and counted; no bypass token |"
+        )
+    (sn,) = sizes
     start, end = BLOCKS["LOADCHECK"]
     rows = [
         f"| Load check, {data['concurrency']} concurrent users ({day}, Space "
@@ -205,20 +227,16 @@ def render_loadcheck() -> str:
         f"{len(recs)} | {pct(lat, 50):.1f} s | {pct(lat, 95):.1f} s | server-side graph time "
         f"p50 {pct(srv, 50):.1f} s / p95 {pct(srv, 95):.1f} s, the rest waiting for one of two "
         f"slots; {len(recs) - n} turned away ({rej}); {n / minutes:.1f} served queries a minute |",
-        f"| Single user, warm, one request at a time {single['spacing_s']:.0f} s apart ({sday}, "
-        f"Space `{single.get('space_commit', '?')}`) "
-        f"| {sn} | {pct(s_lat, 50):.1f} s | {pct(s_lat, 95):.1f} s | server-side graph time p50 "
-        f"{pct(s_srv, 50):.1f} s / p95 {pct(s_srv, 95):.1f} s; {s_blocked} of {sn} refused by "
-        f"the scope guardrail in one model call and counted; no bypass token |",
+        *single_rows,
         f"| Cold start, measured separately ({day}, Space `{data.get('space_commit', '?')}`) "
         f"| 1 | — | — | {cold['seconds_to_ready']} s "
         f"from restart until a new container answered `/ready`, then "
         f"{cold['first_request_s']} s for its first query |",
     ]
     return (
-        f"{start}\n<!-- Rendered from evals/runs/loadcheck_deployed.json and "
-        f"evals/runs/latency_single_user.json by `make readme-stats`; `make load-report` and "
-        f"`make load-report LABEL=single_user` print the same figures. -->\n"
+        f"{start}\n<!-- Rendered by `make readme-stats` from evals/runs/loadcheck_deployed.json "
+        f"(`make load-report` prints the same figures) and "
+        f"{' and '.join('evals/runs/' + p.name for p in SINGLE_USER_RUNS)}. -->\n"
         f"**Latency of the deployed instance** — one client machine against one instance, not "
         f"live traffic. Each row is its own measurement; none is merged with another. Latency is "
         f"client-measured, end to end, over served requests only, nearest rank (at n={n} the p95 "
@@ -229,9 +247,14 @@ def render_loadcheck() -> str:
         + f"\n\n**The throughput ceiling is the Gemini free-tier quota, not the service**: the "
         f"container paces model calls at {data['pacer']}, and a query in the load check made a "
         f"median {calls:g} model calls. Key exclusivity was checked for local processes only, "
-        f"and the public endpoint stayed open during both runs. The two Space commits differ "
-        f"in one deployed file, the ledger's handling of a malformed Upstash answer, which no row "
-        f"exercised ([D-054](docs/DECISIONS.md)). The two earlier load-check "
+        f"and the public endpoint stayed open during every run. **Both Spaces run one package "
+        f"set**: the single-user Space installs the lock read off the load-checked build, 105 "
+        f"packages and Python 3.13.15, identical to it ([D-064](docs/DECISIONS.md)). Its code is "
+        f"later: the ledger's handling of a malformed Upstash answer ([D-054](docs/DECISIONS.md)), "
+        f"the landing page ([D-061](docs/DECISIONS.md)), and the wall-clock bound on every model "
+        f"call ([D-063](docs/DECISIONS.md)) at 120 s, far above every single-user request. "
+        f"An earlier single-user row, measured on a set that had drifted from the load-checked "
+        f"one, is kept in D-064 as history. The two earlier load-check "
         f"attempts are not results ([D-048](docs/DECISIONS.md), [D-052](docs/DECISIONS.md)).\n"
         f"{end}"
     )

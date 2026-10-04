@@ -171,7 +171,7 @@ Threads resume by id:
 
 | | | Regenerate with |
 |---|---|---|
-| Tests | 825, all passing | `make test` |
+| Tests | 826, all passing | `make test` |
 | First-party Python | 45 files, 6,632 lines under `src/` | `make readme-stats` |
 | Papers | 150 (arXiv cs.LG, all published 2026-05-28) | `make corpus-info` |
 | Chunks | 5,401 at chunk size 512 | `make corpus-info` |
@@ -181,7 +181,7 @@ Threads resume by id:
 | Sparse | Okapi BM25 over lowercased whitespace tokens | — |
 | Committed corpus | `chunks_512.json` 16 MiB, `metadata.json` 268 KiB | `make verify-corpus` |
 
-*Measured 2026-10-02.*
+*Measured 2026-10-04.*
 <!-- STATS:END -->
 
 The source PDFs are not carried in this repo; the chunk file has the text. The corpus
@@ -222,16 +222,17 @@ requests cannot jointly pass it), and a two-slot concurrency gate (503). A deplo
 image, as is the volume-backed ledger carrying spend across a restart ([D-037](docs/DECISIONS.md)).
 
 <!-- LOADCHECK:START -->
-<!-- Rendered from evals/runs/loadcheck_deployed.json and evals/runs/latency_single_user.json by `make readme-stats`; `make load-report` and `make load-report LABEL=single_user` print the same figures. -->
+<!-- Rendered by `make readme-stats` from evals/runs/loadcheck_deployed.json (`make load-report` prints the same figures) and evals/runs/latency_single_user_deploy-2026-10-02_run1.json and evals/runs/latency_single_user_deploy-2026-10-02_run2.json. -->
 **Latency of the deployed instance** — one client machine against one instance, not live traffic. Each row is its own measurement; none is merged with another. Latency is client-measured, end to end, over served requests only, nearest rank (at n=32 the p95 is value 31 of 32; at n=10, value 10 of 10 — the maximum).
 
 | Measurement | n | p50 | p95 | Notes |
 |---|---:|---:|---:|---|
 | Load check, 10 concurrent users (2026-09-25, Space `caefad03`) | 32 served of 169 | 48.4 s | 88.3 s | server-side graph time p50 36.3 s / p95 72.6 s, the rest waiting for one of two slots; 137 turned away (137 `503 busy`); 3.2 served queries a minute |
-| Single user, warm, one request at a time 30 s apart (2026-09-25, Space `7745886e`) | 10 | 7.1 s | 14.3 s | server-side graph time p50 6.9 s / p95 14.1 s; 1 of 10 refused by the scope guardrail in one model call and counted; no bypass token |
+| Single user, warm, one request at a time 30 s apart (2026-10-03 01:58 UTC, Space `d96cd36e`) | 10 | 7.1 s | 7.2 s (slowest of 10) | server-side graph time p50 6.8 s / slowest 7.0 s; 1 of 10 refused by the scope guardrail in one model call and counted; no bypass token |
+| Single user, warm, one request at a time 30 s apart (2026-10-04 01:58 UTC, Space `d96cd36e`) | 10 | 7.1 s | 7.3 s (slowest of 10) | server-side graph time p50 6.8 s / slowest 7.1 s; 1 of 10 refused by the scope guardrail in one model call and counted; no bypass token |
 | Cold start, measured separately (2026-09-25, Space `caefad03`) | 1 | — | — | 39.6 s from restart until a new container answered `/ready`, then 3.7 s for its first query |
 
-**The throughput ceiling is the Gemini free-tier quota, not the service**: the container paces model calls at 10 calls/min, burst 3 (infra/Dockerfile), and a query in the load check made a median 3 model calls. Key exclusivity was checked for local processes only, and the public endpoint stayed open during both runs. The two Space commits differ in one deployed file, the ledger's handling of a malformed Upstash answer, which no row exercised ([D-054](docs/DECISIONS.md)). The two earlier load-check attempts are not results ([D-048](docs/DECISIONS.md), [D-052](docs/DECISIONS.md)).
+**The throughput ceiling is the Gemini free-tier quota, not the service**: the container paces model calls at 10 calls/min, burst 3 (infra/Dockerfile), and a query in the load check made a median 3 model calls. Key exclusivity was checked for local processes only, and the public endpoint stayed open during every run. **Both Spaces run one package set**: the single-user Space installs the lock read off the load-checked build, 105 packages and Python 3.13.15, identical to it ([D-064](docs/DECISIONS.md)). Its code is later: the ledger's handling of a malformed Upstash answer ([D-054](docs/DECISIONS.md)), the landing page ([D-061](docs/DECISIONS.md)), and the wall-clock bound on every model call ([D-063](docs/DECISIONS.md)) at 120 s, far above every single-user request. An earlier single-user row, measured on a set that had drifted from the load-checked one, is kept in D-064 as history. The two earlier load-check attempts are not results ([D-048](docs/DECISIONS.md), [D-052](docs/DECISIONS.md)).
 <!-- LOADCHECK:END -->
 
 **BGE-large ships, 1.3 GB and all**, because Phase 4 measured the smaller model: bge-small

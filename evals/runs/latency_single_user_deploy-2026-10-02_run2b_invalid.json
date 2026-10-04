@@ -1,0 +1,35 @@
+{
+ "label": "single user, warm",
+ "url": "https://godvillain-scholium.hf.space",
+ "started_utc": "2026-10-03T07:08:59+00:00",
+ "spacing_s": 30.0,
+ "client": "scripts/load_check.py --single-user (httpx), one machine, no bypass",
+ "records": [
+  {
+   "i": 0,
+   "sent_utc": "2026-10-03T07:08:59.658505+00:00",
+   "status": 200,
+   "server_ms": 2946.1,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "9d5b3c9aec9da462be6cba07cd4bdea7",
+   "client_ms": 3240.4,
+   "clock_drift_s": 0.0
+  },
+  {
+   "i": 1,
+   "sent_utc": "2026-10-03T07:16:37.821061+00:00",
+   "status": 200,
+   "server_ms": 2864.2,
+   "llm_calls": 3,
+   "guardrail_blocked": false,
+   "trace_id": "7c96c218e96ccc8701a1f59f1890ca3a",
+   "client_ms": 3145.3,
+   "clock_drift_s": 428.2
+  }
+ ],
+ "invalid": "the client machine slept ~428 s during the run: every timing is measured on a clock that stops in sleep, and in-flight requests died with it. INVALID \u2014 not a result.",
+ "space_commit": "d96cd36e",
+ "space_commit_note": "deploy-2026-10-02 = git 68a51e8 (D-064) \u2014 field added after the run",
+ "why_invalid_note": "client laptop on battery with the lid closed (AppleClamshellState Yes, read 2026-10-03 07:16 UTC); caffeinate -i does not hold off clamshell sleep"
+}

@@ -368,18 +368,31 @@ class TestLoadCheckIsRendered:
         sys.path.insert(0, str(REPO))
         import scripts.readme_stats as rs
 
-        base = json.loads(rs.SINGLE_USER_JSON.read_text(encoding="utf-8"))
+        first, second = rs.SINGLE_USER_RUNS
+        base = json.loads(first.read_text(encoding="utf-8"))
         for doctor, expect in (
             (lambda d: d["records"][0].__setitem__("clock_drift_s", 900.0), "invalid"),
             (lambda d: d["records"][0].__setitem__("status", 503), "not served"),
+            (lambda d: d.pop("space_commit"), "does not record the Space"),
         ):
             data = json.loads(json.dumps(base))
             doctor(data)
             copy = tmp_path / "single.json"
             copy.write_text(json.dumps(data), encoding="utf-8")
-            monkeypatch.setattr(rs, "SINGLE_USER_JSON", copy)
+            # Either run, doctored, blocks the render: the good one does not cover for it.
+            monkeypatch.setattr(rs, "SINGLE_USER_RUNS", (second, copy))
             with pytest.raises(SystemExit, match=expect):
                 rs.render_loadcheck()
+
+    def test_the_single_user_rows_are_the_locked_runs_and_the_old_row_is_gone(self) -> None:
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        block = readme.split("<!-- LOADCHECK:START -->", 1)[1].split("<!-- LOADCHECK:END -->")[0]
+        rows = [ln for ln in block.splitlines() if ln.startswith("| Single user")]
+        assert len(rows) == 2 and all("Space `d96cd36e`" in r for r in rows)
+        assert all("(slowest of 10)" in r for r in rows)
+        assert "7745886e" not in block  # history, in DECISIONS D-064
+        decisions = (REPO / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
+        assert "p50 7.1 s, p95 14.3 s" in decisions and "7745886e" in decisions
 
     def test_an_unread_uncited_response_blocks_the_render(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

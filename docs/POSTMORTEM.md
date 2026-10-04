@@ -196,6 +196,11 @@ ten was a one-call guardrail refusal (`sp-003`), counted, which pulls the p50 do
 concurrent users, n=32 served of 169, p50 48.4 s, p95 88.3 s, 3.2 served queries a minute —
 the ceiling is the model's free-tier quota, not the service; cold start 39.6 s to ready.
 
+*Addendum, 2026-10-04:* that single-user row was measured on Space `7745886e`, whose dependency
+set had already drifted from the load-checked build. The README now shows two runs on the locked
+set, a day apart (Space `d96cd36e`, n=10 each): p50 7.1 s both times, slowest of ten 7.2 s and
+7.3 s. The old row is kept in D-064 as history (D-064).
+
 ---
 
 ## 5. The spend story

@@ -1,0 +1,21 @@
+{
+ "label": "single user, warm",
+ "url": "https://godvillain-scholium.hf.space",
+ "started_utc": "2026-10-03T05:15:12+00:00",
+ "spacing_s": 30.0,
+ "client": "scripts/load_check.py --single-user (httpx), one machine, no bypass",
+ "records": [
+  {
+   "i": 0,
+   "sent_utc": "2026-10-03T05:15:12.335294+00:00",
+   "status": 0,
+   "reason": "ReadTimeout",
+   "client_ms": 180357.3,
+   "clock_drift_s": 6622.6
+  }
+ ],
+ "invalid": "the client machine slept ~6623 s during the run: every timing is measured on a clock that stops in sleep, and in-flight requests died with it. INVALID \u2014 not a result.",
+ "space_commit": "d96cd36e",
+ "space_commit_note": "deploy-2026-10-02 = git 68a51e8 (D-064) \u2014 field added after the run",
+ "why_invalid_note": "client laptop on battery with the lid closed (AppleClamshellState Yes, read 2026-10-03 07:16 UTC); caffeinate -i does not hold off clamshell sleep"
+}

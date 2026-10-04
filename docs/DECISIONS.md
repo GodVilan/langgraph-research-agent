@@ -3072,7 +3072,11 @@ ruled out. **The local venv runs Python 3.13.7**, the system interpreter, not 3.
 lock check — and with it `make install`, `make ci-local`'s check step and the one test that runs
 the check on this interpreter — **fails locally until the venv is rebuilt on 3.13.15** (Srikanth
 installs it; then `rm -rf .venv && make install PYTHON=<path to python3.13.15>`). Its packages
-already equal the lock; the interpreter is the one difference, and the check names it. Unchanged: Hugging Face's build
+already equal the lock; the interpreter is the one difference, and the check names it.
+*Note, 2026-10-02:* **the local venv now matches the lock, interpreter included** — Srikanth
+rebuilt it on Python 3.13.15; `make lock-check`: Python 3.13.15 and 117 packages identical to
+`requirements-dev.lock`; `make ci-local WORKTREE=1 INTEGRATION=1` green (his run), and CI run #27
+green on all four jobs, lock checks included, at `68a51e8`. Unchanged: Hugging Face's build
 platform and the pip that ships in the base image.
 
 **Upgrade procedure — the only way the lock changes.**
@@ -3100,3 +3104,81 @@ ranges — they state what the code needs; the lock states what was run.
 index (provider change #8 in the D-034 sense): then regenerate from the newest *measured* image
 and re-measure, never from a fresh resolution. **A security advisory on a locked package also
 reopens it** — through the upgrade procedure above, all of it, not an ad-hoc bump.
+
+**Tag correction (2026-10-02).** `deploy-2026-10-02` was first pushed on `58111db` by mistake,
+then deleted and re-created on `68a51e8` before any deploy. Checked before deploying: the tag
+resolves to `68a51e8` locally (`git rev-parse deploy-2026-10-02^{commit}`) and on origin
+(`git ls-remote --tags origin`, a lightweight tag, so no peeled line), HEAD was `68a51e8`, and no
+deployed path was dirty. No Space commit was ever built from `58111db`; `infra/deploy_log.jsonl`
+records the deploy against `68a51e8`.
+
+**Deployed, 2026-10-03: tag `deploy-2026-10-02` = git `68a51e8` = Space `d96cd36e`** (boot
+`ce88a5e9`; deploy log `allow_dirty: false`). `make verify-deploy REV=deploy-2026-10-02`: **64
+identical, 0 mismatched**. The deployed image (`registry.hf.space/godvillain-scholium:cpu-d96cd36`)
+holds **exactly `caefad03`'s set — 105 packages, Python 3.13.15** (`pip freeze` of both images).
+
+**`make smoke-live`: every check passed, trace-complete included** — 32 observations, root `query`
+carries the answer, first seen after 6.0 s. The same code at `bee6609` on the drifted set
+(Space `71668787`) failed it; on the locked set it passes. So the rootless traces came from the
+dependency drift — packages and/or Python 3.13.16 — not from the code. Which one is still not
+identified (BACKLOG).
+
+**Single user, warm, n=10, on Space `d96cd36e`** (`latency_single_user_deploy-2026-10-02_run1.json`,
+2026-10-03 01:58 UTC): **p50 7.1 s, p95 7.2 s**, 10 of 10 served, one guardrail refusal (1 call,
+1.0 s). Beside: the published row, p50 7.1 s / p95 14.3 s, measured on `7745886e` — a set that had
+already drifted from `caefad03`'s (this decision's table); and Space `71668787`'s, 7.2 s / 51.0 s, on
+the set that lost its traces. At n=10 the nearest-rank p95 is the slowest request, so each p95
+above is one request. **The second run, due ≥3 h later, has not produced a valid result:** two
+attempts (05:15 and 07:09 UTC) were marked INVALID by the client's own clock check — the laptop
+slept ~6,623 s and ~428 s, on battery with the lid closed, where `caffeinate -i` does not hold
+off sleep (D-052's guard firing as built). Both kept as `…_run2_invalid.json` and
+`…_run2b_invalid.json`; neither is a result.
+
+**Latency outcome on the locked set (2026-10-04).** The second run, with the client awake:
+**p50 7.1 s, p95 7.3 s** (`latency_single_user_deploy-2026-10-02_run2.json`, 2026-10-04 01:58
+UTC, Space `d96cd36e`, same container as run 1, 10 of 10 served, one guardrail refusal). It
+agrees with run 1 (7.1 s / 7.2 s, a day earlier). At n=10 the nearest-rank p95 is the slowest of
+ten, and the README says so in each row. **The README's single-user row is now these two runs**,
+each with its date and n; `make readme-stats` renders them from the two artifacts and refuses
+either if it is invalid, has an unserved request, or does not name its Space.
+
+**History — the row it replaces, not deleted:** *single user, warm, one request at a time 30 s
+apart, 2026-09-25, Space `7745886e`, n=10: p50 7.1 s, p95 14.3 s; server-side graph time p50
+6.9 s / p95 14.1 s; 1 of 10 refused by the scope guardrail in one model call* (artifact:
+`evals/runs/latency_single_user.json`, unchanged). Measured on a dependency set that had drifted
+from the load-checked `caefad03` (OpenTelemetry 1.45, two new exporter packages, uvicorn 0.54,
+google-auth 2.58.1, googleapis-common-protos 1.75.4; this decision's table). Its p50 matches both locked runs; its 14.3 s was one
+request, and with one draw per set nothing here says whether that one request was the set or the
+provider.
+
+**The pacer explanation is measured as far as the traces allow, and not published.** Read-only
+from Langfuse Cloud, all 20 queries of both locked runs (per-generation start and end times):
+
+* **Every 4-call query** (12 of 20) spends 4.14–4.64 s in its fourth model call against 0.56–1.01 s
+  in each of the first three, and its fourth call ends 6.79–7.01 s after its first call starts.
+  Model-call (generation) time is 0.92–0.95 of the query's end-to-end time; the gaps between
+  calls, which hold retrieval and parsing, total 0.26–0.49 s.
+* That is the shape the container's pacer predicts — a bucket of 3 tokens refilling at 10 a
+  minute frees a fourth token about 6 s after the first is taken, and an ordinary call takes about
+  0.7 s.
+* **But the traces cannot separate the wait from the call.** In langchain-core 1.6.5 (the locked
+  version) the callback that opens the Langfuse generation (`on_chat_model_start`) fires before
+  the rate limiter's `aacquire`, so a pacer wait is inside the generation's duration, not between
+  generations. The share of end-to-end time spent waiting on the pacer is therefore **not
+  measured**: subtracting a typical call from the fourth (≈3.5 s of ≈6.9 s) is an estimate built
+  on the explanation it would be offered as evidence for. Per Srikanth's rule it stays out of the
+  README. Measuring it needs a span around the limiter's acquire (BACKLOG).
+* One outlier: run 2's first request spent 4.59 s *between* calls (a 3-call query, 6.79 s), the
+  first request after ~24 h idle on the same container. Not the pacer, which waits inside calls;
+  not investigated.
+
+**Drift conclusion.** `make smoke-live`'s trace-complete check **failed on the drifted set**
+(Space `71668787`, `bee6609`, 2026-10-02: the `query` span exported with a parent never exported)
+and **passed on the locked set** (Space `d96cd36e`, `68a51e8`, 2026-10-03: 32 observations, root
+`query` carries the answer). Between those two deploys the code changed only in docs and build
+files (`git diff bee6609 68a51e8 -- src` is empty); the image's packages and Python went back to
+`caefad03`'s. So the trace defect follows the dependency set, not the code: one of the 14 packages
+that moved between `2b9570c4` (traced correctly) and `71668787`, or Python 3.13.15 → 3.13.16.
+Which one is still not identified (BACKLOG); one failure and one pass per set is the whole
+sample.
+
